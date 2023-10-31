@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "declaration": true,
+    "strict": true,
+    "allowJs": true,
+    "module": "commonjs",
+    "outDir": "dist",
+    "target": "es6",
+    "rootDir": "./src",
+    "jsx": "react",
+    "removeComments": true,
+    "importHelpers": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true
+  },
+  "exclude": [
+    "node_modules",
+    "dist",
+    "jest.config.js",
+    "jest.config.d.ts",
+    "bin"
+  ]
+}

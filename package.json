@@ -1,0 +1,37 @@
+{
+  "name": "next-css-obfuscator",
+  "version": "1.0.0",
+  "description": "A temporary solution for using postcss-obfuscator in Next.js.",
+  "main": "dist/index.js",
+  "type": "commonjs",
+  "keywords": [
+    "next.js",
+    "css",
+    "obfuscator",
+    "postcss"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc -w",
+    "pub": "npm run build && npm publish"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/soranoo/next-css-obfuscator.git"
+  },
+  "author": "soranoo (Freeman)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/soranoo/next-css-obfuscator/issues"
+  },
+  "homepage": "https://github.com/soranoo/next-css-obfuscator#readme",
+  "devDependencies": {
+    "@types/node": "^20.8.10",
+    "@types/react": "^18.2.31",
+    "typescript": "^5.0.2"
+  },
+  "bin": {
+    "next-css-obfuscator-part1": "./bin/cli-part1.mjs",
+    "next-css-obfuscator-part2": "./bin/cli-part2.mjs"
+  }
+}
