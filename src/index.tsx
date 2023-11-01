@@ -10,6 +10,8 @@ const config_HtmlExcludes = obfuscatorConfig.htmlExcludes || [];
 const config_IndicatorStart = obfuscatorConfig.indicatorStart || null;
 const config_IndicatorEnd = obfuscatorConfig.indicatorEnd || null;
 
+const config_whiteListedPaths = obfuscatorConfig.whiteListedPaths || [".next/server/pages", ".next/static/chunks/pages"];
+
 const BUILD_FODLER_PATH = ".next";
 const TEMP_CSS_FODLER = "./temp-css";
 
@@ -103,10 +105,11 @@ function moveCssBackToOriginalPath() {
     config_IndicatorStart,
     config_IndicatorEnd,
     true,
+    config_whiteListedPaths
   );
 
   // remove the temp folder
-  fs.rmdirSync(TEMP_CSS_FODLER, { recursive: true });
+  fs.rmSync(TEMP_CSS_FODLER, { recursive: true });
 }
 
 function part1() {

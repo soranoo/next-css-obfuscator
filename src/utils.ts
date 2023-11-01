@@ -33,7 +33,9 @@ function replaceJsonKeysInFiles(
   jsonDataPath: string,
   indicatorStart: string | null,
   indicatorEnd: string | null,
-  keepData: boolean
+  keepData: boolean,
+  
+  incloudPaths: string[],
 ) {
   // Read and merge the JSON data
   const jsonData = {};
@@ -53,7 +55,8 @@ function replaceJsonKeysInFiles(
       });
     } else if (
       htmlExtensions.includes(fileExt) &&
-      !htmlExcludes.includes(path.basename(filePath))
+      !htmlExcludes.includes(path.basename(filePath)) &&
+      (incloudPaths.length == 0 || incloudPaths.includes(filePath))
     ) {
       // Replace JSON keys in the file
       let fileContent = fs.readFileSync(filePath, "utf-8");

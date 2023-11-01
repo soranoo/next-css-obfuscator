@@ -105,9 +105,14 @@ Visit the [npm](https://www.npmjs.com/package/next-css-obfuscator) page.
 
    > ⚠️ `formatJson`, `fresh` and `keepData` must be `true` to make sure the obfuscation works properly.
 
+   NEW Configuration Options:
+   | Option | Type | Default | Description |
+    | --- | --- | --- | --- |
+    | whiteListedPaths | string[] | [".next/server/pages", ".next/static/chunks/pages"] | All files in these paths will be obfuscated. Set to `[]` to obfuscate all files. |
+
 2. Add the following code to `package.json`:
 
-   ```json
+   ```javascript
    "scripts": {
     // other scripts ...
     "obfuscate-build": "next-css-obfuscator-part1 && cross-env NODE_ENV=obfuscation postcss ./temp-css/*.css --dir ./temp-css && next-css-obfuscator-part2"
@@ -123,7 +128,7 @@ Visit the [npm](https://www.npmjs.com/package/next-css-obfuscator) page.
 
 You may update your build script to:
 
-```json
+```javascript
 // package.json
 
 "scripts": {
