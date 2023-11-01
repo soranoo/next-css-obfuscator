@@ -1,16 +1,18 @@
 import fs from "fs";
 import path from "path";
-import { log, replaceJsonKeysInFiles, getFilenameFromPath } from "./utils";
+import { log, replaceJsonKeysInFiles, getFilenameFromPath, normalizePath } from "./utils";
 
 // load config from postcss.config.cjs
 const postcssConfig = require(path.join(process.cwd(), "postcss.config.cjs"));
-const obfuscatorConfig = postcssConfig.plugins["postcss-obfuscator"];
+const obfuscatorConfig = postcssConfig.plugins["next-css-obfuscator/patched-postcss-obfuscator"];
 const config_JsonsPath = obfuscatorConfig.jsonsPath || "./css-obfuscator";
 const config_HtmlExcludes = obfuscatorConfig.htmlExcludes || [];
 const config_IndicatorStart = obfuscatorConfig.indicatorStart || null;
 const config_IndicatorEnd = obfuscatorConfig.indicatorEnd || null;
 
-const config_whiteListedPaths = obfuscatorConfig.whiteListedPaths || [".next/server/pages", ".next/static/chunks/pages"];
+const config_WhiteListedPaths = obfuscatorConfig.whiteListedPaths || [];
+const config_BlackListedPaths = obfuscatorConfig.blackListedPaths || [];
+const config_ExcludeAnyMatchRegex = obfuscatorConfig.excludeAnyMatchRegex || [];
 
 const BUILD_FODLER_PATH = ".next";
 const TEMP_CSS_FODLER = "./temp-css";
@@ -27,7 +29,7 @@ function findAllFilesWithExt(ext: string): string[] {
     const files = fs.readdirSync(dir);
 
     files.forEach((file) => {
-      const filePath = path.join(dir, file);
+      const filePath = normalizePath(path.join(dir, file));
 
       if (fs.statSync(filePath).isDirectory()) {
         // if it's a directory, recursively search for CSS files
@@ -105,7 +107,9 @@ function moveCssBackToOriginalPath() {
     config_IndicatorStart,
     config_IndicatorEnd,
     true,
-    config_whiteListedPaths
+    config_WhiteListedPaths,
+    config_BlackListedPaths,
+    config_ExcludeAnyMatchRegex,
   );
 
   // remove the temp folder

@@ -18,6 +18,7 @@
     "dist",
     "jest.config.js",
     "jest.config.d.ts",
-    "bin"
+    "bin",
+    "patched-postcss-obfuscator"
   ]
 }

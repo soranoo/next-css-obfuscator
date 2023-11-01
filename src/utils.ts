@@ -34,8 +34,10 @@ function replaceJsonKeysInFiles(
   indicatorStart: string | null,
   indicatorEnd: string | null,
   keepData: boolean,
-  
+
   whiteListedPaths: string[],
+  blackListedPaths: string[],
+  excludeAnyMatchRegex: string[],
 ) {
   // Read and merge the JSON data
   const jsonData = {};
@@ -57,15 +59,37 @@ function replaceJsonKeysInFiles(
       htmlExtensions.includes(fileExt) &&
       !htmlExcludes.includes(path.basename(filePath))
     ) {
-      if (whiteListedPaths.length != 0) {
+      if (whiteListedPaths.length > 0) {
         // check if file path is inclouded
         let inclouded = false;
         whiteListedPaths.forEach((incloudPath) => {
-          if (filePath.includes(incloudPath)) {
+          if (normalizePath(filePath).includes(normalizePath(incloudPath))) {
             inclouded = true;
           }
         });
         if (!inclouded) {
+          return;
+        }
+      }
+      if (excludeAnyMatchRegex.length > 0) {
+        let inclouded = false;
+        excludeAnyMatchRegex.forEach((excludeRegex) => {
+          if (normalizePath(filePath).match(excludeRegex)) {
+            inclouded = true;
+          }
+        });
+        if (inclouded) {
+          return;
+        }
+      }
+      if (blackListedPaths.length > 0) {
+        let inclouded = false;
+        blackListedPaths.forEach((incloudPath) => {
+          if (normalizePath(filePath).includes(normalizePath(incloudPath))) {
+            inclouded = true;
+          }
+        });
+        if (inclouded) {
           return;
         }
       }
@@ -92,7 +116,7 @@ function replaceJsonKeysInFiles(
         }
       });
       if (fileContentOriginal !== fileContent) {
-        log("success", "Data obfuscated:", filePath);
+        log("success", "Data obfuscated:", normalizePath(filePath));
         fs.writeFileSync(filePath, fileContent);
       }
     }
@@ -116,4 +140,8 @@ function getFilenameFromPath(filePath: string) {
   return filePath.replace(/^.*[\\/]/, '');
 }
 
-export { log, replaceJsonKeysInFiles, getFilenameFromPath };
+function normalizePath(filePath: string) {
+  return filePath.replace(/\\/g, "/");
+}
+
+export { log, replaceJsonKeysInFiles, getFilenameFromPath, normalizePath };
