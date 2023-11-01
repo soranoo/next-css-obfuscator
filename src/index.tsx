@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { log, replaceJsonKeysInFiles, getFilenameFromPath, normalizePath } from "./utils";
+import { log, replaceJsonKeysInFiles, getFilenameFromPath } from "./utils";
 
 // load config from postcss.config.cjs
 const postcssConfig = require(path.join(process.cwd(), "postcss.config.cjs"));
@@ -10,8 +10,7 @@ const config_HtmlExcludes = obfuscatorConfig.htmlExcludes || [];
 const config_IndicatorStart = obfuscatorConfig.indicatorStart || null;
 const config_IndicatorEnd = obfuscatorConfig.indicatorEnd || null;
 
-const config_WhiteListedPaths = obfuscatorConfig.whiteListedPaths || [".next/server/pages", ".next/static/chunks/pages"];
-const config_ExcludeAnyMatchRegex = obfuscatorConfig.excludeAnyMatchRegex || [];
+const config_whiteListedPaths = obfuscatorConfig.whiteListedPaths || [".next/server/pages", ".next/static/chunks/pages"];
 
 const BUILD_FODLER_PATH = ".next";
 const TEMP_CSS_FODLER = "./temp-css";
@@ -28,7 +27,7 @@ function findAllFilesWithExt(ext: string): string[] {
     const files = fs.readdirSync(dir);
 
     files.forEach((file) => {
-      const filePath = normalizePath(path.join(dir, file));
+      const filePath = path.join(dir, file);
 
       if (fs.statSync(filePath).isDirectory()) {
         // if it's a directory, recursively search for CSS files
@@ -106,8 +105,7 @@ function moveCssBackToOriginalPath() {
     config_IndicatorStart,
     config_IndicatorEnd,
     true,
-    config_WhiteListedPaths,
-    config_ExcludeAnyMatchRegex,
+    config_whiteListedPaths
   );
 
   // remove the temp folder

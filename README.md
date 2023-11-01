@@ -8,7 +8,7 @@ Give me a ⭐ if you like it.
 
 ## 🤔 Why this?
 
-Because in the current version of [postcss-obfuscator](https://github.com/n4j1Br4ch1D/postcss-obfuscato) does not work with Next.js. (see [this issue](https://github.com/n4j1Br4ch1D/postcss-obfuscator/issues/15) for more details)
+Because in the current version of [postcss-obfuscator](https://github.com/n4j1Br4ch1D/postcss-obfuscato) does not work with Next.js. (see [this issue](https://github.com/n4j1Br4ch1D/postcss-obfuscator/issues/15) for more details) 
 
 By the way, many thanks to [n4j1Br4ch1D](https://github.com/n4j1Br4ch1D) for creating such a great package.
 
@@ -92,7 +92,6 @@ Visit the [npm](https://www.npmjs.com/package/next-css-obfuscator) page.
          formatJson: true, // 👈 must be true
          fresh: true, // 👈 must be true
          keepData: true, // 👈 must be true
-         classIgnore: ["static"],
          callBack: function () {
            // @ts-ignore
            process.env.NODE_ENV = "production"; // to make sure postcss-obfuscator doesn't re-run.
@@ -108,9 +107,8 @@ Visit the [npm](https://www.npmjs.com/package/next-css-obfuscator) page.
 
    NEW Configuration Options:
    | Option | Type | Default | Description |
-   | --- | --- | --- | --- |
-   | whiteListedPaths | string[] | [".next/server/pages", ".next/static/chunks/pages"] | All files in these paths will be obfuscated. Set to `[]` to obfuscate all files. |
-   | excludeAnyMatchRegex | string[] | [] | Any file path that matches any of the regex will be excluded from obfuscation. |
+    | --- | --- | --- | --- |
+    | whiteListedPaths | string[] | [".next/server/pages", ".next/static/chunks/pages"] | All files in these paths will be obfuscated. Set to `[]` to obfuscate all files. |
 
 2. Add the following code to `package.json`:
 

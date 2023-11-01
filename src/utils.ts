@@ -34,9 +34,8 @@ function replaceJsonKeysInFiles(
   indicatorStart: string | null,
   indicatorEnd: string | null,
   keepData: boolean,
-
+  
   whiteListedPaths: string[],
-  excludeAnyMatchRegex: string[],
 ) {
   // Read and merge the JSON data
   const jsonData = {};
@@ -58,25 +57,17 @@ function replaceJsonKeysInFiles(
       htmlExtensions.includes(fileExt) &&
       !htmlExcludes.includes(path.basename(filePath))
     ) {
-      if (whiteListedPaths.length > 0) {
+      if (whiteListedPaths.length != 0) {
         // check if file path is inclouded
         let inclouded = false;
         whiteListedPaths.forEach((incloudPath) => {
-          if (normalizePath(filePath).includes(normalizePath(incloudPath))) {
+          if (filePath.includes(incloudPath)) {
             inclouded = true;
           }
         });
         if (!inclouded) {
           return;
         }
-      }
-      if (excludeAnyMatchRegex.length > 0) {
-        // check if file path is inclouded
-        excludeAnyMatchRegex.forEach((excludeRegex) => {
-          if (normalizePath(filePath).match(excludeRegex)) {
-            return;
-          }
-        });
       }
 
       // Replace JSON keys in the file
@@ -125,8 +116,4 @@ function getFilenameFromPath(filePath: string) {
   return filePath.replace(/^.*[\\/]/, '');
 }
 
-function normalizePath(filePath: string) {
-  return filePath.replace(/\\/g, "/");
-}
-
-export { log, replaceJsonKeysInFiles, getFilenameFromPath, normalizePath };
+export { log, replaceJsonKeysInFiles, getFilenameFromPath };
