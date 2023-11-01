@@ -35,7 +35,7 @@ function replaceJsonKeysInFiles(
   indicatorEnd: string | null,
   keepData: boolean,
   
-  incloudPaths: string[],
+  whiteListedPaths: string[],
 ) {
   // Read and merge the JSON data
   const jsonData = {};
@@ -55,9 +55,21 @@ function replaceJsonKeysInFiles(
       });
     } else if (
       htmlExtensions.includes(fileExt) &&
-      !htmlExcludes.includes(path.basename(filePath)) &&
-      (incloudPaths.length == 0 || incloudPaths.includes(filePath))
+      !htmlExcludes.includes(path.basename(filePath))
     ) {
+      if (whiteListedPaths.length != 0) {
+        // check if file path is inclouded
+        let inclouded = false;
+        whiteListedPaths.forEach((incloudPath) => {
+          if (filePath.includes(incloudPath)) {
+            inclouded = true;
+          }
+        });
+        if (!inclouded) {
+          return;
+        }
+      }
+
       // Replace JSON keys in the file
       let fileContent = fs.readFileSync(filePath, "utf-8");
       const fileContentOriginal = fileContent;
