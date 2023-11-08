@@ -2,7 +2,7 @@
 
 Project start on 30-10-2023
 
-[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)&nbsp;&nbsp;&nbsp;[![Donation](https://img.shields.io/static/v1?label=Donation&message=❤️&style=social)](https://github.com/soranoo/Donation)
+![Weekly Download](https://img.shields.io/npm/dw/next-css-obfuscator?color=0066cc&style=flat) [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)&nbsp;&nbsp;&nbsp;[![Donation](https://img.shields.io/static/v1?label=Donation&message=❤️&style=social)](https://github.com/soranoo/Donation)
 
 A temporary solution for using [PostCSS-Obfuscator](https://github.com/n4j1Br4ch1D/postcss-obfuscato) in Next.js.
 
