@@ -31,7 +31,7 @@ Give me a ⭐ if you like it.
 
 ## 🤔 Why this?
 
-Because in the current version of [PostCSS-Obfuscator](https://github.com/n4j1Br4ch1D/postcss-obfuscato) does not work with Next.js. (see [this issue](https://github.com/n4j1Br4ch1D/postcss-obfuscator/issues/15) for more details)
+Because in the current version of [PostCSS-Obfuscator](https://github.com/n4j1Br4ch1D/postcss-obfuscator) does not work with Next.js. (see [this issue](https://github.com/n4j1Br4ch1D/postcss-obfuscator/issues/15) for more details)
 
 By the way, many thanks to [n4j1Br4ch1D](https://github.com/n4j1Br4ch1D) for creating such a great package.
 
