@@ -24,6 +24,7 @@ Give me a ⭐ if you like it.
   - [Usage 🎉](#usage-)
 - [🔧 My Setting](#-my-setting)
 - [📖 PostCSS Options Reference](#-postcss-options-reference)
+- [👀 Demo](#-demo)
 - [🐛 Known Issues](#-known-issues)
 - [🤝 Contributing](#-contributing)
 - [📝 License](#-license)
@@ -237,6 +238,10 @@ It may not be the best setting but it works for me. :)
 | excludeAnyMatchRegex | string[]      | []                      | Any file path that matches any of the regex will be excluded from obfuscation.                                                  |
 
 Compared to the original `PostCSS-Obfuscator` options, I have removed some to make the patch work as expected. And I have added some new options to make the obfuscation more flexible.
+
+## 👀 Demo
+
+1. [Next 14 App Router](https://github.com/soranoo/next-css-obfuscator/tree/main/demo/next14-app-router)
 
 ## 🐛 Known Issues
 
