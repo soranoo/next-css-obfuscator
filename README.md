@@ -9,7 +9,7 @@ A temporary solution for using [PostCSS-Obfuscator](https://github.com/n4j1Br4ch
 Give me a ⭐ if you like it.
 
 > [!WARNING]\
-> This is no a plug and play package. You have to invest some time to make it work.\
+> This is no a plug and play package. You have to invest some time to make it work
 
 ## 📖 Table of Contents
 
