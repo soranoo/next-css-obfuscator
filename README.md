@@ -6,10 +6,10 @@ Project start on 30-10-2023
 
 A temporary solution for using [PostCSS-Obfuscator](https://github.com/n4j1Br4ch1D/postcss-obfuscato) in Next.js.
 
-Give me a ⭐ if you like it.
-
 > [!WARNING]\
 > This is no a plug and play package. You have to invest some time to make it work
+
+Give me a ⭐ if you like it.
 
 ## 📖 Table of Contents
 
