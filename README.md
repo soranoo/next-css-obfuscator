@@ -8,6 +8,9 @@ A temporary solution for using [PostCSS-Obfuscator](https://github.com/n4j1Br4ch
 
 Give me a ⭐ if you like it.
 
+> [!WARNING]\
+> This is no a plug and play package. You have to invest some time to make it work.\
+
 ## 📖 Table of Contents
 
 - [🤔 Why this?](#-why-this)
@@ -244,7 +247,7 @@ Compared to the original `PostCSS-Obfuscator` options, I have removed some to ma
 1. [Next 14 App Router](https://github.com/soranoo/next-css-obfuscator/tree/main/demo/next14-app-router)
 
 ## 🐛 Known Issues
-
+- [Failed to obfuscate in MacOS (Next 14)](https://github.com/soranoo/next-css-obfuscator/issues/3)
 > If there are no serious issues, I tend to leave them alone.
 
 ## 🤝 Contributing
