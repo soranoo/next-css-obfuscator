@@ -132,8 +132,8 @@ function replaceJsonKeysInFiles(
         obfuscateMarkerClasses.forEach(obfuscateMarkerClass => {
           const isHtml = [".html"].includes(fileExt);
           if (isHtml) {
-            // ref: https://stackoverflow.com/a/56102604
             // filter all html
+            // ref: https://stackoverflow.com/a/56102604
             const htmlRegex = new RegExp(`(<(.*)>(.*)<\/([^br][A-Za-z0-9]+)>)`, 'g');
             const htmlMatch = fileContent.match(htmlRegex);
             if (htmlMatch) {
@@ -142,7 +142,7 @@ function replaceJsonKeysInFiles(
               const tagContents = findTagContentsByClass(html, obfuscateMarkerClass);
               tagContents.forEach(tagContent => {
                 const { obfuscatedContent, usedKeys } = obfuscateKeys(jsonData, tagContent, indicatorStart, indicatorEnd);
-                addKeysToRegistery(jsonData, usedKeys);
+                addKeysToRegistery(usedKeys);
                 if (tagContent !== obfuscatedContent) {
                   html = html.replace(tagContent, obfuscatedContent);
                   log("debug", `Obscured keys under HTML tag in file:`, normalizePath(filePath));
@@ -174,14 +174,15 @@ function replaceJsonKeysInFiles(
       } else {
         const { obfuscatedContent, usedKeys } = obfuscateKeys(jsonData, fileContent, indicatorStart, indicatorEnd);
         fileContent = obfuscatedContent;
-        addKeysToRegistery(jsonData, usedKeys);
+        addKeysToRegistery(usedKeys);
       }
+
       if (fileContentOriginal !== fileContent) {
         log("success", "Data obfuscated:", normalizePath(filePath));
         fs.writeFileSync(filePath, fileContent);
       }
 
-    } else if (fileExt === ".css" && enableObfuscateMarkerClasses) {
+    } else if (fileExt === ".css") {
       cssPaths.push(filePath);
     }
 
@@ -404,7 +405,7 @@ function obfuscateJs(content: string, key: string, jsonData: JsonData
   const truncatedContents = findContentBetweenMarker(content, key, "{", "}");
   truncatedContents.forEach((truncatedContent) => {
     const { obfuscatedContent, usedKeys } = obfuscateKeys(jsonData, truncatedContent, indicatorStart, indicatorEnd);
-    addKeysToRegistery(jsonData, usedKeys);
+    addKeysToRegistery(usedKeys);
     if (truncatedContent !== obfuscatedContent) {
       content = content.replace(truncatedContent, obfuscatedContent);
       log("debug", `Obscured keys "${key}":`, `${normalizePath(filePath)}`);
@@ -413,8 +414,8 @@ function obfuscateJs(content: string, key: string, jsonData: JsonData
   return content;
 }
 
-function addKeysToRegistery(jsonData: JsonData, usedKeys: Set<string>) {
-  Object.keys(jsonData).forEach((key) => {
+function addKeysToRegistery(usedKeys: Set<string>) {
+  usedKeys.forEach((key) => {
     usedKeyRegistery.add(key);
   });
 }
@@ -479,4 +480,8 @@ function obfuscateCss(jsonData: JsonData, cssPath: string) {
 
 }
 
-export { getFilenameFromPath, log, normalizePath, replaceJsonKeysInFiles, setLogLevel, type LogType };
+export {
+  getFilenameFromPath, log, normalizePath
+  , replaceJsonKeysInFiles, setLogLevel, type LogType
+  , copyCssData, findContentBetweenMarker
+};
