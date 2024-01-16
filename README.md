@@ -69,7 +69,6 @@ You may ask why I have split the project to patched PostCSS-Obfuscator and the N
 ## 🗝️ Features
 
 - WORK WITH NEXT.JS !!!!!!!!!!!!!!!!!!!
-- Zero Dependencies
 
 > [!INFO]\
 > This package is NOT guaranteed to work with EVERYONE. Check the site carefully before using it in production.
