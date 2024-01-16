@@ -140,30 +140,26 @@ function replaceJsonKeysInFiles(
               let html = htmlMatch[0];
               const htmlOriginal = html;
               const tagContents = findTagContentsByClass(html, obfuscateMarkerClass);
-              // const tagContents = tagObfuscatedData.obfuscatedContent;
               tagContents.forEach(tagContent => {
                 const { obfuscatedContent, usedKeys } = obfuscateKeys(jsonData, tagContent, indicatorStart, indicatorEnd);
                 addKeysToRegistery(jsonData, usedKeys);
                 if (tagContent !== obfuscatedContent) {
-                  html = obfuscatedContent;
-                  // html = repalceFirstMatch(html, tagContent, obfuscatedContent);
+                  html = html.replace(tagContent, obfuscatedContent);
                   log("debug", `Obscured keys under HTML tag in file:`, normalizePath(filePath));
                 }
               });
 
-              const scriptTagContents = findTagContents(html, "script");
+              const scriptTagContents = findHtmlTagContents(html, "script");
               scriptTagContents.forEach(scriptTagContent => {
                 const obfuscateScriptContent = obfuscateJs(scriptTagContent, obfuscateMarkerClass, jsonData, filePath, indicatorStart, indicatorEnd);
                 if (scriptTagContent !== obfuscateScriptContent) {
-                  html = obfuscateScriptContent
-                  // html = repalceFirstMatch(html, scriptTagContent, obfuscateScriptContent);
+                  html = html.replace(scriptTagContent, obfuscateScriptContent);
                   log("debug", `Obscured keys under HTML script tag in file:`, normalizePath(filePath));
                 }
               });
 
               if (htmlOriginal !== html) {
-                fileContent = htmlOriginal;
-                // fileContent = repalceFirstMatch(fileContent, htmlOriginal, html);
+                fileContent = fileContent.replace(htmlOriginal, html);
               }
             }
           } else {
@@ -249,7 +245,7 @@ function normalizePath(filePath: string) {
   return filePath.replace(/\\/g, "/");
 }
 
-function findTagContentsRecursive(content: string, targetTag: string, targetClass: string | null = null, foundTagContents: string[] = [], deep: number = 0, maxDeep: number = -1) {
+function findHtmlTagContentsRecursive(content: string, targetTag: string, targetClass: string | null = null, foundTagContents: string[] = [], deep: number = 0, maxDeep: number = -1) {
   let contentAfterTag = content;
   const startTagWithClassRegexStr = targetClass ?
     // ref: https://stackoverflow.com/a/16559544
@@ -324,9 +320,9 @@ function findTagContentsRecursive(content: string, targetTag: string, targetClas
     const remainingHtmlTagMatch = remainingHtml.match(remainingHtmlTagRegex);
     if (remainingHtmlTagMatch) {
       if (maxDeep === -1 || deep < maxDeep) {
-        return findTagContentsRecursive(remainingHtml, targetTag, targetClass, foundTagContents, deep + 1, maxDeep);
+        return findHtmlTagContentsRecursive(remainingHtml, targetTag, targetClass, foundTagContents, deep + 1, maxDeep);
       } else {
-        log("warn", "HTML Tag Content Search", "Max deep reached, recursive break");
+        log("warn", "HTML search:", "Max deep reached, recursive break");
         return foundTagContents;
       }
     }
@@ -334,8 +330,8 @@ function findTagContentsRecursive(content: string, targetTag: string, targetClas
 
   return foundTagContents;
 }
-function findTagContents(content: string, targetTag: string, targetClass: string | null = null) {
-  return findTagContentsRecursive(content, targetTag, targetClass);
+function findHtmlTagContents(content: string, targetTag: string, targetClass: string | null = null) {
+  return findHtmlTagContentsRecursive(content, targetTag, targetClass);
 }
 
 function findTagContentsByClass(content: string, targetClass: string) {
@@ -343,7 +339,7 @@ function findTagContentsByClass(content: string, targetClass: string) {
   const match = content.match(regex);
   if (match) {
     const tag = match[2];
-    return findTagContents(content, tag, targetClass);
+    return findHtmlTagContents(content, tag, targetClass);
   } else {
     return [];
   }
@@ -402,16 +398,16 @@ function findContentBetweenMarker(content: string, targetStr: string, openMarker
   return foundContents;
 }
 
-function obfuscateJs(content: string, targetStr: string, jsonData: JsonData
+function obfuscateJs(content: string, key: string, jsonData: JsonData
   , filePath: string, indicatorStart: string | null, indicatorEnd: string | null
 ) {
-  const truncatedContents = findContentBetweenMarker(content, targetStr, "{", "}");
+  const truncatedContents = findContentBetweenMarker(content, key, "{", "}");
   truncatedContents.forEach((truncatedContent) => {
     const { obfuscatedContent, usedKeys } = obfuscateKeys(jsonData, truncatedContent, indicatorStart, indicatorEnd);
     addKeysToRegistery(jsonData, usedKeys);
     if (truncatedContent !== obfuscatedContent) {
       content = content.replace(truncatedContent, obfuscatedContent);
-      log("debug", `Obscured keys under "${targetStr}" in file:`, normalizePath(filePath));
+      log("debug", `Obscured keys "${key}":`, `${normalizePath(filePath)}`);
     }
   });
   return content;
@@ -468,7 +464,7 @@ function obfuscateCss(jsonData: JsonData, cssPath: string) {
       cssObj = copyCssData(originalSelectorName, jsonData[key], cssObj);
     }
   });
-  log("info", "CSS Rules", `Added ${cssObj.stylesheet.rules.length - cssRulesCount} new CSS rules to ${getFilenameFromPath(cssPath)}`);
+  log("info", "CSS rules:", `Added ${cssObj.stylesheet.rules.length - cssRulesCount} new CSS rules to ${getFilenameFromPath(cssPath)}`);
 
   const cssOptions = {
     compress: true,
@@ -479,7 +475,7 @@ function obfuscateCss(jsonData: JsonData, cssPath: string) {
   fs.writeFileSync(cssPath, cssObfuscatedContent);
   const sizeAfter = Buffer.byteLength(cssObfuscatedContent, "utf8");
   const percentChange = Math.round(((sizeAfter) / sizeBefore) * 100);
-  log("success", "CSS Obfuscated", `Size from ${sizeBefore} to ${sizeAfter} bytes (${percentChange}%) in ${getFilenameFromPath(cssPath)}`);
+  log("success", "CSS obfuscated:", `Size from ${sizeBefore} to ${sizeAfter} bytes (${percentChange}%) in ${getFilenameFromPath(cssPath)}`);
 
 }
 

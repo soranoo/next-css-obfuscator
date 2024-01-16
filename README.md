@@ -71,7 +71,8 @@ You may ask why I have split the project to patched PostCSS-Obfuscator and the N
 - WORK WITH NEXT.JS !!!!!!!!!!!!!!!!!!!
 - Zero Dependencies
 
-> ⚠️ This package is NOT guaranteed to work with EVERYONE. Check the site carefully before using it in production.
+> [!INFO]\
+> This package is NOT guaranteed to work with EVERYONE. Check the site carefully before using it in production.
 
 ## 🛠️ Development Environment
 
@@ -137,8 +138,10 @@ Visit the [npm](https://www.npmjs.com/package/next-css-obfuscator) page.
 
    Feel to checkout [📖 PostCSS Options Reference](#-postcss-options-reference) for more details.
 
-   > ⚠️ `formatJson`, `keepData` must be `true` to make sure the obfuscation works properly.
+   > [!INFO]\
+   > `formatJson`, `keepData` must be `true` to make sure the obfuscation works properly.
 
+   > [!INFO]\
    > The obfuscation will never work as expected, tweak the options with your own needs.
 
 2. Add the following code to `package.json`:
@@ -157,7 +160,8 @@ Visit the [npm](https://www.npmjs.com/package/next-css-obfuscator) page.
 
 (You may need to delete the `.next/cache` folder before running `npm run start` to make sure the obfuscation takes effect. And don't forget to `shift + F5` refresh the page.`)
 
-> ⚠️ NEVER run `obfuscate-build` twice in a row. It will mess up the build files and obfuscation convertion table. You can remove the `jsonsPath`(default: `css-obfuscator`) folder to reset the convertion table.
+> [!WARNING]\
+> NEVER run `obfuscate-build` twice in a row. It will mess up the build files and obfuscation convertion table. You can remove the `jsonsPath`(default: `css-obfuscator`) folder to reset the convertion table.
 
 You may update your build script to:
 
@@ -210,50 +214,50 @@ It may not be the best setting but it works for me. :)
 
 ## 📖 PostCSS Options Reference
 
-| Option                       | Type                                                        | Default                 | Description                                                                                                                     |
-| ---------------------------- | ----------------------------------------------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| enable                       | boolean                                                     | true                    | Enable or disable the obfuscation.                                                                                              |
-| length                       | number                                                      | 5                       | Random name length.                                                                                                             |
-| classMethod                  | string                                                      | "random"                | 'random', 'simple', 'none' obfuscation method for classes.                                                                      |
-| classPrefix                  | string                                                      | ""                      | ClassName prefix.                                                                                                               |
-| classSuffix                  | string                                                      | ""                      | ClassName suffix.                                                                                                               |
-| classIgnore                  | string[]                                                    | []                      | Class to ignore from obfuscation.                                                                                               |
-| ids                          | boolean                                                     | false                   | Obfuscate #IdNames.                                                                                                             |
-| idMethod                     | string                                                      | "random"                | 'random', 'simple', 'none' obfuscation method for ids .                                                                         |
-| idPrefix                     | string                                                      | ""                      | idName Prefix.                                                                                                                  |
-| idSuffix                     | string                                                      | ""                      | idName suffix.                                                                                                                  |
-| idIgnore                     | string[]                                                    | []                      | Ids to ignore from obfuscation.                                                                                                 |
-| indicatorStart               | string                                                      | null                    | Identify ids & classes by the preceding string.                                                                                 |
-| indicatorEnd                 | string                                                      | null                    | Identify ids & classes by the following string.                                                                                 |
-| jsonsPath                    | string                                                      | "css-obfuscator"        | Path and file name where to save obfuscation data.                                                                              |
-| srcPath                      | string                                                      | "src"                   | Source of your files.                                                                                                           |
-| desPath                      | string                                                      | "out"                   | Destination for obfuscated html/js/.. files.Be careful using the same directory as your src(you will lose your original files). |
-| extensions                   | string[]                                                    | [".html"]               | Extesnion of files you want osbfucated [".jsx", ".tsx", ".js", ".ts", ".html"].                                                 |
-| fresh                        | boolean                                                     | false                   | Create new obfuscation data list or use already existed one (to keep production cache or prevent data scrapping).               |
-| formatJson                   | boolean                                                     | false                   | Format obfuscation data JSON file.                                                                                              |
-| showConfig                   | boolean                                                     | false                   | Show config on terminal when runinng.                                                                                           |
-| keepData                     | boolean                                                     | true                    | Keep or delete Data after obfuscation is finished?                                                                              |
-| preRun                       | () => Promise                                               | () => Promise.resolve() | do something before the plugin runs.                                                                                            |
-| callBack                     | () => void                                                  | function () {}          | Callback function to call after obfuscation is done.                                                                            |
-| == NEW OPTIONS ==            |                                                             |                         |                                                                                                                                 |
-| whiteListedPaths             | string[]                                                    | []                      | All files in these paths will be obfuscated. Set to `[]` to obfuscate all files.                                                |
-| blackListedPaths             | string[]                                                    | []                      | All files in these paths will not be obfuscated. (higher priority than others options)                                          |
-| excludeAnyMatchRegex         | string[]                                                    | []                      | Any file path that matches any of the regex will be excluded from obfuscation.                                                  |
-| enableObfuscateMarkerClasses | boolean                                                     | false                   |  Enable                                                                               |
-| obfuscateMarkerClasses       | string[]                                                    | []                      |                                                                             |
-| removeObfuscateMarkerClasses | boolean                                                     | false                   |                                                                          |
-| logLevel                     | "none" \| "error" \| "warn" \| "info" \| "debug" \| "trace" | "info"                  | The log level.                                                                                                                  |
+| Option                       | Type                                                        | Default                  | Description                                                                                                                     |
+| ---------------------------- | ----------------------------------------------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------- |
+| enable                       | boolean                                                     | true                     | Enable or disable the obfuscation.                                                                                              |
+| length                       | number                                                      | 5                        | Random name length.                                                                                                             |
+| classMethod                  | string                                                      | "random"                 | 'random', 'simple', 'none' obfuscation method for classes.                                                                      |
+| classPrefix                  | string                                                      | ""                       | ClassName prefix.                                                                                                               |
+| classSuffix                  | string                                                      | ""                       | ClassName suffix.                                                                                                               |
+| classIgnore                  | string[]                                                    | []                       | Class to ignore from obfuscation.                                                                                               |
+| ids                          | boolean                                                     | false                    | Obfuscate #IdNames.                                                                                                             |
+| idMethod                     | string                                                      | "random"                 | 'random', 'simple', 'none' obfuscation method for ids .                                                                         |
+| idPrefix                     | string                                                      | ""                       | idName Prefix.                                                                                                                  |
+| idSuffix                     | string                                                      | ""                       | idName suffix.                                                                                                                  |
+| idIgnore                     | string[]                                                    | []                       | Ids to ignore from obfuscation.                                                                                                 |
+| indicatorStart               | string                                                      | null                     | Identify ids & classes by the preceding string.                                                                                 |
+| indicatorEnd                 | string                                                      | null                     | Identify ids & classes by the following string.                                                                                 |
+| jsonsPath                    | string                                                      | "css-obfuscator"         | Path and file name where to save obfuscation data.                                                                              |
+| srcPath                      | string                                                      | "src"                    | Source of your files.                                                                                                           |
+| desPath                      | string                                                      | "out"                    | Destination for obfuscated html/js/.. files.Be careful using the same directory as your src(you will lose your original files). |
+| extensions                   | string[]                                                    | [".html"]                | Extesnion of files you want osbfucated [".jsx", ".tsx", ".js", ".ts", ".html"].                                                 |
+| fresh                        | boolean                                                     | false                    | Create new obfuscation data list or use already existed one (to keep production cache or prevent data scrapping).               |
+| formatJson                   | boolean                                                     | false                    | Format obfuscation data JSON file.                                                                                              |
+| showConfig                   | boolean                                                     | false                    | Show config on terminal when runinng.                                                                                           |
+| keepData                     | boolean                                                     | true                     | Keep or delete Data after obfuscation is finished?                                                                              |
+| preRun                       | () => Promise                                               | () => Promise.resolve()  | do something before the plugin runs.                                                                                            |
+| callBack                     | () => void                                                  | function () {}           | Callback function to call after obfuscation is done.                                                                            |
+| == NEW OPTIONS ==            |                                                             |                          |                                                                                                                                 |
+| whiteListedPaths             | string[]                                                    | []                       | All files in these paths will be obfuscated. Set to `[]` to obfuscate all files.                                                |
+| blackListedPaths             | string[]                                                    | []                       | All files in these paths will not be obfuscated. (higher priority than others options)                                          |
+| excludeAnyMatchRegex         | string[]                                                    | []                       | Any file path that matches any of the regex will be excluded from obfuscation.                                                  |
+| enableObfuscateMarkerClasses | boolean                                                     | false                    | Enable to only obfuscate a certain components by the given classes (all css inside the component will be obfuscated).|
+| obfuscateMarkerClasses       | string[]                                                    | ["next-css-obfuscation"] | Classes that indicate the component need to obfuscate.                                                                                 |
+| removeObfuscateMarkerClasses | boolean                                                     | false                    |  Remove the marker classes after obfuscation finished.                                                                                                                              |
+| logLevel                     | "none" \| "error" \| "warn" \| "info" \| "debug" \| "trace" | "info"                   | The log level.                                                                                                                  |
 
 Compared to the original `PostCSS-Obfuscator` options, I have removed some to make the patch work as expected. And I have added some new options to make the obfuscation more flexible.
 
 ## 👀 Demo
 
 1. [Next 14 App Router](https://github.com/soranoo/next-css-obfuscator/tree/main/demo/next14-app-router)
+2. [Next 14 App Router Partially Obfuscated](https://github.com/soranoo/next-css-obfuscator/tree/main/demo/next14-app-router-partially-obfuscated)
 
 ## 🐛 Known Issues
 
-- [Failed to obfuscate in MacOS (Next 14)](https://github.com/soranoo/next-css-obfuscator/issues/3)
-  > If there are no serious issues, I tend to leave them alone.
+- N/A
 
 ## 🤝 Contributing
 
