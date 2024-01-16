@@ -1,11 +1,23 @@
-import fs from "fs";
-import path from "path";
-import { log, replaceJsonKeysInFiles, getFilenameFromPath, normalizePath } from "./utils";
+import fs from 'fs';
+import path from 'path';
+import {
+  getFilenameFromPath,
+  log,
+  normalizePath,
+  replaceJsonKeysInFiles,
+  setLogLevel,
+  type LogType,
+} from './utils';
 
+let postcssConfigPath = path.join(process.cwd(), 'postcss.config.cjs');
+if (!fs.existsSync(postcssConfigPath)) {
+  postcssConfigPath = path.join(process.cwd(), 'postcss.config.js');
+}
 // load config from postcss.config.cjs
-const postcssConfig = require(path.join(process.cwd(), "postcss.config.cjs"));
-const obfuscatorConfig = postcssConfig.plugins["next-css-obfuscator/patched-postcss-obfuscator"];
-const config_JsonsPath = obfuscatorConfig.jsonsPath || "./css-obfuscator";
+const postcssConfig = require(postcssConfigPath);
+const obfuscatorConfig =
+  postcssConfig.plugins['next-css-obfuscator/patched-postcss-obfuscator'];
+const config_JsonsPath = obfuscatorConfig.jsonsPath || './css-obfuscator';
 const config_HtmlExcludes = obfuscatorConfig.htmlExcludes || [];
 const config_IndicatorStart = obfuscatorConfig.indicatorStart || null;
 const config_IndicatorEnd = obfuscatorConfig.indicatorEnd || null;
@@ -14,8 +26,18 @@ const config_WhiteListedPaths = obfuscatorConfig.whiteListedPaths || [];
 const config_BlackListedPaths = obfuscatorConfig.blackListedPaths || [];
 const config_ExcludeAnyMatchRegex = obfuscatorConfig.excludeAnyMatchRegex || [];
 
-const BUILD_FODLER_PATH = ".next";
-const TEMP_CSS_FODLER = "./temp-css";
+const config_enableObfuscateMarkerClasses =
+  obfuscatorConfig.enableObfuscateMarkerClasses || false;
+const config_obfuscateMarkerClasses =
+  obfuscatorConfig.obfuscateMarkerClasses || ['next-css-obfuscation'];
+const config_removeObfuscateMarkerClasses =
+  obfuscatorConfig.removeObfuscateMarkerClasses;
+const config_logLevel: LogType = obfuscatorConfig.logLevel || 'info';
+
+const BUILD_FODLER_PATH = '.next';
+const TEMP_CSS_FODLER = './temp-css';
+
+setLogLevel(config_logLevel);
 
 /**
  * Find all files with the specified extension in the build folder
@@ -32,7 +54,7 @@ function findAllFilesWithExt(ext: string): string[] {
       const filePath = normalizePath(path.join(dir, file));
 
       if (fs.statSync(filePath).isDirectory()) {
-        // if it's a directory, recursively search for CSS files
+        // if it"s a directory, recursively search for CSS files
         findCssFiles(filePath);
       } else {
         // check if the file has the specified extension
@@ -59,7 +81,7 @@ function findFilePath(filename: string, ext: string): string | undefined {
   const paths = findAllFilesWithExt(ext);
   const result = paths.filter((path) => path.includes(filename));
   if (result.length === 0) {
-    log("error", "Searching File", `No file found with name ${filename}`);
+    log('error', 'Searching File', `No file found with name ${filename}`);
     return undefined;
   }
   return result[0];
@@ -72,7 +94,7 @@ function copyCssToTempFolder() {
   }
 
   // find all the css files in the build folder
-  let cssFilePaths = findAllFilesWithExt(".css");
+  let cssFilePaths = findAllFilesWithExt('.css');
   // copy the files to the temp folder
   cssFilePaths.forEach((filePath) => {
     fs.copyFileSync(
@@ -83,21 +105,6 @@ function copyCssToTempFolder() {
 }
 
 function moveCssBackToOriginalPath() {
-  // get all the css files in the temp folder
-  const cssFiles = fs.readdirSync(TEMP_CSS_FODLER);
-
-  // move the css files back to the original path
-  cssFiles.forEach((file: string) => {
-    // find the original path
-    const originalPath = findFilePath(file, ".css");
-    if (!originalPath) {
-      log("error", "Moving File", `No file found with name ${file}`);
-      return;
-    }
-    // move the file
-    fs.copyFileSync(path.join(TEMP_CSS_FODLER, file), originalPath);
-  });
-
   // obfuscate the build files
   replaceJsonKeysInFiles(
     BUILD_FODLER_PATH,
@@ -110,6 +117,9 @@ function moveCssBackToOriginalPath() {
     config_WhiteListedPaths,
     config_BlackListedPaths,
     config_ExcludeAnyMatchRegex,
+    config_enableObfuscateMarkerClasses,
+    config_obfuscateMarkerClasses,
+    config_removeObfuscateMarkerClasses,
   );
 
   // remove the temp folder
@@ -121,7 +131,7 @@ function part1() {
 }
 function part2() {
   moveCssBackToOriginalPath();
-  log("success", "Obfuscation", "Obfuscation complete")
+  log('success', 'Obfuscation', 'Obfuscation complete');
 }
 
 export { part1, part2 };
