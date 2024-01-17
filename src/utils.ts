@@ -139,7 +139,7 @@ function replaceJsonKeysInFiles(
             if (htmlMatch) {
               let html = htmlMatch[0];
               const htmlOriginal = html;
-              const tagContents = findTagContentsByClass(html, obfuscateMarkerClass);
+              const tagContents = findHtmlTagContentsByClass(html, obfuscateMarkerClass);
               tagContents.forEach(tagContent => {
                 const { obfuscatedContent, usedKeys } = obfuscateKeys(jsonData, tagContent, indicatorStart, indicatorEnd);
                 addKeysToRegistery(usedKeys);
@@ -335,7 +335,7 @@ function findHtmlTagContents(content: string, targetTag: string, targetClass: st
   return findHtmlTagContentsRecursive(content, targetTag, targetClass);
 }
 
-function findTagContentsByClass(content: string, targetClass: string) {
+function findHtmlTagContentsByClass(content: string, targetClass: string) {
   const regex = new RegExp(`(<(\\w+)\\s+class\\s*=\\s*['\"][^'\"]*?\\b${targetClass}\\b)`, "i");
   const match = content.match(regex);
   if (match) {
@@ -456,6 +456,13 @@ function obfuscateCss(jsonData: JsonData, cssPath: string) {
   let cssObj = css.parse(cssContent);
   const cssRulesCount = cssObj.stylesheet.rules.length;
 
+  // join all selectors start with ":" (eg. ":is")
+  Object.keys(jsonData).forEach((key) => {
+    if (key.startsWith(":")) {
+      usedKeyRegistery.add(key);
+    }
+  });
+
   // copy css rules
   usedKeyRegistery.forEach((key) => {
     const originalSelectorName = key;
@@ -480,8 +487,191 @@ function obfuscateCss(jsonData: JsonData, cssPath: string) {
 
 }
 
+/**
+ * Find all files with the specified extension in the build folder
+ * @param ext - the extension of the files to find (e.g. .css) "." is required
+ * @returns - an array of file relative paths
+ */
+function findAllFilesWithExt(ext: string, targetFolderPath: string): string[] {
+  const targetExtFiles: string[] = [];
+
+  function findCssFiles(dir: string) {
+    const files = fs.readdirSync(dir);
+
+    files.forEach((file) => {
+      const filePath = normalizePath(path.join(dir, file));
+
+      if (fs.statSync(filePath).isDirectory()) {
+        // if it"s a directory, recursively search for CSS files
+        findCssFiles(filePath);
+      } else {
+        // check if the file has the specified extension
+        if (file.endsWith(ext)) {
+          targetExtFiles.push(filePath);
+        }
+      }
+    });
+  }
+
+  // start searching for CSS files from the specified directory
+  findCssFiles(targetFolderPath);
+
+  return targetExtFiles;
+}
+
+function getAllSelector(cssObj: any): any[] {
+  const selectors: string[] = [];
+  function recursive(rules: any[]) {
+    for (const item of rules) {
+      if (item.rules) {
+        recursive(item.rules);
+      } else if (item.selectors) {
+        // remove empty selectors
+        item.selectors = item.selectors.filter((selector: any) => selector !== "");
+
+        selectors.push(...item.selectors);
+      }
+    }
+    return null;
+  }
+  recursive(cssObj.stylesheet.rules);
+  return selectors;
+}
+
+function getRandomName(length: number) {
+  // Generate a random string of characters with the specified length
+  const randomString = Math.random()
+    .toString(36)
+    .substring(2, length - 1 + 2);
+  // Combine the random string with a prefix to make it a valid class name (starts with a letter, contains only letters, digits, hyphens, and underscores)
+  const randomLetter = String.fromCharCode(Math.floor(Math.random() * 26) + 97); // 97 is the ASCII code for lowercase 'a'
+  return `${randomLetter}${randomString}`;
+}
+
+function createObfuscateClassConversionJson(jsonDataPath: string, buildPath: string, randomNameLength: number = 5, newDarkModeSelector: string | null = null) {
+  if (!fs.existsSync(jsonDataPath)) {
+    fs.mkdirSync(jsonDataPath);
+  }
+
+  // Read and merge the JSON data
+  const conversion: JsonData = {};
+  fs.readdirSync(jsonDataPath).forEach((file: string) => {
+    const filePath = path.join(jsonDataPath, file);
+    const fileData = JSON.parse(fs.readFileSync(filePath, "utf-8"));
+    Object.assign(conversion, fileData);
+  });
+
+  const cssPaths = findAllFilesWithExt(".css", buildPath);
+  const selectors: string[] = [];
+
+  cssPaths.forEach((cssPath) => {
+    const cssContent = fs.readFileSync(cssPath, "utf-8");
+    const cssObj = css.parse(cssContent);
+    selectors.push(...getAllSelector(cssObj));
+  });
+
+  // remove duplicated selectors
+  const uniqueSelectors = [...new Set(selectors)];
+
+  for (let i = 0; i < uniqueSelectors.length; i++) {
+    const selector = uniqueSelectors[i];
+
+    const selectorStartWithAllowList = ["."];
+    const allowToObfuscate = selectorStartWithAllowList.some((start) => selector.startsWith(start));
+    if (!allowToObfuscate) {
+      continue;
+    }
+    // check if the selector is already in the conversion
+    if (conversion[selector]) {
+      continue;
+    }
+
+    const randomName = getRandomName(randomNameLength);
+    const startWith = selector.slice(0, 1);
+    conversion[selector] = `${startWith}${randomName}`;
+  }
+
+  if (newDarkModeSelector) {
+    conversion[".dark"] = `.${newDarkModeSelector}`;
+  } else {
+    newDarkModeSelector = "dark"
+  }
+
+  for (let i = 0; i < uniqueSelectors.length; i++) {
+    const selector = uniqueSelectors[i];
+
+    // specifically for tailwindcss dark mode
+    if (selector.startsWith(`:is(.dark .dark\\:`)) {
+      const findClassInDarkModeRegex = new RegExp(`:is\\(.dark .dark\\\\:([\\w*|-]*)\\)`, "i");
+      const match = selector.match(findClassInDarkModeRegex);
+
+      const darkModeReplaceRegex = new RegExp(`(.dark)(?=[^\\w*-])`, "g");
+
+      if (match) {
+        const originalFormClass = match[1];
+        let obfuscatedFormClass = conversion[`.${originalFormClass}`] //<- remove the "." at the start
+        if (!obfuscatedFormClass) {
+          const randomName = getRandomName(randomNameLength);
+          const startWith = originalFormClass.slice(0, 1);
+          obfuscatedFormClass = `${startWith}${randomName}`;
+          conversion[`.${originalFormClass}`] = obfuscatedFormClass;
+        }
+        obfuscatedFormClass = obfuscatedFormClass.slice(1);
+        let newSelector = selector.replace(originalFormClass, obfuscatedFormClass);
+        newSelector = newSelector.replace(darkModeReplaceRegex, `.${newDarkModeSelector}`);
+        //? since during the obfuscation, the class name will remove the "." at the start, so we need to add it back to prevent the class name got sliced
+        conversion[`.dark\\:${originalFormClass}`] = `.${newDarkModeSelector}\\:${obfuscatedFormClass}`;
+        conversion[selector] = newSelector;
+      }
+    }
+
+    // if (selector.startsWith(":is(")) {
+    //   // get content within the ( )
+    //   const regex = new RegExp(`\\((.*)\\)`, "i");
+    //   const match = selector.match(regex);
+    //   if (match) {
+    //     const content = match[1];
+
+    //     // try to get classes in the content
+    //     const classes = content.split(" ");
+    //     // remove class if not start with ".""
+    //     for (let i = 0; i < classes.length; i++) {
+    //       const className = classes[i];
+    //       if (!className.startsWith(".")) {
+    //         classes.splice(i, 1);
+    //       }
+    //     }
+
+    //     // check if the selector is already in the conversion
+    //     // if yes, replace the class name with the obfuscated one
+    //     // if no, random a new class name and add to the conversion then replace the class name with the obfuscated one
+    //     for (let i = 0; i < classes.length; i++) {
+    //       const className = classes[i];
+    //       if (conversion[className]) {
+    //         classes[i] = conversion[className];
+    //       } else {
+    //         const randomName = getRandomName(randomNameLength);
+    //         const startWith = className.slice(0, 1);
+    //         conversion[className] = `${startWith}${randomName}`;
+    //         classes[i] = conversion[className];
+    //       }
+    //     }
+
+    //     // replace the content with the obfuscated one
+    //     const newContent = `${classes.join(" ")}`;
+    //     const newSelector = selector.replace(content, newContent);
+    //     conversion[selector] = newSelector;
+    //   }
+    // }
+  }
+
+  const jsonPath = path.join(process.cwd(), jsonDataPath, "conversion.json");
+  fs.writeFileSync(jsonPath, JSON.stringify(conversion, null, 2));
+}
+
 export {
   getFilenameFromPath, log, normalizePath
   , replaceJsonKeysInFiles, setLogLevel, type LogType
-  , copyCssData, findContentBetweenMarker
+  , copyCssData, findContentBetweenMarker, findHtmlTagContentsByClass
+  , findAllFilesWithExt, createObfuscateClassConversionJson
 };

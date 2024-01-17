@@ -1,5 +1,5 @@
-import fs from 'fs';
-import path from 'path';
+import fs from "fs";
+import path from "path";
 import {
   getFilenameFromPath,
   log,
@@ -7,17 +7,18 @@ import {
   replaceJsonKeysInFiles,
   setLogLevel,
   type LogType,
-} from './utils';
+  createObfuscateClassConversionJson,
+} from "./utils";
 
-let postcssConfigPath = path.join(process.cwd(), 'postcss.config.cjs');
+let postcssConfigPath = path.join(process.cwd(), "postcss.config.cjs");
 if (!fs.existsSync(postcssConfigPath)) {
-  postcssConfigPath = path.join(process.cwd(), 'postcss.config.js');
+  postcssConfigPath = path.join(process.cwd(), "postcss.config.js");
 }
 // load config from postcss.config.cjs
 const postcssConfig = require(postcssConfigPath);
 const obfuscatorConfig =
-  postcssConfig.plugins['next-css-obfuscator/patched-postcss-obfuscator'];
-const config_JsonsPath = obfuscatorConfig.jsonsPath || './css-obfuscator';
+  postcssConfig.plugins["next-css-obfuscator/patched-postcss-obfuscator"];
+const config_JsonsPath = obfuscatorConfig.jsonsPath || "./css-obfuscator";
 const config_HtmlExcludes = obfuscatorConfig.htmlExcludes || [];
 const config_IndicatorStart = obfuscatorConfig.indicatorStart || null;
 const config_IndicatorEnd = obfuscatorConfig.indicatorEnd || null;
@@ -29,13 +30,15 @@ const config_ExcludeAnyMatchRegex = obfuscatorConfig.excludeAnyMatchRegex || [];
 const config_enableObfuscateMarkerClasses =
   obfuscatorConfig.enableObfuscateMarkerClasses || false;
 const config_obfuscateMarkerClasses =
-  obfuscatorConfig.obfuscateMarkerClasses || ['next-css-obfuscation'];
+  obfuscatorConfig.obfuscateMarkerClasses || ["next-css-obfuscation"];
 const config_removeObfuscateMarkerClasses =
   obfuscatorConfig.removeObfuscateMarkerClasses;
-const config_logLevel: LogType = obfuscatorConfig.logLevel || 'info';
+const config_newDarkModeSelector =
+  obfuscatorConfig.newDarkModeSelector || null;
+const config_logLevel: LogType = obfuscatorConfig.logLevel || "info";
 
-const BUILD_FODLER_PATH = '.next';
-const TEMP_CSS_FODLER = './temp-css';
+const BUILD_FODLER_PATH = ".next";
+const TEMP_CSS_FODLER = "./temp-css";
 
 setLogLevel(config_logLevel);
 
@@ -81,7 +84,7 @@ function findFilePath(filename: string, ext: string): string | undefined {
   const paths = findAllFilesWithExt(ext);
   const result = paths.filter((path) => path.includes(filename));
   if (result.length === 0) {
-    log('error', 'Searching File', `No file found with name ${filename}`);
+    log("error", "Searching File", `No file found with name ${filename}`);
     return undefined;
   }
   return result[0];
@@ -94,17 +97,19 @@ function copyCssToTempFolder() {
   }
 
   // find all the css files in the build folder
-  let cssFilePaths = findAllFilesWithExt('.css');
+  let cssFilePaths = findAllFilesWithExt(".css");
   // copy the files to the temp folder
   cssFilePaths.forEach((filePath) => {
     fs.copyFileSync(
       filePath,
-      path.join(TEMP_CSS_FODLER, getFilenameFromPath(filePath)),
+      path.join(TEMP_CSS_FODLER, getFilenameFromPath(filePath))
     );
   });
 }
 
 function moveCssBackToOriginalPath() {
+  createObfuscateClassConversionJson(config_JsonsPath, BUILD_FODLER_PATH, 5, config_newDarkModeSelector);
+
   // obfuscate the build files
   replaceJsonKeysInFiles(
     BUILD_FODLER_PATH,
@@ -119,11 +124,11 @@ function moveCssBackToOriginalPath() {
     config_ExcludeAnyMatchRegex,
     config_enableObfuscateMarkerClasses,
     config_obfuscateMarkerClasses,
-    config_removeObfuscateMarkerClasses,
+    config_removeObfuscateMarkerClasses
   );
 
   // remove the temp folder
-  fs.rmSync(TEMP_CSS_FODLER, { recursive: true });
+  // fs.rmSync(TEMP_CSS_FODLER, { recursive: true });
 }
 
 function part1() {
@@ -131,7 +136,7 @@ function part1() {
 }
 function part2() {
   moveCssBackToOriginalPath();
-  log('success', 'Obfuscation', 'Obfuscation complete');
+  log("success", "Obfuscation", "Obfuscation complete");
 }
 
 export { part1, part2 };

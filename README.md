@@ -2,7 +2,7 @@
 
 Project start on 30-10-2023
 
-![Weekly Download](https://img.shields.io/npm/dw/next-css-obfuscator?color=0066cc&style=flat) [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)&nbsp;&nbsp;&nbsp;[![Donation](https://img.shields.io/static/v1?label=Donation&message=❤️&style=social)](https://github.com/soranoo/Donation)
+![Tests](https://github.com/soranoo/next-css-obfuscator/actions/workflows/auto_test.yml/badge.svg) ![Weekly Download](https://img.shields.io/npm/dw/next-css-obfuscator?color=0066cc&style=flat) [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)&nbsp;&nbsp;&nbsp;[![Donation](https://img.shields.io/static/v1?label=Donation&message=❤️&style=social)](https://github.com/soranoo/Donation)
 
 A temporary solution for using [PostCSS-Obfuscator](https://github.com/n4j1Br4ch1D/postcss-obfuscato) in Next.js.
 
@@ -27,8 +27,14 @@ Give me a ⭐ if you like it.
   - [Usage 🎉](#usage-)
 - [🔧 My Setting](#-my-setting)
 - [📖 PostCSS Options Reference](#-postcss-options-reference)
+- [💡 Tips](#-tips)
+  - [1. Not work at Vercel after updated](#1-not-work-at-vercel-after-updated)
+  - [2. Error: ENOENT: no such file or directory, scandir './css-obfuscator'](#2-error-enoent-no-such-file-or-directory-scandir-css-obfuscator)
+  - [3. Lazy Setup - Obfuscate all files](#3-lazy-setup---obfuscate-all-files)
 - [👀 Demo](#-demo)
+- [⭐ TODO](#-todo)
 - [🐛 Known Issues](#-known-issues)
+- [💖 Sponsor](#-sponsor)
 - [🤝 Contributing](#-contributing)
 - [📝 License](#-license)
 - [☕ Donation](#-donation)
@@ -70,7 +76,7 @@ You may ask why I have split the project to patched PostCSS-Obfuscator and the N
 
 - WORK WITH NEXT.JS !!!!!!!!!!!!!!!!!!!
 
-> [!INFO]\
+> [!NOTE]\
 > This package is NOT guaranteed to work with EVERYONE. Check the site carefully before using it in production.
 
 ## 🛠️ Development Environment
@@ -135,13 +141,13 @@ Visit the [npm](https://www.npmjs.com/package/next-css-obfuscator) page.
    };
    ```
 
-   Feel to checkout [📖 PostCSS Options Reference](#-postcss-options-reference) for more details.
+    Feel to checkout [📖 PostCSS Options Reference](#-postcss-options-reference) for more details.
 
-   > [!INFO]\
-   > `formatJson`, `keepData` must be `true` to make sure the obfuscation works properly.
+    > [!NOTE]\
+    > `formatJson`, `keepData` must be `true` to make sure the obfuscation works properly.
 
-   > [!INFO]\
-   > The obfuscation will never work as expected, tweak the options with your own needs.
+    > [!NOTE]\
+    > The obfuscation will never work as expected, tweak the options with your own needs.
 
 2. Add the following code to `package.json`:
 
@@ -242,21 +248,50 @@ It may not be the best setting but it works for me. :)
 | whiteListedPaths             | string[]                                                    | []                       | All files in these paths will be obfuscated. Set to `[]` to obfuscate all files.                                                |
 | blackListedPaths             | string[]                                                    | []                       | All files in these paths will not be obfuscated. (higher priority than others options)                                          |
 | excludeAnyMatchRegex         | string[]                                                    | []                       | Any file path that matches any of the regex will be excluded from obfuscation.                                                  |
-| enableObfuscateMarkerClasses | boolean                                                     | false                    | Enable to only obfuscate a certain components by the given classes (all css inside the component will be obfuscated).|
-| obfuscateMarkerClasses       | string[]                                                    | ["next-css-obfuscation"] | Classes that indicate the component need to obfuscate.                                                                                 |
-| removeObfuscateMarkerClasses | boolean                                                     | false                    |  Remove the marker classes after obfuscation finished.                                                                                                                              |
+| enableObfuscateMarkerClasses | boolean                                                     | false                    | Enable to only obfuscate a certain components by the given classes (all css inside the component will be obfuscated).           |
+| obfuscateMarkerClasses       | string[]                                                    | ["next-css-obfuscation"] | Classes that indicate the component need to obfuscate.                                                                          |
+| removeObfuscateMarkerClasses | boolean                                                     | false                    | Remove the marker classes after obfuscation finished.                                                                           |
+| newDarkModeSelector| string \| null | null | Replace the default Tailwind dark mode selector ("dark"). |
 | logLevel                     | "none" \| "error" \| "warn" \| "info" \| "debug" \| "trace" | "info"                   | The log level.                                                                                                                  |
 
 Compared to the original `PostCSS-Obfuscator` options, I have removed some to make the patch work as expected. And I have added some new options to make the obfuscation more flexible.
+
+## 💡 Tips
+
+### 1. Not work at Vercel after updated
+
+If you are using this package with Vercel, you may found the package not work as expected after updated. This is because Vercel will cache the last build for a faster build time. To fix this you have to redeploy with the `Use existing build cache` option disabled.
+
+### 2. Error: ENOENT: no such file or directory, scandir './css-obfuscator'
+
+Check your root directory and see if there are two `postcss.config` files, one with `.cjs` extension and one with `.js` extension. If so, delete one.
+
+[Related issue](https://github.com/soranoo/next-css-obfuscator/issues/3)
+
+### 3. Lazy Setup - Obfuscate all files
+
+Enable `enableObfuscateMarkerClasses` and put the obfuscate marker class at every component included the index page. But if you want to set and forget, you must play with the options to ensure the obfuscation works as expected.
 
 ## 👀 Demo
 
 1. [Next 14 App Router](https://github.com/soranoo/next-css-obfuscator/tree/main/demo/next14-app-router)
 2. [Next 14 App Router Partially Obfuscated](https://github.com/soranoo/next-css-obfuscator/tree/main/demo/next14-app-router-partially-obfuscated)
 
+## ⭐ TODO
+
+- [x] Partially obfuscation
+- [ ] More tests
+- [ ] To be a totally independent package (remove dependency on [PostCSS-Obfuscator](https://github.com/n4j1Br4ch1D/postcss-obfuscato))
+
 ## 🐛 Known Issues
 
 - N/A
+
+> If there are no serious issues, I tend to leave them alone.
+
+## 💖 Sponsor
+
+
 
 ## 🤝 Contributing
 
