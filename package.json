@@ -1,43 +1,9 @@
 {
   "name": "next-css-obfuscator",
-  "version": "2.0.0-beta.19",
+  "version": "2.0.0",
   "description": "A temporary solution for using postcss-obfuscator in Next.js.",
   "main": "dist/index.js",
   "type": "commonjs",
-  "keywords": [
-    "nextjs",
-    "postcss",
-    "plugin",
-    "obfuscation",
-    "css",
-    "css classes",
-    "class renamer",
-    "postcss-rename-selectors",
-    "class prefixer",
-    "Postcss obfuscator",
-    "PostCSS obfuscation plugin",
-    "CSS obfuscation",
-    "Class name scrambling",
-    "CSS security",
-    "Obfuscate CSS code",
-    "Protect CSS code",
-    "Prevent CSS reverse-engineering",
-    "tailwindcss",
-    "tailwindcss classes list",
-    "tailwindcss classes array json",
-    "bootstrap",
-    "bootstrap classes array json",
-    "Scramble HTML classes",
-    "CSS anti-theft protection",
-    "code privacy",
-    "CSS code obfuscator",
-    "CSS class name encryption",
-    "anti web scraping",
-    "Anti-scraping tools",
-    "Anti-scraping technology",
-    "Web scraping prevention",
-    "Web crawling protection"
-  ],
   "scripts": {
     "build": "tsc",
     "dev": "tsc -w",
@@ -60,14 +26,43 @@
     "@types/react": "^18.2.31",
     "jest": "^29.7.0",
     "ts-jest": "^29.1.1",
-    "typescript": "^5.0.2",
-    "tslib": "^2.6.2"
+    "tslib": "^2.6.2",
+    "typescript": "^5.0.2"
   },
   "dependencies": {
-    "css-parse": "^2.0.0"
+    "css-parse": "^2.0.0",
+    "yargs": "^17.7.2"
   },
   "bin": {
-    "next-css-obfuscator-part1": "./bin/cli-part1.mjs",
-    "next-css-obfuscator-part2": "./bin/cli-part2.mjs"
-  }
+    "next-css-obfuscator": "./bin/cli.mjs"
+  },
+  "keywords": [
+    "nextjs",
+    "plugin",
+    "obfuscation",
+    "css",
+    "css classes",
+    "class renamer",
+    "CSS obfuscation",
+    "Class name scrambling",
+    "CSS security",
+    "Obfuscate CSS code",
+    "Protect CSS code",
+    "Prevent CSS reverse-engineering",
+    "tailwindcss",
+    "tailwindcss classes list",
+    "tailwindcss classes array json",
+    "bootstrap",
+    "bootstrap classes array json",
+    "Scramble HTML classes",
+    "CSS anti-theft protection",
+    "code privacy",
+    "CSS code obfuscator",
+    "CSS class name encryption",
+    "anti web scraping",
+    "Anti-scraping tools",
+    "Anti-scraping technology",
+    "Web scraping prevention",
+    "Web crawling protection"
+  ]
 }

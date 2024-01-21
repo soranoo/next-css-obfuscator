@@ -2,16 +2,18 @@ import fs from "fs";
 import path from "path";
 // @ts-ignore
 import css from 'css';
+import { LogLevel, obfuscateMode, ClassConversion } from "./type";
 
-type LogType = "debug" | "info" | "warn" | "error" | "success";
-type JsonData = { [key: string]: string };
+//! ====================
+//! Log
+//! ====================
 
-const issuer = "next-css-obfuscator";
-let logLevel = "info";
-const levels = ["debug", "info", "warn", "error", "success"];
-const usedKeyRegistery = new Set<string>();
+const issuer = "[next-css-obfuscator]";
+let logLevel: LogLevel = "info";
+const levels: LogLevel[] = ["debug", "info", "warn", "error", "success"];
 
-function log(type: LogType, task: string, data: any) {
+function log(type: LogLevel, task: string, data: any) {
+  //ref: https://github.com/n4j1Br4ch1D/postcss-obfuscator/blob/main/utils.js
   if (levels.indexOf(type) < levels.indexOf(logLevel)) {
     return;
   }
@@ -20,19 +22,19 @@ function log(type: LogType, task: string, data: any) {
 
   switch (type) {
     case "debug":
-      console.debug(mainColor, issuer, "\x1b[37m", task, data, "\x1b[0m");
+      console.debug(mainColor, issuer, "[Debug] \x1b[37m", task, data, "\x1b[0m");
       break;
     case "info":
-      console.info(mainColor, issuer, "\x1b[36m", task, data, "\x1b[0m");
+      console.info(mainColor, issuer, "🗯️ \x1b[36m", task, data, "\x1b[0m");
       break;
     case "warn":
-      console.warn(mainColor, issuer, "\x1b[33m", task, data, "\x1b[0m");
+      console.warn(mainColor, issuer, "⚠️ \x1b[33m", task, data, "\x1b[0m");
       break;
     case "error":
-      console.error(mainColor, issuer, "\x1b[31m", task, data, "\x1b[0m");
+      console.error(mainColor, issuer, "⛔ \x1b[31m", task, data, "\x1b[0m");
       break;
     case "success":
-      console.log(mainColor, issuer, "\x1b[32m", task, data, "\x1b[0m");
+      console.log(mainColor, issuer, "✅ \x1b[32m", task, data, "\x1b[0m");
       break;
     default:
       console.log("'\x1b[0m'", issuer, task, data, "\x1b[0m");
@@ -40,38 +42,51 @@ function log(type: LogType, task: string, data: any) {
   }
 }
 
-function setLogLevel(level: LogType) {
+function setLogLevel(level: LogLevel) {
   logLevel = level;
 }
 
+//! ====================
+//! 
+//! ====================
+
+
+const usedKeyRegistery = new Set<string>();
+
 
 function replaceJsonKeysInFiles(
-  filesDir: string,
-  htmlExtensions: string[],
-  htmlExcludes: string[],
-  jsonDataPath: string,
-  indicatorStart: string | null,
-  indicatorEnd: string | null,
-  keepData: boolean,
+  {
+    targetFolder,
+    allowExtensions,
+    classConversionJsonFolderPath,
 
-  whiteListedPaths: string[],
-  blackListedPaths: string[],
-  excludeAnyMatchRegex: string[],
-  enableObfuscateMarkerClasses: boolean,
-  obfuscateMarkerClasses: string[],
-  removeObfuscateMarkerClasses: boolean,
-) {
-  // Read and merge the JSON data
-  const jsonData: JsonData = {};
-  fs.readdirSync(jsonDataPath).forEach((file: string) => {
-    const filePath = path.join(jsonDataPath, file);
-    const fileData = JSON.parse(fs.readFileSync(filePath, "utf-8"));
-    Object.assign(jsonData, fileData);
-  });
+    whiteListedFolderPaths,
+    blackListedFolderPaths,
+    includeAnyMatchRegexes,
+    excludeAnyMatchRegexes,
+    enableObfuscateMarkerClasses,
+    obfuscateMarkerClasses,
+    removeObfuscateMarkerClassesAfterObfuscated,
+  }: {
+    targetFolder: string,
+    allowExtensions: string[],
+    classConversionJsonFolderPath: string,
 
-  if (removeObfuscateMarkerClasses) {
+    whiteListedFolderPaths: string[],
+    blackListedFolderPaths: string[],
+    includeAnyMatchRegexes: RegExp[],
+    excludeAnyMatchRegexes: RegExp[],
+    enableObfuscateMarkerClasses: boolean,
+    obfuscateMarkerClasses: string[],
+    removeObfuscateMarkerClassesAfterObfuscated: boolean,
+  }) {
+  //ref: https://github.com/n4j1Br4ch1D/postcss-obfuscator/blob/main/utils.js
+
+  const classConversion: ClassConversion = loadAndMergeJsonFiles(classConversionJsonFolderPath);
+
+  if (removeObfuscateMarkerClassesAfterObfuscated) {
     obfuscateMarkerClasses.forEach(obfuscateMarkerClass => {
-      jsonData[`.${obfuscateMarkerClass}`] = "";
+      classConversion[`.${obfuscateMarkerClass}`] = "";
     });
   }
 
@@ -86,42 +101,32 @@ function replaceJsonKeysInFiles(
         replaceJsonKeysInFile(path.join(filePath, subFilePath));
       });
     } else if (
-      htmlExtensions.includes(fileExt) &&
-      !htmlExcludes.includes(path.basename(filePath))
+      allowExtensions.includes(fileExt)
     ) {
-      if (whiteListedPaths.length > 0) {
-        // check if file path is inclouded
-        let inclouded = false;
-        whiteListedPaths.forEach((incloudPath) => {
-          if (normalizePath(filePath).includes(normalizePath(incloudPath))) {
-            inclouded = true;
-          }
+
+      let isTargetFile = false;
+      if (whiteListedFolderPaths.length > 0) {
+        isTargetFile = whiteListedFolderPaths.some((incloudPath) => {
+          return normalizePath(filePath).includes(normalizePath(incloudPath));
         });
-        if (!inclouded) {
-          return;
-        }
       }
-      if (excludeAnyMatchRegex.length > 0) {
-        let inclouded = false;
-        excludeAnyMatchRegex.forEach((excludeRegex) => {
-          if (normalizePath(filePath).match(excludeRegex)) {
-            inclouded = true;
-          }
+      if (blackListedFolderPaths.length > 0) {
+        isTargetFile = !blackListedFolderPaths.some((incloudPath) => {
+          return normalizePath(filePath).includes(normalizePath(incloudPath));
         });
-        if (inclouded) {
-          return;
-        }
       }
-      if (blackListedPaths.length > 0) {
-        let inclouded = false;
-        blackListedPaths.forEach((incloudPath) => {
-          if (normalizePath(filePath).includes(normalizePath(incloudPath))) {
-            inclouded = true;
-          }
+      if (includeAnyMatchRegexes.length > 0) {
+        isTargetFile = includeAnyMatchRegexes.some((regex) => {
+          return normalizePath(filePath).match(regex);
         });
-        if (inclouded) {
-          return;
-        }
+      }
+      if (excludeAnyMatchRegexes.length > 0) {
+        isTargetFile = !excludeAnyMatchRegexes.some((regex) => {
+          return normalizePath(filePath).match(regex);
+        });
+      }
+      if (!isTargetFile) {
+        return;
       }
 
       // Replace JSON keys in the file
@@ -141,7 +146,7 @@ function replaceJsonKeysInFiles(
               const htmlOriginal = html;
               const tagContents = findHtmlTagContentsByClass(html, obfuscateMarkerClass);
               tagContents.forEach(tagContent => {
-                const { obfuscatedContent, usedKeys } = obfuscateKeys(jsonData, tagContent, indicatorStart, indicatorEnd);
+                const { obfuscatedContent, usedKeys } = obfuscateKeys(classConversion, tagContent);
                 addKeysToRegistery(usedKeys);
                 if (tagContent !== obfuscatedContent) {
                   html = html.replace(tagContent, obfuscatedContent);
@@ -151,7 +156,7 @@ function replaceJsonKeysInFiles(
 
               const scriptTagContents = findHtmlTagContents(html, "script");
               scriptTagContents.forEach(scriptTagContent => {
-                const obfuscateScriptContent = obfuscateJs(scriptTagContent, obfuscateMarkerClass, jsonData, filePath, indicatorStart, indicatorEnd);
+                const obfuscateScriptContent = obfuscateJs(scriptTagContent, obfuscateMarkerClass, classConversion, filePath);
                 if (scriptTagContent !== obfuscateScriptContent) {
                   html = html.replace(scriptTagContent, obfuscateScriptContent);
                   log("debug", `Obscured keys under HTML script tag in file:`, normalizePath(filePath));
@@ -163,7 +168,7 @@ function replaceJsonKeysInFiles(
               }
             }
           } else {
-            const obfuscateScriptContent = obfuscateJs(fileContent, obfuscateMarkerClass, jsonData, filePath, indicatorStart, indicatorEnd);
+            const obfuscateScriptContent = obfuscateJs(fileContent, obfuscateMarkerClass, classConversion, filePath);
             if (fileContent !== obfuscateScriptContent) {
               fileContent = obfuscateScriptContent;
               log("debug", `Obscured keys in JS like content file:`, normalizePath(filePath));
@@ -172,7 +177,7 @@ function replaceJsonKeysInFiles(
 
         });
       } else {
-        const { obfuscatedContent, usedKeys } = obfuscateKeys(jsonData, fileContent, indicatorStart, indicatorEnd);
+        const { obfuscatedContent, usedKeys } = obfuscateKeys(classConversion, fileContent);
         fileContent = obfuscatedContent;
         addKeysToRegistery(usedKeys);
       }
@@ -185,27 +190,21 @@ function replaceJsonKeysInFiles(
     } else if (fileExt === ".css") {
       cssPaths.push(filePath);
     }
-
-    if (!keepData) {
-      if (fs.existsSync(jsonDataPath)) {
-        fs.rmSync(jsonDataPath, { recursive: true });
-        log("info", "Data removed:", jsonDataPath);
-      }
-    }
-
-  };
+  }
 
   // Process all files in the directory excluding .css files
-  replaceJsonKeysInFile(filesDir);
+  replaceJsonKeysInFile(targetFolder);
 
   // Obfuscate CSS files
   cssPaths.forEach((cssPath) => {
-    obfuscateCss(jsonData, cssPath);
+    obfuscateCss(classConversion, cssPath);
   });
 
 }
 
-function obfuscateKeys(jsonData: JsonData, fileContent: string, indicatorStart: string | null, indicatorEnd: string | null) {
+function obfuscateKeys(jsonData: ClassConversion, fileContent: string) {
+  //ref: https://github.com/n4j1Br4ch1D/postcss-obfuscator/blob/main/utils.js
+
   const usedKeys = new Set<string>();
   Object.keys(jsonData).forEach((key) => {
     const fileContentOriginal = fileContent;
@@ -218,32 +217,60 @@ function obfuscateKeys(jsonData: JsonData, fileContent: string, indicatorStart: 
     if (fileContentOriginal !== fileContent && !usedKeys.has(key)) {
       usedKeys.add(key);
     }
-
-    if (indicatorStart || indicatorEnd) {
-      regex = new RegExp(`([\\s"'\\\`]|^)(${indicatorStart ?? ''}${keyUse})(?=$|[\\s"'\\\`])`, 'g');
-      //@ts-ignore
-      fileContent = fileContent.replace(regex, `$1` + jsonData[key].slice(1).replace(/\\/g, ""));
-      regex = new RegExp(`([\\s"'\\\`]|^)(${keyUse}${indicatorEnd ?? ''})(?=$|[\\s"'\\\`])`, 'g');
-      //@ts-ignore
-      fileContent = fileContent.replace(regex, `$1` + jsonData[key].slice(1).replace(/\\/g, ""));
-      regex = new RegExp(`([\\s"'\\\`]|^)(${indicatorStart ?? ''}${keyUse}${indicatorEnd ?? ''})(?=$|[\\s"'\\\`])`, 'g');
-      //@ts-ignore
-      fileContent = fileContent.replace(regex, `$1` + jsonData[key].slice(1).replace(/\\/g, ""));
-    }
   });
   return { obfuscatedContent: fileContent, usedKeys: usedKeys };
 }
 
+/**
+ * Remove escape characters from a string
+ * @param str - The string to remove escape characters from
+ * @returns The string without escape characters
+ */
 function escapeRegExp(str: string) {
+  //ref: https://github.com/n4j1Br4ch1D/postcss-obfuscator/blob/main/utils.js
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
 }
 
+/**
+ * Get the filename from a file path
+ * @param filePath - The path to the file
+ * @returns The filename of the file
+ */
 function getFilenameFromPath(filePath: string) {
+  //ref: https://github.com/n4j1Br4ch1D/postcss-obfuscator/blob/main/utils.js
   return filePath.replace(/^.*[\\/]/, '');
 }
 
+/**
+ * Normalizes a file path by replacing backslashes with forward slashes.
+ * 
+ * @param filePath - The file path to normalize.
+ * @returns The normalized file path.
+ * 
+ * @example
+ * // Returns: 'c:/Users/next-css-obfuscator/src/utils.ts'
+ * normalizePath('c:\\Users\\next-css-obfuscator\\src\\utils.ts');
+ * 
+ * @example
+ * // Returns: 'path/to/file'
+ * normalizePath('path\\to\\file');
+ */
 function normalizePath(filePath: string) {
   return filePath.replace(/\\/g, "/");
+}
+
+
+function loadAndMergeJsonFiles(jsonFolderPath: string) {
+  //ref: https://github.com/n4j1Br4ch1D/postcss-obfuscator/blob/main/utils.js
+  const jsonFiles: { [key: string]: any } = {};
+
+  fs.readdirSync(jsonFolderPath).forEach((file: string) => {
+    const filePath = path.join(jsonFolderPath, file);
+    const fileData = JSON.parse(fs.readFileSync(filePath, "utf-8"));
+    Object.assign(jsonFiles, fileData);
+  });
+
+  return jsonFiles;
 }
 
 function findHtmlTagContentsRecursive(content: string, targetTag: string, targetClass: string | null = null, foundTagContents: string[] = [], deep: number = 0, maxDeep: number = -1) {
@@ -399,16 +426,15 @@ function findContentBetweenMarker(content: string, targetStr: string, openMarker
   return foundContents;
 }
 
-function obfuscateJs(content: string, key: string, jsonData: JsonData
-  , filePath: string, indicatorStart: string | null, indicatorEnd: string | null
-) {
+function obfuscateJs(content: string, key: string, jsonData: ClassConversion
+  , filePath: string) {
   const truncatedContents = findContentBetweenMarker(content, key, "{", "}");
   truncatedContents.forEach((truncatedContent) => {
-    const { obfuscatedContent, usedKeys } = obfuscateKeys(jsonData, truncatedContent, indicatorStart, indicatorEnd);
+    const { obfuscatedContent, usedKeys } = obfuscateKeys(jsonData, truncatedContent);
     addKeysToRegistery(usedKeys);
     if (truncatedContent !== obfuscatedContent) {
       content = content.replace(truncatedContent, obfuscatedContent);
-      log("debug", `Obscured keys "${key}":`, `${normalizePath(filePath)}`);
+      log("debug", `Obscured keys with marker "${key}":`, `${normalizePath(filePath)}`);
     }
   });
   return content;
@@ -450,14 +476,14 @@ function copyCssData(targetSelector: string, newSelectorName: string, cssObj: an
   return cssObj;
 }
 
-function obfuscateCss(jsonData: JsonData, cssPath: string) {
+function obfuscateCss(classConversion: ClassConversion, cssPath: string) {
   let cssContent = fs.readFileSync(cssPath, "utf-8");
 
   let cssObj = css.parse(cssContent);
   const cssRulesCount = cssObj.stylesheet.rules.length;
 
   // join all selectors start with ":" (eg. ":is")
-  Object.keys(jsonData).forEach((key) => {
+  Object.keys(classConversion).forEach((key) => {
     if (key.startsWith(":")) {
       usedKeyRegistery.add(key);
     }
@@ -466,10 +492,10 @@ function obfuscateCss(jsonData: JsonData, cssPath: string) {
   // copy css rules
   usedKeyRegistery.forEach((key) => {
     const originalSelectorName = key;
-    const obfuscatedSelectorName = jsonData[key];
+    const obfuscatedSelectorName = classConversion[key];
     if (obfuscatedSelectorName) {
       // copy the original css rules and paste it with the obfuscated selector name
-      cssObj = copyCssData(originalSelectorName, jsonData[key], cssObj);
+      cssObj = copyCssData(originalSelectorName, classConversion[key], cssObj);
     }
   });
   log("info", "CSS rules:", `Added ${cssObj.stylesheet.rules.length - cssRulesCount} new CSS rules to ${getFilenameFromPath(cssPath)}`);
@@ -484,15 +510,19 @@ function obfuscateCss(jsonData: JsonData, cssPath: string) {
   const sizeAfter = Buffer.byteLength(cssObfuscatedContent, "utf8");
   const percentChange = Math.round(((sizeAfter) / sizeBefore) * 100);
   log("success", "CSS obfuscated:", `Size from ${sizeBefore} to ${sizeAfter} bytes (${percentChange}%) in ${getFilenameFromPath(cssPath)}`);
-
 }
 
 /**
  * Find all files with the specified extension in the build folder
  * @param ext - the extension of the files to find (e.g. .css) "." is required
+ * @param targetFolderPath - the path to the folder to start searching from
  * @returns - an array of file relative paths
  */
 function findAllFilesWithExt(ext: string, targetFolderPath: string): string[] {
+  if (!fs.existsSync(targetFolderPath)) {
+    return [];
+  }
+
   const targetExtFiles: string[] = [];
 
   function findCssFiles(dir: string) {
@@ -502,7 +532,7 @@ function findAllFilesWithExt(ext: string, targetFolderPath: string): string[] {
       const filePath = normalizePath(path.join(dir, file));
 
       if (fs.statSync(filePath).isDirectory()) {
-        // if it"s a directory, recursively search for CSS files
+        // if it's a directory, recursively search for CSS files
         findCssFiles(filePath);
       } else {
         // check if the file has the specified extension
@@ -538,7 +568,8 @@ function getAllSelector(cssObj: any): any[] {
   return selectors;
 }
 
-function getRandomName(length: number) {
+function getRandomString(length: number) {
+  //ref: https://github.com/n4j1Br4ch1D/postcss-obfuscator/blob/main/utils.js
   // Generate a random string of characters with the specified length
   const randomString = Math.random()
     .toString(36)
@@ -548,20 +579,110 @@ function getRandomName(length: number) {
   return `${randomLetter}${randomString}`;
 }
 
-function createObfuscateClassConversionJson(jsonDataPath: string, buildPath: string, randomNameLength: number = 5, newDarkModeSelector: string | null = null) {
-  if (!fs.existsSync(jsonDataPath)) {
-    fs.mkdirSync(jsonDataPath);
+function simplifyString(str: string) {
+  //ref: https://github.com/n4j1Br4ch1D/postcss-obfuscator/blob/main/utils.js
+  const tempStr = str.replace(/[aeiouw\d_-]/gi, "");
+  return tempStr.length < 1
+    ? String.fromCharCode(Math.floor(Math.random() * 26) + 97) + tempStr
+    : tempStr;
+}
+
+function createNewClassName(mode: obfuscateMode, className: string, classPrefix: string = "", classSuffix: string = "", classNameLength: number = 5) {
+  let newClassName = className;
+
+  switch (mode) {
+    case "random":
+      newClassName = getRandomString(classNameLength);
+      break;
+    case "simplify":
+      newClassName = simplifyString(className);
+      break;
+    default:
+      break;
   }
 
-  // Read and merge the JSON data
-  const conversion: JsonData = {};
-  fs.readdirSync(jsonDataPath).forEach((file: string) => {
-    const filePath = path.join(jsonDataPath, file);
-    const fileData = JSON.parse(fs.readFileSync(filePath, "utf-8"));
-    Object.assign(conversion, fileData);
-  });
+  if (classPrefix) {
+    newClassName = `${classPrefix}${newClassName}`;
+  }
+  if (classSuffix) {
+    newClassName = `${newClassName}${classSuffix}`;
+  }
 
-  const cssPaths = findAllFilesWithExt(".css", buildPath);
+  return newClassName;
+}
+
+/**
+ * Extracts classes from a CSS selector.
+ * 
+ * @param selector - The CSS selector to extract classes from.
+ * @returns An array of extracted classes.
+ * 
+ * @example
+ * // Returns: ["some-class", "some-class", "bg-white", "some-class", "bg-dark"]
+ * extractClassFromSelector(":is(.some-class .some-class\\:!bg-white .some-class\\:bg-dark::-moz-placeholder)[data-active=\'true\']");
+ * 
+ * @example
+ * // Returns: []
+ * extractClassFromSelector("div");
+ */
+function extractClassFromSelector(selector: string) {
+  const extractClassRegex = /(?<=[:|.|\s|!])(\b\w[\w-]*\b)(?![\w-]*\()/g;
+  const actionSelectors = [
+    ":hover", ":focus", ":active",
+    ":visited", ":link", ":target",
+    ":checked", ":disabled", ":enabled",
+    ":indeterminate", ":optional", ":required",
+    ":read-only", ":read-write", ":invalid",
+    ":valid", ":in-range", ":out-of-range",
+    ":placeholder-shown", ":fullscreen", ":default",
+    ":root", ":empty", ":first-child",
+    ":last-child", ":first-of-type", ":last-of-type",
+    ":only-child", ":only-of-type", ":nth-child",
+    ":nth-last-child", ":nth-of-type", ":nth-last-of-type",
+    ":first-letter", ":first-line", ":before",
+    ":after", ":selection", ":not",
+    ":where", ":is", ":matches"
+  ];
+  let classes = selector.match(extractClassRegex) as string[] | undefined;
+  classes = classes?.filter((className) => !actionSelectors.some((actionSelector) => `:${className}` === actionSelector));
+  return classes || [];
+}
+
+function getKeyByValue(object: { [key: string]: string }, value: string) {
+  return Object.keys(object).find(key => object[key] === value);
+}
+
+function createClassConversionJson(
+  {
+    classConversionJsonFolderPath,
+    buildFolderPath,
+
+    mode = "random",
+    classNameLength = 5,
+    classPrefix = "",
+    classSuffix = "",
+    classIgnore = [],
+
+    customTailwindDarkModeSelector = null
+  }: {
+    classConversionJsonFolderPath: string,
+    buildFolderPath: string,
+
+    mode?: obfuscateMode,
+    classNameLength?: number,
+    classPrefix?: string,
+    classSuffix?: string,
+    classIgnore?: string[],
+
+    customTailwindDarkModeSelector?: string | null
+  }) {
+  if (!fs.existsSync(classConversionJsonFolderPath)) {
+    fs.mkdirSync(classConversionJsonFolderPath);
+  }
+
+  const selectorConversion: ClassConversion = loadAndMergeJsonFiles(classConversionJsonFolderPath);
+
+  const cssPaths = findAllFilesWithExt(".css", buildFolderPath);
   const selectors: string[] = [];
 
   cssPaths.forEach((cssPath) => {
@@ -573,105 +694,90 @@ function createObfuscateClassConversionJson(jsonDataPath: string, buildPath: str
   // remove duplicated selectors
   const uniqueSelectors = [...new Set(selectors)];
 
-  for (let i = 0; i < uniqueSelectors.length; i++) {
-    const selector = uniqueSelectors[i];
-
-    const selectorStartWithAllowList = ["."];
-    const allowToObfuscate = selectorStartWithAllowList.some((start) => selector.startsWith(start));
-    if (!allowToObfuscate) {
-      continue;
-    }
-    // check if the selector is already in the conversion
-    if (conversion[selector]) {
-      continue;
-    }
-
-    const randomName = getRandomName(randomNameLength);
-    const startWith = selector.slice(0, 1);
-    conversion[selector] = `${startWith}${randomName}`;
+  // for tailwindcss dark mode
+  if (customTailwindDarkModeSelector) {
+    selectorConversion[".dark"] = `.${customTailwindDarkModeSelector}`;
   }
 
-  if (newDarkModeSelector) {
-    conversion[".dark"] = `.${newDarkModeSelector}`;
-  } else {
-    newDarkModeSelector = "dark"
-  }
+  const allowClassStartWith = [".", ":is(", ":where(", ":not("
+    , ":matches(", ":nth-child(", ":nth-last-child("
+    , ":nth-of-type(", ":nth-last-of-type(", ":first-child("
+    , ":last-child(", ":first-of-type(", ":last-of-type("
+    , ":only-child(", ":only-of-type(", ":empty(", ":link("
+    , ":visited(", ":active(", ":hover(", ":focus(", ":target("
+    , ":lang(", ":enabled(", ":disabled(", ":checked(", ":default("
+    , ":indeterminate(", ":root(", ":before("
+    , ":after(", ":first-letter(", ":first-line(", ":selection("
+    , ":read-only(", ":read-write(", ":fullscreen(", ":optional("
+    , ":required(", ":valid(", ":invalid(", ":in-range(", ":out-of-range("
+    , ":placeholder-shown("
+  ];
+
+  const selectorClassPair: { [key: string]: string[] } = {};
 
   for (let i = 0; i < uniqueSelectors.length; i++) {
-    const selector = uniqueSelectors[i];
+    const originalSelector = uniqueSelectors[i];
+    selectorClassPair[originalSelector] = extractClassFromSelector(originalSelector) || [];
+  }
 
-    // specifically for tailwindcss dark mode
-    if (selector.startsWith(`:is(.dark .dark\\:`)) {
-      const findClassInDarkModeRegex = new RegExp(`:is\\(.dark .dark\\\\:([\\w*|-]*)\\)`, "i");
-      const match = selector.match(findClassInDarkModeRegex);
+  // sort the selectorClassPair by the number of classes in the selector (from least to most)
+  // and remove the selector with no class
+  const sortedSelectorClassPair = Object.entries(selectorClassPair)
+    .sort((a, b) => a[1].length - b[1].length)
+    .filter((pair) => pair[1].length > 0);
 
-      const darkModeReplaceRegex = new RegExp(`(.dark)(?=[^\\w*-])`, "g");
-
-      if (match) {
-        const originalFormClass = match[1];
-        let obfuscatedFormClass = conversion[`.${originalFormClass}`] //<- remove the "." at the start
-        if (!obfuscatedFormClass) {
-          const randomName = getRandomName(randomNameLength);
-          const startWith = originalFormClass.slice(0, 1);
-          obfuscatedFormClass = `${startWith}${randomName}`;
-          conversion[`.${originalFormClass}`] = obfuscatedFormClass;
+  for (let i = 0; i < sortedSelectorClassPair.length; i++) {
+    const [originalSelector, selectorClasses] = sortedSelectorClassPair[i];
+    if (selectorClasses.length == 0) {
+      continue;
+    }
+    let selector = originalSelector;
+    let classes = selectorConversion[selector] ? [selectorConversion[selector].slice(1)] : selectorClasses;
+    if (classes && allowClassStartWith.some((start) => selector.startsWith(start))) {
+      if (selectorClasses.length > 1) {
+        const haveNotFoundClass = classes.some((className) => {
+          return !selectorConversion[`.${className}`];
+        });
+        classes = haveNotFoundClass ? [originalSelector.slice(1)] : classes;
+      }
+      classes.forEach((className) => {
+        if (classIgnore.includes(className)) {
+          return;
         }
-        obfuscatedFormClass = obfuscatedFormClass.slice(1);
-        let newSelector = selector.replace(originalFormClass, obfuscatedFormClass);
-        newSelector = newSelector.replace(darkModeReplaceRegex, `.${newDarkModeSelector}`);
-        //? since during the obfuscation, the class name will remove the "." at the start, so we need to add it back to prevent the class name got sliced
-        conversion[`.dark\\:${originalFormClass}`] = `.${newDarkModeSelector}\\:${obfuscatedFormClass}`;
-        conversion[selector] = newSelector;
+        let newClassName = selectorConversion[`.${className}`];
+
+        if (selectorConversion[originalSelector]) {
+          selector = selectorConversion[originalSelector];
+        } else {
+          if (!newClassName) {
+            newClassName = createNewClassName(mode, className, classPrefix, classSuffix, classNameLength);
+            selectorConversion[`.${className}`] = `.${newClassName}`;
+          } else {
+            newClassName = newClassName.slice(1);
+          }
+          selector = selector.replace(className, newClassName);
+        }
+      });
+      selectorConversion[originalSelector] = selector;
+
+      // for tailwindcss dark mode
+      if (originalSelector.startsWith(`:is(.dark .dark\\:`)) {
+        const darkSelector = selectorConversion[".dark"];
+        if (darkSelector && classes.length > 2) {
+          //? since during the obfuscation, the class name will remove the "." at the start, so we need to add it back to prevent the class name got sliced
+          selectorConversion[`.dark\\:${classes[2]}`] = `${darkSelector}\\:${selectorConversion[`.${classes[2]}`].slice(1)}`;
+        }
       }
     }
-
-    // if (selector.startsWith(":is(")) {
-    //   // get content within the ( )
-    //   const regex = new RegExp(`\\((.*)\\)`, "i");
-    //   const match = selector.match(regex);
-    //   if (match) {
-    //     const content = match[1];
-
-    //     // try to get classes in the content
-    //     const classes = content.split(" ");
-    //     // remove class if not start with ".""
-    //     for (let i = 0; i < classes.length; i++) {
-    //       const className = classes[i];
-    //       if (!className.startsWith(".")) {
-    //         classes.splice(i, 1);
-    //       }
-    //     }
-
-    //     // check if the selector is already in the conversion
-    //     // if yes, replace the class name with the obfuscated one
-    //     // if no, random a new class name and add to the conversion then replace the class name with the obfuscated one
-    //     for (let i = 0; i < classes.length; i++) {
-    //       const className = classes[i];
-    //       if (conversion[className]) {
-    //         classes[i] = conversion[className];
-    //       } else {
-    //         const randomName = getRandomName(randomNameLength);
-    //         const startWith = className.slice(0, 1);
-    //         conversion[className] = `${startWith}${randomName}`;
-    //         classes[i] = conversion[className];
-    //       }
-    //     }
-
-    //     // replace the content with the obfuscated one
-    //     const newContent = `${classes.join(" ")}`;
-    //     const newSelector = selector.replace(content, newContent);
-    //     conversion[selector] = newSelector;
-    //   }
-    // }
   }
 
-  const jsonPath = path.join(process.cwd(), jsonDataPath, "conversion.json");
-  fs.writeFileSync(jsonPath, JSON.stringify(conversion, null, 2));
+  const jsonPath = path.join(process.cwd(), classConversionJsonFolderPath, "conversion.json");
+  fs.writeFileSync(jsonPath, JSON.stringify(selectorConversion, null, 2));
 }
 
 export {
   getFilenameFromPath, log, normalizePath
-  , replaceJsonKeysInFiles, setLogLevel, type LogType
+  , replaceJsonKeysInFiles, setLogLevel
   , copyCssData, findContentBetweenMarker, findHtmlTagContentsByClass
-  , findAllFilesWithExt, createObfuscateClassConversionJson
+  , findAllFilesWithExt, createClassConversionJson, extractClassFromSelector
 };

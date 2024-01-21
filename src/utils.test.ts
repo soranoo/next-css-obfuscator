@@ -1,6 +1,10 @@
 // @ts-ignore
 import css from "css";
-import { copyCssData, findContentBetweenMarker, findHtmlTagContentsByClass } from "./utils";
+import {
+    copyCssData, findContentBetweenMarker,
+    findHtmlTagContentsByClass, getFilenameFromPath,
+    extractClassFromSelector
+} from "./utils";
 
 const testCss = `
 .s0-1 {
@@ -254,13 +258,198 @@ describe("findHtmlTagContentsByClass", () => {
         const result = findHtmlTagContentsByClass(content, targetClass);
         expect(result).toEqual(expectedOutput);
     });
-    
+
     it("should return empty array if no content found", () => {
         const targetClass = "test5";
 
-        const expectedOutput:any[] = [];
+        const expectedOutput: any[] = [];
 
         const result = findHtmlTagContentsByClass(content, targetClass);
         expect(result).toEqual(expectedOutput);
     });
+});
+
+//! ================================
+//! getFilenameFromPath
+//! ================================
+
+describe("getFilenameFromPath", () => {
+
+    test("should extract filename from a Unix-like path", () => {
+        // Act
+        const result = getFilenameFromPath("/home/user/documents/report.pdf");
+
+        // Assert
+        expect(result).toBe("report.pdf");
+    });
+
+    test("should extract filename from a Windows-like path", () => {
+        // Act
+        const result = getFilenameFromPath("C:\\Users\\hokin\\report.pdf");
+
+        // Assert
+        expect(result).toBe("report.pdf");
+    });
+
+    test("should handle filenames without an extension", () => {
+        // Act
+        const result = getFilenameFromPath("/home/user/documents/notes");
+
+        // Assert
+        expect(result).toBe("notes");
+    });
+
+    test("should handle paths with multiple periods", () => {
+        // Act
+        const result = getFilenameFromPath("/home/user/documents/report.v1.0.pdf");
+
+        // Assert
+        expect(result).toBe("report.v1.0.pdf");
+    });
+
+    test("should handle paths with no directory", () => {
+        // Act
+        const result = getFilenameFromPath("report.pdf");
+
+        // Assert
+        expect(result).toBe("report.pdf");
+    });
+
+    test("should handle empty strings", () => {
+        // Act
+        const result = getFilenameFromPath("");
+
+        // Assert
+        expect(result).toBe("");
+    });
+
+    test("should handle paths with only directories and no filename", () => {
+        // Act
+        const result = getFilenameFromPath("/home/user/documents/");
+
+        // Assert
+        expect(result).toBe("");
+    });
+
+    test("should handle paths with special characters in the filename", () => {
+        // Act
+        const result = getFilenameFromPath("/home/user/documents/~$!%20report.pdf");
+
+        // Assert
+        expect(result).toBe("~$!%20report.pdf");
+    });
+
+    test("should handle paths with a dot at the start", () => {
+        // Act
+        const result = getFilenameFromPath("/home/user/documents/.env");
+
+        // Assert
+        expect(result).toBe(".env");
+    });
+
+    test("should handle paths with a space in the filename", () => {
+        // Act
+        const result = getFilenameFromPath("/home/user/documents/my report.pdf");
+
+        // Assert
+        expect(result).toBe("my report.pdf");
+    });
+
+    test("should throw an error for non-string inputs", () => {
+        // Arrange
+        const input: any = null;
+
+        // Act and Assert
+        expect(() => getFilenameFromPath(input)).toThrow(TypeError);
+    });
+
+});
+
+//! ================================
+//! extractClassFromSelector
+//! ================================
+
+describe("extractClassFromSelector", () => {
+
+    test("should extract single class from simple selector", () => {
+        // Act
+        const result = extractClassFromSelector(".example");
+
+        // Assert
+        expect(result).toEqual(["example"]);
+    });
+
+    test("should extract multiple classes from complex selector", () => {
+        // Act
+        const result = extractClassFromSelector(":is(.some-class .some-class\\:!bg-white .some-class\\:bg-dark::-moz-placeholder)[data-active=\'true\']");
+
+        // Assert
+        expect(result).toEqual(["some-class", "some-class", "bg-white", "some-class", "bg-dark"]);
+    });
+
+    test("should handle selector with no classes", () => {
+        // Act
+        const result = extractClassFromSelector("div");
+
+        // Assert
+        expect(result).toEqual([]);
+    });
+
+    test("should handle selector with pseudo-classes and not extract them", () => {
+        // Act
+        const result = extractClassFromSelector(".btn:hover .btn-active::after");
+
+        // Assert
+        expect(result).toEqual(["btn", "btn-active"]);
+    });
+
+    test("should handle selector with escaped characters", () => {
+        // Act
+        const result = extractClassFromSelector(".escaped\\:class");
+
+        // Assert
+        expect(result).toEqual(["escaped", "class"]);
+    });
+
+    test("should handle selector with multiple classes separated by spaces", () => {
+        // Act
+        const result = extractClassFromSelector(".class1 .class2 .class3");
+
+        // Assert
+        expect(result).toEqual(["class1", "class2", "class3"]);
+    });
+
+    test("should handle selector with multiple classes separated by commas", () => {
+        // Act
+        const result = extractClassFromSelector(".class1, .class2, .class3");
+
+        // Assert
+        expect(result).toEqual(["class1", "class2", "class3"]);
+    });
+
+    test("should handle selector with a combination of classes and ids", () => {
+        // Act
+        const result = extractClassFromSelector(".class1 #id .class2");
+
+        // Assert
+        expect(result).toEqual(["class1", "class2"]);
+    });
+
+    test("should handle selector with attribute selectors", () => {
+        // Act
+        const result = extractClassFromSelector(".class1[data-attr='value'] .class2");
+
+        // Assert
+        expect(result).toEqual(["class1", "class2"]);
+    });
+
+    test("should return null for invalid input types", () => {
+        // Act & Assert
+        // @ts-ignore
+        expect(() => extractClassFromSelector(null)).toThrow(TypeError);
+        // @ts-ignore
+        expect(() => extractClassFromSelector(undefined)).toThrow(TypeError);
+        expect(() => extractClassFromSelector(123 as any)).toThrow(TypeError);
+    });
+
 });
