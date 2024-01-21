@@ -210,8 +210,11 @@ function obfuscateKeys(jsonData: ClassConversion, fileContent: string) {
     const fileContentOriginal = fileContent;
     let keyUse = escapeRegExp(key.slice(1).replace(/\\/g, ""));
     let regex;
-    regex = new RegExp(`([\\s"'\\\`]|^)(${keyUse})(?=$|[\\s"'\\\`])`, 'g'); // match exact wording & avoid ` ' ""
-    //@ts-ignore
+
+    //? sample: "text-sm w-full\n      text-right\n p-2 flex gap-2 hover:bg-gray-100 dark:hover:bg-red-700 text-right"
+    regex = new RegExp(`([\\s"'\\\`]|^)(${keyUse})(?=$|[\\s"'\\\`]|\\\\n)`, 'g'); // match exact wording & avoid ` ' ""
+    // regex = new RegExp(`([\\s"'\\\`]|^)(${keyUse})(?=$|[\\s"'\\\`])`, 'g'); // match exact wording & avoid ` ' ""
+    
     fileContent = fileContent.replace(regex, `$1` + jsonData[key].slice(1).replace(/\\/g, "")); // capture preceding space
 
     if (fileContentOriginal !== fileContent && !usedKeys.has(key)) {
