@@ -214,7 +214,7 @@ function obfuscateKeys(jsonData: ClassConversion, fileContent: string) {
     //? sample: "text-sm w-full\n      text-right\n p-2 flex gap-2 hover:bg-gray-100 dark:hover:bg-red-700 text-right"
     regex = new RegExp(`([\\s"'\\\`]|^)(${keyUse})(?=$|[\\s"'\\\`]|\\\\n)`, 'g'); // match exact wording & avoid ` ' ""
     // regex = new RegExp(`([\\s"'\\\`]|^)(${keyUse})(?=$|[\\s"'\\\`])`, 'g'); // match exact wording & avoid ` ' ""
-    
+
     fileContent = fileContent.replace(regex, `$1` + jsonData[key].slice(1).replace(/\\/g, "")); // capture preceding space
 
     if (fileContentOriginal !== fileContent && !usedKeys.has(key)) {
@@ -224,11 +224,6 @@ function obfuscateKeys(jsonData: ClassConversion, fileContent: string) {
   return { obfuscatedContent: fileContent, usedKeys: usedKeys };
 }
 
-/**
- * Remove escape characters from a string
- * @param str - The string to remove escape characters from
- * @returns The string without escape characters
- */
 function escapeRegExp(str: string) {
   //ref: https://github.com/n4j1Br4ch1D/postcss-obfuscator/blob/main/utils.js
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
@@ -629,7 +624,7 @@ function createNewClassName(mode: obfuscateMode, className: string, classPrefix:
  * extractClassFromSelector("div");
  */
 function extractClassFromSelector(selector: string) {
-  const extractClassRegex = /(?<=[:|.|\s|!])(\b\w[\w-]*\b)(?![\w-]*\()/g;
+  const extractClassRegex = /(?<=[:|.|\s|!])(\b\w[\w\-]*\b)(?![\w\-]*\()/g;
   const actionSelectors = [
     ":hover", ":focus", ":active",
     ":visited", ":link", ":target",
@@ -731,6 +726,7 @@ function createClassConversionJson(
 
   for (let i = 0; i < sortedSelectorClassPair.length; i++) {
     const [originalSelector, selectorClasses] = sortedSelectorClassPair[i];
+    // const selectorStartWith = originalSelector.slice(0, 1);
     if (selectorClasses.length == 0) {
       continue;
     }
@@ -765,10 +761,15 @@ function createClassConversionJson(
 
       // for tailwindcss dark mode
       if (originalSelector.startsWith(`:is(.dark .dark\\:`)) {
-        const darkSelector = selectorConversion[".dark"];
-        if (darkSelector && classes.length > 2) {
+        const obfuscatedDarkSelector = selectorConversion[".dark"];
+        //eg. :is(.dark .dark\\:bg-emerald-400\\/20 .dark\\:bg-emerald-400\\/20) => .dark\\:bg-emerald-400\\/20
+        const matchWholeDarkSelector = /(?<=\.dark\s)([\w\\\/\-:.]*)/;
+        const match = originalSelector.match(matchWholeDarkSelector);
+        const wholeDarkSelector = match ? match[0] : "";
+        if (obfuscatedDarkSelector && classes.length > 2) {
           //? since during the obfuscation, the class name will remove the "." at the start, so we need to add it back to prevent the class name got sliced
-          selectorConversion[`.dark\\:${classes[2]}`] = `${darkSelector}\\:${selectorConversion[`.${classes[2]}`].slice(1)}`;
+          const obfuscatedWholeDarkSelector = wholeDarkSelector.replace(".dark", obfuscatedDarkSelector).replace(classes[2], selectorConversion[`.${classes[2]}`].slice(1));
+          selectorConversion[wholeDarkSelector] = obfuscatedWholeDarkSelector;
         }
       }
     }
