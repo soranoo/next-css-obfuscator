@@ -23,6 +23,7 @@ We have added a new individual configuration file `next-css-obfuscator.config.cj
 | srcPath              | buildFolderPath                |
 | desPath              | buildFolderPath                |
 | extensions           | allowExtensions                |
+| ➡️                   | contentIgnoreRegexes           |
 | formatJson           | ⛔                             |
 | showConfig           | ⛔                             |
 | keepData             | ⛔                             |
@@ -37,4 +38,3 @@ We have added a new individual configuration file `next-css-obfuscator.config.cj
 | ➡️                   | removeMarkersAfterObfuscated   |
 | ➡️                   | customTailwindDarkModeSelector |
 | ➡️                   | logLevel                       |
-

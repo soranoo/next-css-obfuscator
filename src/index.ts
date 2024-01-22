@@ -49,6 +49,8 @@ function obfuscate(options: Options) {
     allowExtensions: options.allowExtensions,
     classConversionJsonFolderPath: options.classConversionJsonFolderPath,
 
+    contentIgnoreRegexes: options.contentIgnoreRegexes,
+
     whiteListedFolderPaths: options.whiteListedFolderPaths,
     blackListedFolderPaths: options.blackListedFolderPaths,
     includeAnyMatchRegexes: options.includeAnyMatchRegexes,

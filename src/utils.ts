@@ -60,6 +60,8 @@ function replaceJsonKeysInFiles(
     allowExtensions,
     classConversionJsonFolderPath,
 
+    contentIgnoreRegexes,
+
     whiteListedFolderPaths,
     blackListedFolderPaths,
     includeAnyMatchRegexes,
@@ -71,6 +73,8 @@ function replaceJsonKeysInFiles(
     targetFolder: string,
     allowExtensions: string[],
     classConversionJsonFolderPath: string,
+
+    contentIgnoreRegexes: RegExp[],
 
     whiteListedFolderPaths: string[],
     blackListedFolderPaths: string[],
@@ -111,9 +115,12 @@ function replaceJsonKeysInFiles(
         });
       }
       if (blackListedFolderPaths.length > 0) {
-        isTargetFile = !blackListedFolderPaths.some((incloudPath) => {
+        const res = !blackListedFolderPaths.some((incloudPath) => {
           return normalizePath(filePath).includes(normalizePath(incloudPath));
         });
+        if (!res) {
+          isTargetFile = false;
+        }
       }
       if (includeAnyMatchRegexes.length > 0) {
         isTargetFile = includeAnyMatchRegexes.some((regex) => {
@@ -121,9 +128,12 @@ function replaceJsonKeysInFiles(
         });
       }
       if (excludeAnyMatchRegexes.length > 0) {
-        isTargetFile = !excludeAnyMatchRegexes.some((regex) => {
+        const res = !excludeAnyMatchRegexes.some((regex) => {
           return normalizePath(filePath).match(regex);
         });
+        if (!res) {
+          isTargetFile = false;
+        }
       }
       if (!isTargetFile) {
         return;
@@ -146,7 +156,7 @@ function replaceJsonKeysInFiles(
               const htmlOriginal = html;
               const tagContents = findHtmlTagContentsByClass(html, obfuscateMarkerClass);
               tagContents.forEach(tagContent => {
-                const { obfuscatedContent, usedKeys } = obfuscateKeys(classConversion, tagContent);
+                const { obfuscatedContent, usedKeys } = obfuscateKeys(classConversion, tagContent, contentIgnoreRegexes);
                 addKeysToRegistery(usedKeys);
                 if (tagContent !== obfuscatedContent) {
                   html = html.replace(tagContent, obfuscatedContent);
@@ -156,7 +166,7 @@ function replaceJsonKeysInFiles(
 
               const scriptTagContents = findHtmlTagContents(html, "script");
               scriptTagContents.forEach(scriptTagContent => {
-                const obfuscateScriptContent = obfuscateJs(scriptTagContent, obfuscateMarkerClass, classConversion, filePath);
+                const obfuscateScriptContent = obfuscateJs(scriptTagContent, obfuscateMarkerClass, classConversion, filePath, contentIgnoreRegexes);
                 if (scriptTagContent !== obfuscateScriptContent) {
                   html = html.replace(scriptTagContent, obfuscateScriptContent);
                   log("debug", `Obscured keys under HTML script tag in file:`, normalizePath(filePath));
@@ -168,7 +178,7 @@ function replaceJsonKeysInFiles(
               }
             }
           } else {
-            const obfuscateScriptContent = obfuscateJs(fileContent, obfuscateMarkerClass, classConversion, filePath);
+            const obfuscateScriptContent = obfuscateJs(fileContent, obfuscateMarkerClass, classConversion, filePath, contentIgnoreRegexes);
             if (fileContent !== obfuscateScriptContent) {
               fileContent = obfuscateScriptContent;
               log("debug", `Obscured keys in JS like content file:`, normalizePath(filePath));
@@ -177,9 +187,17 @@ function replaceJsonKeysInFiles(
 
         });
       } else {
-        const { obfuscatedContent, usedKeys } = obfuscateKeys(classConversion, fileContent);
-        fileContent = obfuscatedContent;
-        addKeysToRegistery(usedKeys);
+        if ([".js"].includes(fileExt)) {
+          const obfuscateScriptContent = obfuscateJs(fileContent, "jsx", classConversion, filePath, contentIgnoreRegexes);
+          if (fileContent !== obfuscateScriptContent) {
+            fileContent = obfuscateScriptContent;
+            log("debug", `Obscured keys in JSX related file:`, normalizePath(filePath));
+          }
+        } else {
+          const { obfuscatedContent, usedKeys } = obfuscateKeys(classConversion, fileContent, contentIgnoreRegexes);
+          fileContent = obfuscatedContent;
+          addKeysToRegistery(usedKeys);
+        }
       }
 
       if (fileContentOriginal !== fileContent) {
@@ -202,20 +220,40 @@ function replaceJsonKeysInFiles(
 
 }
 
-function obfuscateKeys(jsonData: ClassConversion, fileContent: string) {
+function obfuscateKeys(jsonData: ClassConversion, fileContent: string, contentIgnoreRegexes: RegExp[] = []) {
   //ref: https://github.com/n4j1Br4ch1D/postcss-obfuscator/blob/main/utils.js
 
   const usedKeys = new Set<string>();
   Object.keys(jsonData).forEach((key) => {
     const fileContentOriginal = fileContent;
     let keyUse = escapeRegExp(key.slice(1).replace(/\\/g, ""));
-    let regex;
-
     //? sample: "text-sm w-full\n      text-right\n p-2 flex gap-2 hover:bg-gray-100 dark:hover:bg-red-700 text-right"
-    regex = new RegExp(`([\\s"'\\\`]|^)(${keyUse})(?=$|[\\s"'\\\`]|\\\\n)`, 'g'); // match exact wording & avoid ` ' ""
-    // regex = new RegExp(`([\\s"'\\\`]|^)(${keyUse})(?=$|[\\s"'\\\`])`, 'g'); // match exact wording & avoid ` ' ""
+    let exactMatchRegex = new RegExp(`([\\s"'\\\`]|^)(${keyUse})(?=$|[\\s"'\\\`]|\\\\n)`, 'g'); // match exact wording & avoid ` ' ""
+    // exactMatchRegex = new RegExp(`([\\s"'\\\`]|^)(${keyUse})(?=$|[\\s"'\\\`])`, 'g'); // match exact wording & avoid ` ' ""
 
-    fileContent = fileContent.replace(regex, `$1` + jsonData[key].slice(1).replace(/\\/g, "")); // capture preceding space
+    const replacement = `$1` + jsonData[key].slice(1).replace(/\\/g, "");
+
+    const matches = fileContent.match(exactMatchRegex);
+    const originalObscuredContentPairs = matches?.map((match) => {
+      return { originalContent: match, obscuredContent: match.replace(exactMatchRegex, replacement) };
+    });
+    fileContent = fileContent.replace(exactMatchRegex, replacement); // capture preceding space
+
+    if (contentIgnoreRegexes.length > 0) {
+      contentIgnoreRegexes.forEach((regex) => {
+        const originalContentFragments = fileContentOriginal.match(regex);
+
+        originalContentFragments?.map((originalContentFragment) => {
+          originalObscuredContentPairs?.map((pair) => {
+            if (originalContentFragments?.some((fragment) => fragment.includes(pair.originalContent))) {
+              log("debug", "Obscured keys:", `Ignored ${pair.originalContent} at ${originalContentFragment}`);
+              fileContent = fileContent.replace(originalContentFragment.replace(pair.originalContent, pair.obscuredContent), originalContentFragment);
+            }
+          });
+        });
+      });
+    }
+
 
     if (fileContentOriginal !== fileContent && !usedKeys.has(key)) {
       usedKeys.add(key);
@@ -375,60 +413,57 @@ function findContentBetweenMarker(content: string, targetStr: string, openMarker
   if (openMarker === closeMarker) {
     throw new Error("openMarker and closeMarker can not be the same");
   }
-
-  const foundContents: string[] = [];
-
-  let targetStrPosition = content.indexOf(targetStr);
-  while (targetStrPosition !== -1 && targetStrPosition < content.length) {
-    let openMarkerPosition = -1;
-
-    // search the closer openMarker before the targetStr
-    let currentPosition = targetStrPosition;
-    while (openMarkerPosition === -1 && currentPosition > 0) {
-      const reading = content.slice(currentPosition, currentPosition + openMarker.length);
-      if (reading === openMarker) {
-        openMarkerPosition = currentPosition;
-      } else if (reading === closeMarker) {
-        break;
-      } else {
-        currentPosition--;
-      }
-    }
-    if (openMarkerPosition !== -1) {
-      let closeMarkerPosition = openMarkerPosition;
-      if (closeMarkerPosition < content.length) {
-        let count = 1;
-        let closeMarkerReadingFramePos = closeMarkerPosition + closeMarker.length;
-        while (count > 0 && closeMarkerReadingFramePos < content.length) {
-          if (content.slice(closeMarkerReadingFramePos, closeMarkerReadingFramePos + openMarker.length) === openMarker) {
-            count++;
-            closeMarkerReadingFramePos += openMarker.length;
-          } else if (content.slice(closeMarkerReadingFramePos, closeMarkerReadingFramePos + closeMarker.length) === closeMarker) {
-            count--;
-            closeMarkerReadingFramePos += closeMarker.length;
-          } else {
-            closeMarkerReadingFramePos++;
-          }
-        }
-        if (count === 0) {
-          const block = content.slice(openMarkerPosition + openMarker.length, closeMarkerReadingFramePos - closeMarker.length);
-          if (block.includes(targetStr)) {
-            foundContents.push(block);
-          }
-        }
-      }
-    }
-    targetStrPosition = content.indexOf(targetStr, targetStrPosition + 1);
+  // not support multi char marker
+  if (openMarker.length > 1 || closeMarker.length > 1) {
+    throw new Error("openMarker and closeMarker can only be one character");
   }
 
-  return foundContents;
+  let lastEndIndex = 0;
+  let results: string[] = [];
+
+  while (true) {
+    const targetIndex = content.indexOf(targetStr, lastEndIndex);
+    if (targetIndex === -1) {
+      break;
+    }
+
+    let level = 0;
+    let openMarkerIndex = -1;
+    let closeMarkerIndex = -1;
+
+    for (let i = 0; i < content.length; i++) {
+      if (content.substring(i, i + openMarker.length) === openMarker) {
+        if (i < targetIndex && (openMarkerIndex === -1 || level === 0)) {
+          openMarkerIndex = i;
+        }
+        level++;
+        i += openMarker.length - 1; // Skip the characters we've just checked
+      } else if (content.substring(i, i + closeMarker.length) === closeMarker) {
+        level--;
+        if (level === 0 && i > targetIndex) {
+          closeMarkerIndex = i;
+          break;
+        }
+        i += closeMarker.length - 1; // Skip the characters we've just checked
+      }
+    }
+
+    if (openMarkerIndex === -1 || closeMarkerIndex === -1) {
+      break;
+    }
+
+    results.push(content.substring(openMarkerIndex + openMarker.length, closeMarkerIndex));
+    lastEndIndex = closeMarkerIndex + closeMarker.length;
+  }
+
+  return results;
 }
 
 function obfuscateJs(content: string, key: string, jsonData: ClassConversion
-  , filePath: string) {
+  , filePath: string, contentIgnoreRegexes: RegExp[] = []) {
   const truncatedContents = findContentBetweenMarker(content, key, "{", "}");
   truncatedContents.forEach((truncatedContent) => {
-    const { obfuscatedContent, usedKeys } = obfuscateKeys(jsonData, truncatedContent);
+    const { obfuscatedContent, usedKeys } = obfuscateKeys(jsonData, truncatedContent, contentIgnoreRegexes);
     addKeysToRegistery(usedKeys);
     if (truncatedContent !== obfuscatedContent) {
       content = content.replace(truncatedContent, obfuscatedContent);
@@ -784,4 +819,5 @@ export {
   , replaceJsonKeysInFiles, setLogLevel
   , copyCssData, findContentBetweenMarker, findHtmlTagContentsByClass
   , findAllFilesWithExt, createClassConversionJson, extractClassFromSelector
+  , obfuscateKeys
 };

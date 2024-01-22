@@ -14,6 +14,7 @@ type Options = {
     classSuffix: string;
     classIgnore: string[];
     allowExtensions: string[];
+    contentIgnoreRegexes: RegExp[];
 
     whiteListedFolderPaths: string[];
     blackListedFolderPaths: string[];
@@ -38,6 +39,7 @@ type OptionalOptions = {
     classSuffix?: string;
     classIgnore?: string[];
     allowExtensions?: string[];
+    contentIgnoreRegexes: RegExp[];
 
     whiteListedFolderPaths?: string[];
     blackListedFolderPaths?: string[];

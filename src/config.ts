@@ -12,6 +12,7 @@ const defaultOptions: Options = {
     classSuffix: "", // Suffix of the obfuscated class name.
     classIgnore: [], // The class names to be ignored during obfuscation.
     allowExtensions: [".jsx", ".tsx", ".js", ".ts", ".html", ".rsc"], // The file extensions to be processed.
+    contentIgnoreRegexes: [], // The regexes to match the file content to be ignored during obfuscation.
 
     whiteListedFolderPaths: [], // Only obfuscate files in these folders
     blackListedFolderPaths: ["./.next/cache"], // Don't obfuscate files in these folders

@@ -261,6 +261,7 @@ It may not be the best setting but it works for me. :)
 |classSuffix|string|""|The suffix of the obfuscated class name.|
 |classIgnore|string[ ]|[ ]|The class names to be ignored during obfuscation.|
 |allowExtensions|string[ ]|[".jsx", ".tsx", ".js", ".ts", ".html", ".rsc"]|The file extensions to be processed.|
+|contentIgnoreRegexes|RegExp[ ]|[ ]|The regexes to match the content to be ignored  during obfuscation.|
 |whiteListedFolderPaths|string[ ]|[ ]|The folder paths to be processed. Empty array means all folders will be processed.|
 |blackListedFolderPaths|string[ ]|[ ]|The folder paths to be ignored.|
 |includeAnyMatchRegexes|RegExp[ ]|[ ]|The regexes to match the file/folder paths to be processed.|
@@ -285,6 +286,7 @@ module.exports = {
     classSuffix: "", // Suffix of the obfuscated class name.
     classIgnore: [], // The class names to be ignored during obfuscation.
     allowExtensions: [".jsx", ".tsx", ".js", ".ts", ".html", ".rsc"], // The file extensions to be processed.
+    contentIgnoreRegexes: [], // The regexes to match the file content to be ignored during obfuscation.
 
     whiteListedFolderPaths: [], // Only obfuscate files in these folders
     blackListedFolderPaths: ["./.next/cache"], // Don't obfuscate files in these folders
