@@ -108,7 +108,7 @@ function replaceJsonKeysInFiles(
       allowExtensions.includes(fileExt)
     ) {
 
-      let isTargetFile = false;
+      let isTargetFile = true;
       if (whiteListedFolderPaths.length > 0) {
         isTargetFile = whiteListedFolderPaths.some((incloudPath) => {
           return normalizePath(filePath).includes(normalizePath(incloudPath));
@@ -166,7 +166,7 @@ function replaceJsonKeysInFiles(
 
               const scriptTagContents = findHtmlTagContents(html, "script");
               scriptTagContents.forEach(scriptTagContent => {
-                const obfuscateScriptContent = obfuscateJs(scriptTagContent, obfuscateMarkerClass, classConversion, filePath, contentIgnoreRegexes);
+                const obfuscateScriptContent = obfuscateJs(scriptTagContent, obfuscateMarkerClass, classConversion, filePath, contentIgnoreRegexes, true);
                 if (scriptTagContent !== obfuscateScriptContent) {
                   html = html.replace(scriptTagContent, obfuscateScriptContent);
                   log("debug", `Obscured keys under HTML script tag in file:`, normalizePath(filePath));
@@ -178,7 +178,7 @@ function replaceJsonKeysInFiles(
               }
             }
           } else {
-            const obfuscateScriptContent = obfuscateJs(fileContent, obfuscateMarkerClass, classConversion, filePath, contentIgnoreRegexes);
+            const obfuscateScriptContent = obfuscateJs(fileContent, obfuscateMarkerClass, classConversion, filePath, contentIgnoreRegexes, true);
             if (fileContent !== obfuscateScriptContent) {
               fileContent = obfuscateScriptContent;
               log("debug", `Obscured keys in JS like content file:`, normalizePath(filePath));
@@ -409,61 +409,91 @@ function findHtmlTagContentsByClass(content: string, targetClass: string) {
   }
 }
 
+/**
+ * 
+ * @param content 
+ * @param openMarker 
+ * @param closeMarker 
+ * @param startPosition 
+ * @param direction - if "forward", the function will search the closest closeMarker after the startPosition, if "backward", the function will search the closest openMarker before the startPosition
+ * @returns 
+ */
+function findClosestSymbolPosition(content: string, openMarker: string, closeMarker: string, startPosition: number = 0, direction: "forward" | "backward" = "backward") {
+  let level = 0;
+  let currentPos = startPosition;
+
+  if (direction === "backward") {
+    while (currentPos >= 0 && level >= 0) {
+      if (content.slice(currentPos, currentPos + openMarker.length) === openMarker) {
+        level--;
+      } else if (content.slice(currentPos, currentPos + closeMarker.length) === closeMarker) {
+        level++;
+      }
+      currentPos--;
+    }
+    if (level < 0) {
+      // remove the last openMarker
+      currentPos += 2;
+    }
+  } else {
+    while (currentPos < content.length && level >= 0) {
+      if (content.slice(currentPos, currentPos + openMarker.length) === openMarker) {
+        level++;
+      } else if (content.slice(currentPos, currentPos + closeMarker.length) === closeMarker) {
+        level--;
+      }
+      currentPos++;
+    }
+    if (level < 0) {
+      // remove the last closeMarker
+      currentPos--;
+    }
+  }
+
+  return currentPos;
+}
+
 function findContentBetweenMarker(content: string, targetStr: string, openMarker: string, closeMarker: string) {
   if (openMarker === closeMarker) {
     throw new Error("openMarker and closeMarker can not be the same");
   }
-  // not support multi char marker
-  if (openMarker.length > 1 || closeMarker.length > 1) {
-    throw new Error("openMarker and closeMarker can only be one character");
-  }
 
-  let lastEndIndex = 0;
-  let results: string[] = [];
+  let targetStrPosition = content.indexOf(targetStr);
+  const truncatedContents: string[] = [];
+  while (targetStrPosition !== -1 && targetStrPosition < content.length) {
+    const openPos = findClosestSymbolPosition(content, "{", "}", targetStrPosition, "backward");
+    const closePos = findClosestSymbolPosition(content, "{", "}", targetStrPosition, "forward");
 
-  while (true) {
-    const targetIndex = content.indexOf(targetStr, lastEndIndex);
-    if (targetIndex === -1) {
+    if (openPos === -1 && closePos === -1) {
       break;
     }
-
-    let level = 0;
-    let openMarkerIndex = -1;
-    let closeMarkerIndex = -1;
-
-    for (let i = 0; i < content.length; i++) {
-      if (content.substring(i, i + openMarker.length) === openMarker) {
-        if (i < targetIndex && (openMarkerIndex === -1 || level === 0)) {
-          openMarkerIndex = i;
-        }
-        level++;
-        i += openMarker.length - 1; // Skip the characters we've just checked
-      } else if (content.substring(i, i + closeMarker.length) === closeMarker) {
-        level--;
-        if (level === 0 && i > targetIndex) {
-          closeMarkerIndex = i;
-          break;
-        }
-        i += closeMarker.length - 1; // Skip the characters we've just checked
-      }
-    }
-
-    if (openMarkerIndex === -1 || closeMarkerIndex === -1) {
-      break;
-    }
-
-    results.push(content.substring(openMarkerIndex + openMarker.length, closeMarkerIndex));
-    lastEndIndex = closeMarkerIndex + closeMarker.length;
+    truncatedContents.push(content.slice(openPos, closePos));
+    targetStrPosition = content.indexOf(targetStr, closePos + 1);
   }
 
-  return results;
+  return truncatedContents;
 }
 
-function obfuscateJs(content: string, key: string, jsonData: ClassConversion
-  , filePath: string, contentIgnoreRegexes: RegExp[] = []) {
+
+function obfuscateJs(content: string, key: string, classCoversion: ClassConversion
+  , filePath: string, contentIgnoreRegexes: RegExp[] = [], enableForwardComponentObfuscation = false) {
   const truncatedContents = findContentBetweenMarker(content, key, "{", "}");
   truncatedContents.forEach((truncatedContent) => {
-    const { obfuscatedContent, usedKeys } = obfuscateKeys(jsonData, truncatedContent, contentIgnoreRegexes);
+
+    if (enableForwardComponentObfuscation) {
+      //! this is a experimental feature, it may not work properly
+      const componentObfuscatedcomponentCodePairs = obfuscateForwardComponentJs(truncatedContent, content, classCoversion);
+      componentObfuscatedcomponentCodePairs.map((pair) => {
+        const { componentCode, componentObfuscatedCode } = pair;
+        if (componentCode !== componentObfuscatedCode) {
+          content = replaceFirstMatch(content, componentCode, componentObfuscatedCode);
+          log("debug", `Obscured keys in component:`, `${normalizePath(filePath)}`);
+        }
+      });
+    }
+
+
+    const { obfuscatedContent, usedKeys } = obfuscateKeys(classCoversion, truncatedContent, contentIgnoreRegexes);
     addKeysToRegistery(usedKeys);
     if (truncatedContent !== obfuscatedContent) {
       content = content.replace(truncatedContent, obfuscatedContent);
@@ -814,10 +844,103 @@ function createClassConversionJson(
   fs.writeFileSync(jsonPath, JSON.stringify(selectorConversion, null, 2));
 }
 
+function searchForwardComponent(content: string) {
+  const componentSearchRegex = /(?<=\.jsx\()[^,|"|']+/g;
+  //eg. o.jsx(yt,{data:yc,index:"date
+  //    then return yt
+  //eg. o.jsx("h1",{data:yc,index:"date
+  //    then nothing should be returned
+
+  const match = content.match(componentSearchRegex);
+  if (match) {
+    return match;
+  }
+  return [];
+}
+
+function searchComponent(content: string, componentName: string) {
+  const componentSearchRegex = new RegExp(`\\b(?:const|let|var)\\s+(${componentName})\\s*=\\s*.*?(\\{)`, "g");
+  // eg, let yt=l().forwardRef((e,t)=>{let
+  const match = content.match(componentSearchRegex);
+  let openSymbolPos = -1;
+  if (match) {
+    openSymbolPos = content.indexOf(match[0]) + match[0].length;
+  }
+
+  const closeMarkerPos = findClosestSymbolPosition(content, "{", "}", openSymbolPos, "forward");
+  const componentContent = content.slice(openSymbolPos, closeMarkerPos);
+
+  return componentContent;
+}
+
+function replaceFirstMatch(source: string, find: string, replace: string): string {
+  const index = source.indexOf(find);
+  if (index !== -1) {
+    return source.slice(0, index) + replace + source.slice(index + find.length);
+  }
+  return source;
+}
+
+
+function obfuscateForwardComponentJs(searchContent: string, wholeContent: string, classConversion: ClassConversion) {
+  const componentNames = searchForwardComponent(searchContent).filter((componentName) => {
+    return !componentName.includes(".");
+  });
+
+  const componentsCode = componentNames.map(componentName => {
+    const componentContent = searchComponent(wholeContent, componentName);
+    return {
+      name: componentName,
+      code: componentContent
+    }
+  });
+  const componentsObfuscatedCode = componentsCode.map((componentContent) => {
+    const classNameBlocks = findContentBetweenMarker(componentContent.code, "className:", "{", "}");
+    const obfuscatedClassNameBlocks = classNameBlocks.map(block => {
+      const { obfuscatedContent, usedKeys } = obfuscateKeys(classConversion, block);
+      addKeysToRegistery(usedKeys);
+      return obfuscatedContent;
+    });
+
+    if (classNameBlocks.length !== obfuscatedClassNameBlocks.length) {
+      log("error", `Component obfuscation:`, `classNameBlocks.length !== obfuscatedClassNameBlocks.length`);
+      return componentContent;
+    }
+    let obscuredCode = componentContent.code;
+    for (let i = 0; i < classNameBlocks.length; i++) {
+      obscuredCode = replaceFirstMatch(obscuredCode, classNameBlocks[i], obfuscatedClassNameBlocks[i]);
+    }
+    log("debug", `Obscured keys in component:`, componentContent.name);
+    return {
+      name: componentContent.name,
+      code: obscuredCode
+    }
+  });
+
+  const componentObfuscatedcomponentCodePairs: { name: string, componentCode: string, componentObfuscatedCode: string }[] = [];
+  for (let i = 0; i < componentsCode.length; i++) {
+    if (componentsCode[i] !== componentsObfuscatedCode[i]) {
+      componentObfuscatedcomponentCodePairs.push({
+        name: componentsCode[i].name,
+        componentCode: componentsCode[i].code,
+        componentObfuscatedCode: componentsObfuscatedCode[i].code
+      });
+    }
+  }
+
+  for (let i = 0; i < componentsCode.length; i++) {
+    const childComponentObfuscatedcomponentCodePairs = obfuscateForwardComponentJs(componentsCode[i].code, wholeContent, classConversion);
+    componentObfuscatedcomponentCodePairs.push(...childComponentObfuscatedcomponentCodePairs);
+  }
+
+  console.log(componentObfuscatedcomponentCodePairs);
+  return componentObfuscatedcomponentCodePairs;
+}
+
 export {
   getFilenameFromPath, log, normalizePath
   , replaceJsonKeysInFiles, setLogLevel
   , copyCssData, findContentBetweenMarker, findHtmlTagContentsByClass
   , findAllFilesWithExt, createClassConversionJson, extractClassFromSelector
-  , obfuscateKeys
+  , obfuscateKeys, searchForwardComponent, obfuscateForwardComponentJs
 };

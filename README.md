@@ -11,7 +11,7 @@ Project start on 30-10-2023
   This version is deeply inspired by [PostCSS-Obfuscator](https://github.com/n4j1Br4ch1D/postcss-obfuscator). Shout out to [n4j1Br4ch1D](https://github.com/n4j1Br4ch1D) for creating such a great package and thank you [tremor](https://github.com/tremorlabs) for sponsoring this project.
 
   #### Changes:
-  - Support partially obfuscation
+  - Support basic partially obfuscation
   - Support TailwindCSS Dark Mode
   - New configuration file `next-css-obfuscator.config.cjs`
   - More configuration options
@@ -334,7 +334,9 @@ Your convertion table may be messed up. Try to delete the `classConversionJsonFo
 
 ## 🐛 Known Issues
 
-- N/A
+- Partially obfuscation
+  - Not work with complex component. (eg. A component with children components)
+    - Reason: The obfuscation marker can't locate the correct code block to obfuscate.
 
 ## 💖 Sponsors
 
