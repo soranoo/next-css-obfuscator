@@ -381,10 +381,10 @@ describe("extractClassFromSelector", () => {
 
     test("should extract multiple classes from complex selector", () => {
         // Act
-        const result = extractClassFromSelector(":is(.some-class .some-class\\:!bg-white .some-class\\:bg-dark::-moz-placeholder)[data-active=\'true\']");
+        const result = extractClassFromSelector(":is(.some-class .some-class\\:bg-dark::-moz-placeholder)[data-active=\'true\']");
 
         // Assert
-        expect(result).toEqual(["some-class", "some-class", "bg-white", "some-class", "bg-dark"]);
+        expect(result).toEqual(["some-class", "some-class\\:bg-dark"]);
     });
 
     test("should handle selector with no classes", () => {
@@ -395,20 +395,28 @@ describe("extractClassFromSelector", () => {
         expect(result).toEqual([]);
     });
 
-    test("should handle selector with pseudo-classes and not extract them", () => {
+    test("should handle selector with action pseudo-classes and not extract them", () => {
         // Act
         const result = extractClassFromSelector(".btn:hover .btn-active::after");
 
         // Assert
         expect(result).toEqual(["btn", "btn-active"]);
     });
+    
+    test("should handle selector with vendor pseudo-classes and not extract them", () => {
+        // Act
+        const result = extractClassFromSelector(".btn-moz:-moz-focusring .btn-ms::-ms-placeholder .btn-webkit::-webkit-placeholder .btn-o::-o-placeholder");
+
+        // Assert
+        expect(result).toEqual(["btn-moz", "btn-ms", "btn-webkit", "btn-o"]);
+    });
 
     test("should handle selector with escaped characters", () => {
         // Act
-        const result = extractClassFromSelector(".escaped\\:class");
+        const result = extractClassFromSelector(".escaped\\:class:action");
 
         // Assert
-        expect(result).toEqual(["escaped", "class"]);
+        expect(result).toEqual(["escaped\\:class", "action"]);
     });
 
     test("should handle selector with multiple classes separated by spaces", () => {
@@ -443,6 +451,22 @@ describe("extractClassFromSelector", () => {
         expect(result).toEqual(["class1", "class2"]);
     });
 
+    test("should handle [attribute] selector", () => {
+        // Act
+        const result = extractClassFromSelector(".class1[data-attr=\"value\"]");
+
+        // Assert
+        expect(result).toEqual(["class1[data-attr=\"value\"]"]);
+    });
+    
+    test("should ignore [attribute] selector that not in the same scope as class", () => {
+        // Act
+        const result = extractClassFromSelector(":is(.class1 .class2\\:class3\\:\\!class4)[aria-selected=\"true\"]");
+
+        // Assert
+        expect(result).toEqual(["class1", "class2\\:class3\\:\\!class4"]);
+    });
+
     test("should return null for invalid input types", () => {
         // Act & Assert
         // @ts-ignore
@@ -452,6 +476,73 @@ describe("extractClassFromSelector", () => {
         expect(() => extractClassFromSelector(123 as any)).toThrow(TypeError);
     });
 
+
+    //? *********************
+    //? Tailwind CSS
+    //? *********************
+    test("should handle Tailwind CSS important selector '!'", () => {
+        // Act
+        const result = extractClassFromSelector(".\\!my-0 .some-class\\:\\!bg-white");
+
+        // Assert
+        expect(result).toEqual(["\\!my-0", "some-class\\:\\!bg-white"]);
+    });
+
+    test("should handle Tailwind CSS selector with start with '-'", () => {
+        // Act
+        const result = extractClassFromSelector(".-class-1");
+
+        // Assert
+        expect(result).toEqual(["-class-1"]);
+    });
+    
+    test("should handle Tailwind CSS selector with '.' at the number", () => {
+        // Act
+        const result = extractClassFromSelector(".class-0\\.5 .class-1\\.125");
+
+        // Assert
+        expect(result).toEqual(["class-0\\.5", "class-1\\.125"]);
+    });
+    
+    test("should handle Tailwind CSS selector with '/' at the number", () => {
+        // Act
+        const result = extractClassFromSelector(".class-1\\/2");
+
+        // Assert
+        expect(result).toEqual(["class-1\\/2"]);
+    });
+
+    test("should handle Tailwind CSS [custom parameter] selector", () => {
+        // Act
+        const result = extractClassFromSelector(".class1[100] .class2-[200]");
+
+        // Assert
+        expect(result).toEqual(["class1[100]", "class2-[200]"]);
+    });
+    
+    test("should handle Tailwind CSS [custom parameter] selector with escaped characters", () => {
+        // Act
+        const result = extractClassFromSelector(".class1\\[1em\\] .class2-\\[2em\\] .class3\\[3\\%\\] .class4-\\[4\\%\\]");
+
+        // Assert
+        expect(result).toEqual(["class1\\[1em\\]", "class2-\\[2em\\]", "class3\\[3\\%\\]", "class4-\\[4\\%\\]"]);
+    });
+    
+    test("should handle complex Tailwind CSS [custom parameter] selector", () => {
+        // Act
+        const result = extractClassFromSelector(".w-\\[calc\\(10\\%\\+5px\\)\\]");
+
+        // Assert
+        expect(result).toEqual(["w-\\[calc\\(10\\%\\+5px\\)\\]"]);
+    });
+
+    test("should ignore Tailwind CSS [custom parameter] selector that not in the same scope as class", () => {
+        // Act
+        const result = extractClassFromSelector(":is(.class1)[100]");
+
+        // Assert
+        expect(result).toEqual(["class1"]);
+    });
 });
 
 //! ================================

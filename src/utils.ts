@@ -689,7 +689,12 @@ function createNewClassName(mode: obfuscateMode, className: string, classPrefix:
  * extractClassFromSelector("div");
  */
 function extractClassFromSelector(selector: string) {
-  const extractClassRegex = /(?<=[:|.|\s|!])(\b\w[\w\-]*\b)(?![\w\-]*\()/g;
+  //? "\\\:" for eg.".hover\:border-b-2:hover" the ".hover\:border-b-2" should be in the same group
+  //? "\\\.\d+" for number with ".", eg. ".ml-1\.5" the ".ml-1.5" should be in the same group, before that ".ml-1\.5" will split into ".ml-1" and ".5"
+  //? "\\\/\d+" for number with "/", eg. ".bg-emerald-400\/20" the ".bg-emerald-400\/20" should be in the same group, before that ".bg-emerald-400\/20" will split into ".bg-emerald-400" and "\/20"
+  //? "(?:\\?\[[\w\-="\\%\+\(\)]+\])?" for [attribute / Tailwind CSS custom parameter] selector
+  const extractClassRegex = /(?<=[.:!*\s]|(?<!\w)\.-)((?:[\w\-]|\\\:|\\\.\d+|\\\/\d+|\\!)+(?:\\?\[[\w\-="\\%\+\(\)]+\])?)(?![\w\-]*\()/g;
+  
   const actionSelectors = [
     ":hover", ":focus", ":active",
     ":visited", ":link", ":target",
@@ -706,8 +711,26 @@ function extractClassFromSelector(selector: string) {
     ":after", ":selection", ":not",
     ":where", ":is", ":matches"
   ];
+
+  const vendorPseudoClassRegexes = [
+    /::?-moz-[\w-]+/g, // Firefox
+    /::?-ms-[\w-]+/g,  // Internet Explorer, Edge
+    /::?-webkit-[\w-]+/g, // Safari, Chrome, and Opera
+    /::?-o-[\w-]+/g, // Opera (old ver)
+  ]
+
+  // remove action selectors
+  actionSelectors.forEach((actionSelector) => {
+    selector = selector.replace(actionSelector, "");
+  });
+  
+  // remove vendor pseudo class
+  vendorPseudoClassRegexes.forEach((regex) => {
+    selector = selector.replace(regex, "");
+  });
+
   let classes = selector.match(extractClassRegex) as string[] | undefined;
-  classes = classes?.filter((className) => !actionSelectors.some((actionSelector) => `:${className}` === actionSelector));
+
   return classes || [];
 }
 
