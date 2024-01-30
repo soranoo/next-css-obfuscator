@@ -522,6 +522,10 @@ function copyCssData(targetSelector: string, newSelectorName: string, cssObj: an
         // remove empty selectors
         item.selectors = item.selectors.filter((selector: any) => selector !== "");
         if (item.selectors.includes(targetSelector)) {
+          // if (targetSelector.endsWith(".hover\\:border-b-2:hover")) {
+          // if (targetSelector.endsWith("border-b-2:hover")) {
+          //   console.log("targetSelector", targetSelector);
+          // }
 
           const newRule = JSON.parse(JSON.stringify(item));
           newRule.selectors = [newSelectorName];
@@ -552,6 +556,12 @@ function obfuscateCss(classConversion: ClassConversion, cssPath: string) {
     }
   });
 
+  // join all selectors with action selectors
+  const actionSelectors = getAllSelector(cssObj).filter((selector) => selector.match(findActionSelectorsRegex));
+  actionSelectors.forEach((actionSelector) => {
+    usedKeyRegistery.add(actionSelector);
+  });
+
   // copy css rules
   usedKeyRegistery.forEach((key) => {
     const originalSelectorName = key;
@@ -564,7 +574,8 @@ function obfuscateCss(classConversion: ClassConversion, cssPath: string) {
   log("info", "CSS rules:", `Added ${cssObj.stylesheet.rules.length - cssRulesCount} new CSS rules to ${getFilenameFromPath(cssPath)}`);
 
   const cssOptions = {
-    compress: true,
+    // compress: true,
+    compress: false,
   };
   const cssObfuscatedContent = css.stringify(cssObj, cssOptions);
 
@@ -674,6 +685,11 @@ function createNewClassName(mode: obfuscateMode, className: string, classPrefix:
   return newClassName;
 }
 
+//? CSS action selectors always at the end of the selector
+//? and they can be stacked, eg. "class:hover:active"
+//? action selectors can start with ":" or "::"
+const findActionSelectorsRegex = /(?<!\\)(?:\:\w[\w-]+)(?=\:|\)|\s|\(|$|"|{)/g;
+
 /**
  * Extracts classes from a CSS selector.
  * 
@@ -723,23 +739,6 @@ function extractClassFromSelector(selector: string, replacementClassNames?: (str
   //? "(?:\\?\[[\w\-="\\%\+\(\)]+\])?" for [attribute / Tailwind CSS custom parameter] selector
   const extractClassRegex = /(?<=[.:!\s]|(?<!\w)\.-)((?:\\\*)?(?:[\w\-]|\\\:|\\\.\d+|\\\/\d+|\\!)+(?:\\?\[\S+\])?)(?![\w\-]*\()/g;
 
-  const actionSelectors = [
-    ":hover", ":focus", ":active",
-    ":visited", ":link", ":target",
-    ":checked", ":disabled", ":enabled",
-    ":indeterminate", ":optional", ":required",
-    ":read-only", ":read-write", ":invalid",
-    ":valid", ":in-range", ":out-of-range",
-    ":placeholder-shown", ":fullscreen", ":default",
-    ":root", ":empty", ":first-child",
-    ":last-child", ":first-of-type", ":last-of-type",
-    ":only-child", ":only-of-type", ":nth-child",
-    ":nth-last-child", ":nth-of-type", ":nth-last-of-type",
-    ":first-letter", ":first-line", ":before",
-    ":after", ":selection", ":not",
-    ":where", ":is", ":matches"
-  ];
-
   const vendorPseudoClassRegexes = [
     /::?-moz-[\w-]+/g, // Firefox
     /::?-ms-[\w-]+/g,  // Internet Explorer, Edge
@@ -748,12 +747,8 @@ function extractClassFromSelector(selector: string, replacementClassNames?: (str
   ]
 
   // remove action selectors
-  actionSelectors.forEach((actionSelector) => {
-    const regex = new RegExp(`(?<!\\\\)(?:\\${actionSelector})(?=\\:|\\)|\\s|\\(|$|"|{)`, "g");
-    selector = selector.replace(regex, (match) => {
-      console.log(selector);
-      return createKey(match);
-    });
+  selector = selector.replace(findActionSelectorsRegex, (match) => {
+    return createKey(match);
   });
 
   // replace vendor pseudo class
@@ -859,7 +854,6 @@ function createClassConversionJson(
 
   for (let i = 0; i < sortedSelectorClassPair.length; i++) {
     const [originalSelector, selectorClasses] = sortedSelectorClassPair[i];
-    // const selectorStartWith = originalSelector.slice(0, 1);
     if (selectorClasses.length == 0) {
       continue;
     }
@@ -878,19 +872,10 @@ function createClassConversionJson(
           obfuscatedSelector = `.${obfuscatedClass}`;
           selectorConversion[`.${className}`] = obfuscatedSelector;
         }
-        // if (selector.includes("dark\\:ring-dark-tremor-ring")) {
-        //   console.log(selector);
-        // }
-        // if (obfuscatedSelector.length !== 6) {
-        //   console.log(selector);
-        // }
         return obfuscatedSelector.slice(1)
       });
       const { selector: obfuscatedSelector } = extractClassFromSelector(originalSelector, classes);
       selectorConversion[originalSelector] = obfuscatedSelector;
-      if (originalSelector.includes(".dark")) {
-        console.log(selector);
-      }
     }
   }
 
@@ -987,7 +972,6 @@ function obfuscateForwardComponentJs(searchContent: string, wholeContent: string
     componentObfuscatedcomponentCodePairs.push(...childComponentObfuscatedcomponentCodePairs);
   }
 
-  console.log(componentObfuscatedcomponentCodePairs);
   return componentObfuscatedcomponentCodePairs;
 }
 

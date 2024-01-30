@@ -445,7 +445,7 @@ describe("extractClassFromSelector", () => {
         // Assert
         expect(result).toEqual({
             selector: sample,
-            extractedClasses: ["escaped\\:class", "action"]
+            extractedClasses: ["escaped\\:class"]
         });
     });
 
