@@ -678,6 +678,9 @@ function createNewClassName(mode: obfuscateMode, className: string, classPrefix:
  * Extracts classes from a CSS selector.
  * 
  * @param selector - The CSS selector to extract classes from.
+ * @param replacementClassNames - The replacement class names. 
+ *                                The position of the class name in the array should match the 
+ *                                position of the class in the selector that you want to replece.
  * @returns An array of extracted classes.
  * 
  * @example
@@ -688,13 +691,38 @@ function createNewClassName(mode: obfuscateMode, className: string, classPrefix:
  * // Returns: []
  * extractClassFromSelector("div");
  */
-function extractClassFromSelector(selector: string) {
+function extractClassFromSelector(selector: string, replacementClassNames?: (string | undefined)[]) {
+  function toBase64Key(str: string) {
+    return `${Buffer.from(str).toString("base64")}`;
+  }
+  function fromBase64Key(str: string) {
+    return `${Buffer.from(str, "base64").toString("ascii")}`;
+  }
+
+  function createKey(str: string) {
+    const b64 = toBase64Key(str).replace(/=/g, "");
+    return `{{{{{{${b64}}}}}}}`;
+  }
+
+  function decodeKey(str: string) {
+    const regex = /{{{{{{([\w\+\/]+)}}}}}}/g;
+    str = str.replace(regex, (match, p1) => {
+      // Calculate the number of '=' needed
+      const padding = p1.length % 4 === 0 ? 0 : 4 - (p1.length % 4);
+      // Add back the '='
+      const b64 = p1 + "=".repeat(padding);
+      return fromBase64Key(b64);
+    });
+    return str;
+  }
+
+  //? "(?:\\\*)?" for "*" selector, eg. ".\*\:pt-2"
   //? "\\\:" for eg.".hover\:border-b-2:hover" the ".hover\:border-b-2" should be in the same group
   //? "\\\.\d+" for number with ".", eg. ".ml-1\.5" the ".ml-1.5" should be in the same group, before that ".ml-1\.5" will split into ".ml-1" and ".5"
   //? "\\\/\d+" for number with "/", eg. ".bg-emerald-400\/20" the ".bg-emerald-400\/20" should be in the same group, before that ".bg-emerald-400\/20" will split into ".bg-emerald-400" and "\/20"
   //? "(?:\\?\[[\w\-="\\%\+\(\)]+\])?" for [attribute / Tailwind CSS custom parameter] selector
-  const extractClassRegex = /(?<=[.:!*\s]|(?<!\w)\.-)((?:[\w\-]|\\\:|\\\.\d+|\\\/\d+|\\!)+(?:\\?\[[\w\-="\\%\+\(\)]+\])?)(?![\w\-]*\()/g;
-  
+  const extractClassRegex = /(?<=[.:!\s]|(?<!\w)\.-)((?:\\\*)?(?:[\w\-]|\\\:|\\\.\d+|\\\/\d+|\\!)+(?:\\?\[\S+\])?)(?![\w\-]*\()/g;
+
   const actionSelectors = [
     ":hover", ":focus", ":active",
     ":visited", ":link", ":target",
@@ -721,21 +749,34 @@ function extractClassFromSelector(selector: string) {
 
   // remove action selectors
   actionSelectors.forEach((actionSelector) => {
-    selector = selector.replace(actionSelector, "");
+    const regex = new RegExp(`(?<!\\\\)(?:\\${actionSelector})(?=\\:|\\)|\\s|\\(|$|"|{)`, "g");
+    selector = selector.replace(regex, (match) => {
+      console.log(selector);
+      return createKey(match);
+    });
   });
-  
-  // remove vendor pseudo class
-  vendorPseudoClassRegexes.forEach((regex) => {
-    selector = selector.replace(regex, "");
+
+  // replace vendor pseudo class
+  vendorPseudoClassRegexes.forEach((regex, i) => {
+    selector = selector.replace(regex, (match) => {
+      return createKey(match);
+    });
   });
 
   let classes = selector.match(extractClassRegex) as string[] | undefined;
 
-  return classes || [];
-}
+  // replace classes with replacementClassNames
+  if (replacementClassNames !== undefined) {
+    selector = selector.replace(extractClassRegex, (originalClassName) => {
+      return replacementClassNames.shift() || originalClassName;
+    });
+  }
+  selector = decodeKey(selector);
 
-function getKeyByValue(object: { [key: string]: string }, value: string) {
-  return Object.keys(object).find(key => object[key] === value);
+  return {
+    selector: selector,
+    extractedClasses: classes || []
+  };
 }
 
 function createClassConversionJson(
@@ -749,7 +790,7 @@ function createClassConversionJson(
     classSuffix = "",
     classIgnore = [],
 
-    customTailwindDarkModeSelector = null
+    enableObfuscateMarkers = false,
   }: {
     classConversionJsonFolderPath: string,
     buildFolderPath: string,
@@ -760,7 +801,7 @@ function createClassConversionJson(
     classSuffix?: string,
     classIgnore?: string[],
 
-    customTailwindDarkModeSelector?: string | null
+    enableObfuscateMarkers?: boolean,
   }) {
   if (!fs.existsSync(classConversionJsonFolderPath)) {
     fs.mkdirSync(classConversionJsonFolderPath);
@@ -768,9 +809,14 @@ function createClassConversionJson(
 
   const selectorConversion: ClassConversion = loadAndMergeJsonFiles(classConversionJsonFolderPath);
 
+  // pre-defined ".dark", mainly for tailwindcss dark mode
+  if (enableObfuscateMarkers) {
+    selectorConversion[".dark"] = ".dark";
+  }
+
+  // get all css selectors
   const cssPaths = findAllFilesWithExt(".css", buildFolderPath);
   const selectors: string[] = [];
-
   cssPaths.forEach((cssPath) => {
     const cssContent = fs.readFileSync(cssPath, "utf-8");
     const cssObj = css.parse(cssContent);
@@ -779,11 +825,6 @@ function createClassConversionJson(
 
   // remove duplicated selectors
   const uniqueSelectors = [...new Set(selectors)];
-
-  // for tailwindcss dark mode
-  if (customTailwindDarkModeSelector) {
-    selectorConversion[".dark"] = `.${customTailwindDarkModeSelector}`;
-  }
 
   const allowClassStartWith = [".", ":is(", ":where(", ":not("
     , ":matches(", ":nth-child(", ":nth-last-child("
@@ -803,9 +844,13 @@ function createClassConversionJson(
 
   for (let i = 0; i < uniqueSelectors.length; i++) {
     const originalSelector = uniqueSelectors[i];
-    selectorClassPair[originalSelector] = extractClassFromSelector(originalSelector) || [];
+    const { extractedClasses } = extractClassFromSelector(originalSelector) || [];
+    selectorClassPair[originalSelector] = extractedClasses;
   }
 
+  //? since a multi part selector normally grouped by multiple basic selectors
+  //? so we need to obfuscate the basic selector first
+  //? eg. ":is(.class1 .class2)" grouped by ".class1" and ".class2"
   // sort the selectorClassPair by the number of classes in the selector (from least to most)
   // and remove the selector with no class
   const sortedSelectorClassPair = Object.entries(selectorClassPair)
@@ -818,47 +863,33 @@ function createClassConversionJson(
     if (selectorClasses.length == 0) {
       continue;
     }
+
     let selector = originalSelector;
     let classes = selectorConversion[selector] ? [selectorConversion[selector].slice(1)] : selectorClasses;
+
     if (classes && allowClassStartWith.some((start) => selector.startsWith(start))) {
-      if (selectorClasses.length > 1) {
-        const haveNotFoundClass = classes.some((className) => {
-          return !selectorConversion[`.${className}`];
-        });
-        classes = haveNotFoundClass ? [originalSelector.slice(1)] : classes;
-      }
-      classes.forEach((className) => {
+      classes = classes.map((className) => {
         if (classIgnore.includes(className)) {
-          return;
+          return className;
         }
-        let newClassName = selectorConversion[`.${className}`];
-
-        if (selectorConversion[originalSelector]) {
-          selector = selectorConversion[originalSelector];
-        } else {
-          if (!newClassName) {
-            newClassName = createNewClassName(mode, className, classPrefix, classSuffix, classNameLength);
-            selectorConversion[`.${className}`] = `.${newClassName}`;
-          } else {
-            newClassName = newClassName.slice(1);
-          }
-          selector = selector.replace(className, newClassName);
+        let obfuscatedSelector = selectorConversion[`.${className}`];
+        if (!obfuscatedSelector) {
+          const obfuscatedClass = createNewClassName(mode, className, classPrefix, classSuffix, classNameLength);
+          obfuscatedSelector = `.${obfuscatedClass}`;
+          selectorConversion[`.${className}`] = obfuscatedSelector;
         }
+        // if (selector.includes("dark\\:ring-dark-tremor-ring")) {
+        //   console.log(selector);
+        // }
+        // if (obfuscatedSelector.length !== 6) {
+        //   console.log(selector);
+        // }
+        return obfuscatedSelector.slice(1)
       });
-      selectorConversion[originalSelector] = selector;
-
-      // for tailwindcss dark mode
-      if (originalSelector.startsWith(`:is(.dark .dark\\:`)) {
-        const obfuscatedDarkSelector = selectorConversion[".dark"];
-        //eg. :is(.dark .dark\\:bg-emerald-400\\/20 .dark\\:bg-emerald-400\\/20) => .dark\\:bg-emerald-400\\/20
-        const matchWholeDarkSelector = /(?<=\.dark\s)([\w\\\/\-:.]*)/;
-        const match = originalSelector.match(matchWholeDarkSelector);
-        const wholeDarkSelector = match ? match[0] : "";
-        if (obfuscatedDarkSelector && classes.length > 2) {
-          //? since during the obfuscation, the class name will remove the "." at the start, so we need to add it back to prevent the class name got sliced
-          const obfuscatedWholeDarkSelector = wholeDarkSelector.replace(".dark", obfuscatedDarkSelector).replace(classes[2], selectorConversion[`.${classes[2]}`].slice(1));
-          selectorConversion[wholeDarkSelector] = obfuscatedWholeDarkSelector;
-        }
+      const { selector: obfuscatedSelector } = extractClassFromSelector(originalSelector, classes);
+      selectorConversion[originalSelector] = obfuscatedSelector;
+      if (originalSelector.includes(".dark")) {
+        console.log(selector);
       }
     }
   }

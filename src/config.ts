@@ -21,7 +21,6 @@ const defaultOptions: Options = {
     enableMarkers: false, // Enable or disable the obfuscate marker classes.
     markers: ["next-css-obfuscation"], // Classes that indicate component(s) need to obfuscate.
     removeMarkersAfterObfuscated: true, // Remove the obfuscation markers from HTML elements after obfuscation.
-    customTailwindDarkModeSelector: null, // [TailwindCSS ONLY] The custom new dark mode selector, e.g. "dark-mode".
 
     logLevel: "info", // Log level
 };

@@ -40,7 +40,7 @@ function obfuscate(options: Options) {
     classSuffix: options.classSuffix,
     classIgnore: options.classIgnore,
 
-    customTailwindDarkModeSelector: options.customTailwindDarkModeSelector,
+    enableObfuscateMarkers: options.enableMarkers,
   });
   log("success", "Obfuscation", "Class conversion JSON created/updated");
 

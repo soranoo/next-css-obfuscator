@@ -23,7 +23,6 @@ type Options = {
     enableMarkers: boolean;
     markers: string[];
     removeMarkersAfterObfuscated: boolean;
-    customTailwindDarkModeSelector: string | null;
 
     logLevel: LogLevel;
 }
@@ -48,7 +47,6 @@ type OptionalOptions = {
     enableMarkers?: boolean;
     markers?: string[];
     removeMarkersAfterObfuscated?: boolean;
-    customTailwindDarkModeSelector?: string | null;
 
     logLevel?: LogLevel;
 }

@@ -372,99 +372,159 @@ describe("getFilenameFromPath", () => {
 describe("extractClassFromSelector", () => {
 
     test("should extract single class from simple selector", () => {
+        const sample = ".example";
+
         // Act
-        const result = extractClassFromSelector(".example");
+        const result = extractClassFromSelector(sample);
 
         // Assert
-        expect(result).toEqual(["example"]);
+        expect(result).toEqual({
+            selector: sample,
+            extractedClasses: ["example"]
+        });
     });
 
     test("should extract multiple classes from complex selector", () => {
+        const sample = ":is(.some-class .some-class\\:bg-dark::-moz-placeholder)[data-active=\'true\']";
+
         // Act
-        const result = extractClassFromSelector(":is(.some-class .some-class\\:bg-dark::-moz-placeholder)[data-active=\'true\']");
+        const result = extractClassFromSelector(sample);
 
         // Assert
-        expect(result).toEqual(["some-class", "some-class\\:bg-dark"]);
+        expect(result).toEqual({
+            selector: sample,
+            extractedClasses: ["some-class", "some-class\\:bg-dark"]
+        });
     });
 
     test("should handle selector with no classes", () => {
+        const sample = "div";
+
         // Act
-        const result = extractClassFromSelector("div");
+        const result = extractClassFromSelector(sample);
 
         // Assert
-        expect(result).toEqual([]);
+        expect(result).toEqual({
+            selector: sample,
+            extractedClasses: []
+        });
     });
 
     test("should handle selector with action pseudo-classes and not extract them", () => {
+        const sample = ".btn:hover .btn-active::after";
+
         // Act
-        const result = extractClassFromSelector(".btn:hover .btn-active::after");
+        const result = extractClassFromSelector(sample);
 
         // Assert
-        expect(result).toEqual(["btn", "btn-active"]);
+        expect(result).toEqual({
+            selector: sample,
+            extractedClasses: ["btn", "btn-active"]
+        });
     });
-    
+
     test("should handle selector with vendor pseudo-classes and not extract them", () => {
+        const sample = ".btn-moz:-moz-focusring .btn-ms::-ms-placeholder .btn-webkit::-webkit-placeholder .btn-o::-o-placeholder";
+
         // Act
-        const result = extractClassFromSelector(".btn-moz:-moz-focusring .btn-ms::-ms-placeholder .btn-webkit::-webkit-placeholder .btn-o::-o-placeholder");
+        const result = extractClassFromSelector(sample);
 
         // Assert
-        expect(result).toEqual(["btn-moz", "btn-ms", "btn-webkit", "btn-o"]);
+        expect(result).toEqual({
+            selector: sample,
+            extractedClasses: ["btn-moz", "btn-ms", "btn-webkit", "btn-o"]
+        });
     });
 
     test("should handle selector with escaped characters", () => {
+        const sample = ".escaped\\:class:action";
+
         // Act
-        const result = extractClassFromSelector(".escaped\\:class:action");
+        const result = extractClassFromSelector(sample);
 
         // Assert
-        expect(result).toEqual(["escaped\\:class", "action"]);
+        expect(result).toEqual({
+            selector: sample,
+            extractedClasses: ["escaped\\:class", "action"]
+        });
     });
 
     test("should handle selector with multiple classes separated by spaces", () => {
+        const sample = ".class1 .class2 .class3";
+
         // Act
-        const result = extractClassFromSelector(".class1 .class2 .class3");
+        const result = extractClassFromSelector(sample);
 
         // Assert
-        expect(result).toEqual(["class1", "class2", "class3"]);
+        expect(result).toEqual({
+            selector: sample,
+            extractedClasses: ["class1", "class2", "class3"]
+        });
     });
 
     test("should handle selector with multiple classes separated by commas", () => {
+        const sample = ".class1, .class2, .class3";
+
         // Act
-        const result = extractClassFromSelector(".class1, .class2, .class3");
+        const result = extractClassFromSelector(sample);
 
         // Assert
-        expect(result).toEqual(["class1", "class2", "class3"]);
+        expect(result).toEqual({
+            selector: sample,
+            extractedClasses: ["class1", "class2", "class3"]
+        });
     });
 
     test("should handle selector with a combination of classes and ids", () => {
+        const sample = ".class1 #id .class2";
+
         // Act
-        const result = extractClassFromSelector(".class1 #id .class2");
+        const result = extractClassFromSelector(sample);
 
         // Assert
-        expect(result).toEqual(["class1", "class2"]);
-    });
-
-    test("should handle selector with attribute selectors", () => {
-        // Act
-        const result = extractClassFromSelector(".class1[data-attr='value'] .class2");
-
-        // Assert
-        expect(result).toEqual(["class1", "class2"]);
+        expect(result).toEqual({
+            selector: sample,
+            extractedClasses: ["class1", "class2"]
+        });
     });
 
     test("should handle [attribute] selector", () => {
+        const sample = ".class1[data-attr=\"value\"] .class2[data-attr='value']";
+
         // Act
-        const result = extractClassFromSelector(".class1[data-attr=\"value\"]");
+        const result = extractClassFromSelector(sample);
 
         // Assert
-        expect(result).toEqual(["class1[data-attr=\"value\"]"]);
+        expect(result).toEqual({
+            selector: sample,
+            extractedClasses: ["class1[data-attr=\"value\"]", "class2[data-attr='value']"]
+        });
     });
-    
-    test("should ignore [attribute] selector that not in the same scope as class", () => {
+
+    test("should handle action pseudo-class selector correctly", () => {
+        const sample = ".class1\\:hover\\:class2:after .class3\\:hover\\:class4:after:hover :is(.class5 .class6\\:hover\\:class7:hover:after) :is(.hover\\:class8\\:class9):after";
+
         // Act
-        const result = extractClassFromSelector(":is(.class1 .class2\\:class3\\:\\!class4)[aria-selected=\"true\"]");
+        const result = extractClassFromSelector(sample);
 
         // Assert
-        expect(result).toEqual(["class1", "class2\\:class3\\:\\!class4"]);
+        expect(result).toEqual({
+            selector: sample,
+            extractedClasses: ["class1\\:hover\\:class2", "class3\\:hover\\:class4", "class5", "class6\\:hover\\:class7", "hover\\:class8\\:class9"]
+        });
+    });
+
+    test("should ignore [attribute] selector that not in the same scope as class", () => {
+        const sample = ":is(.class1 .class2\\:class3\\:\\!class4)[aria-selected=\"true\"]";
+
+        // Act
+        const result = extractClassFromSelector(sample);
+
+        // Assert
+        expect(result).toEqual({
+            selector: sample,
+            extractedClasses: ["class1", "class2\\:class3\\:\\!class4"]
+        });
     });
 
     test("should return null for invalid input types", () => {
@@ -481,67 +541,120 @@ describe("extractClassFromSelector", () => {
     //? Tailwind CSS
     //? *********************
     test("should handle Tailwind CSS important selector '!'", () => {
+        const sample = ".\\!my-0 .some-class\\:\\!bg-white";
+
         // Act
-        const result = extractClassFromSelector(".\\!my-0 .some-class\\:\\!bg-white");
+        const result = extractClassFromSelector(sample);
 
         // Assert
-        expect(result).toEqual(["\\!my-0", "some-class\\:\\!bg-white"]);
+        expect(result).toEqual({
+            selector: sample,
+            extractedClasses: ["\\!my-0", "some-class\\:\\!bg-white"]
+        })
     });
 
     test("should handle Tailwind CSS selector with start with '-'", () => {
+        const sample = ".-class-1";
+
         // Act
-        const result = extractClassFromSelector(".-class-1");
+        const result = extractClassFromSelector(sample);
 
         // Assert
-        expect(result).toEqual(["-class-1"]);
+        expect(result).toEqual({
+            selector: sample,
+            extractedClasses: ["-class-1"]
+        })
     });
-    
+
     test("should handle Tailwind CSS selector with '.' at the number", () => {
+        const sample = ".class-0\\.5 .class-1\\.125";
+
         // Act
-        const result = extractClassFromSelector(".class-0\\.5 .class-1\\.125");
+        const result = extractClassFromSelector(sample);
 
         // Assert
-        expect(result).toEqual(["class-0\\.5", "class-1\\.125"]);
+        expect(result).toEqual({
+            selector: sample,
+            extractedClasses: ["class-0\\.5", "class-1\\.125"]
+        })
     });
-    
+
     test("should handle Tailwind CSS selector with '/' at the number", () => {
+        const sample = ".class-1\\/2";
+
         // Act
-        const result = extractClassFromSelector(".class-1\\/2");
+        const result = extractClassFromSelector(sample);
 
         // Assert
-        expect(result).toEqual(["class-1\\/2"]);
+        expect(result).toEqual({
+            selector: sample,
+            extractedClasses: ["class-1\\/2"]
+        })
+    });
+   
+    test("should handle Tailwind CSS universal selector", () => {
+        const sample = ".\\*\\:class1 .class2\\*\\:class3";
+
+        // Act
+        const result = extractClassFromSelector(sample);
+
+        // Assert
+        expect(result).toEqual({
+            selector: sample,
+            extractedClasses: ["\\*\\:class1", "class2", "class3"]
+        })
     });
 
     test("should handle Tailwind CSS [custom parameter] selector", () => {
+        const sample = ".class1[100] .class2-[200]";
+
         // Act
-        const result = extractClassFromSelector(".class1[100] .class2-[200]");
+        const result = extractClassFromSelector(sample);
 
         // Assert
-        expect(result).toEqual(["class1[100]", "class2-[200]"]);
+        expect(result).toEqual({
+            selector: sample,
+            extractedClasses: ["class1[100]", "class2-[200]"]
+        })
     });
-    
+
     test("should handle Tailwind CSS [custom parameter] selector with escaped characters", () => {
+        const sample = ".class1\\[1em\\] .class2-\\[2em\\] .class3\\[3\\%\\] .class4-\\[4\\%\\]";
+
         // Act
-        const result = extractClassFromSelector(".class1\\[1em\\] .class2-\\[2em\\] .class3\\[3\\%\\] .class4-\\[4\\%\\]");
+        const result = extractClassFromSelector(sample);
 
         // Assert
-        expect(result).toEqual(["class1\\[1em\\]", "class2-\\[2em\\]", "class3\\[3\\%\\]", "class4-\\[4\\%\\]"]);
+        expect(result).toEqual({
+            selector: sample,
+            extractedClasses: ["class1\\[1em\\]", "class2-\\[2em\\]", "class3\\[3\\%\\]", "class4-\\[4\\%\\]"]
+        })
     });
-    
+
     test("should handle complex Tailwind CSS [custom parameter] selector", () => {
+        const sample = ".w-\\[calc\\(10\\%\\+5px\\)\\]";
+
         // Act
-        const result = extractClassFromSelector(".w-\\[calc\\(10\\%\\+5px\\)\\]");
+        const result = extractClassFromSelector(sample);
 
         // Assert
-        expect(result).toEqual(["w-\\[calc\\(10\\%\\+5px\\)\\]"]);
+        expect(result).toEqual({
+            selector: sample,
+            extractedClasses: ["w-\\[calc\\(10\\%\\+5px\\)\\]"]
+        })
     });
 
     test("should ignore Tailwind CSS [custom parameter] selector that not in the same scope as class", () => {
+        const sample = ":is(.class1)[100]";
+
         // Act
-        const result = extractClassFromSelector(":is(.class1)[100]");
+        const result = extractClassFromSelector(sample);
 
         // Assert
-        expect(result).toEqual(["class1"]);
+        expect(result).toEqual({
+            selector: sample,
+            extractedClasses: ["class1"]
+        })
     });
 });
 
@@ -551,118 +664,118 @@ describe("extractClassFromSelector", () => {
 
 describe("searchForwardComponent", () => {
 
-  test("should return component name when jsx format is correct", () => {
-    // Arrange
-    const content = `const element = o.jsx(ComponentName, {data: dataValue, index: "date"});`;
+    test("should return component name when jsx format is correct", () => {
+        // Arrange
+        const content = `const element = o.jsx(ComponentName, {data: dataValue, index: "date"});`;
 
-    // Act
-    const result = searchForwardComponent(content);
+        // Act
+        const result = searchForwardComponent(content);
 
-    // Assert
-    expect(result).toEqual(["ComponentName"]);
-  });
+        // Assert
+        expect(result).toEqual(["ComponentName"]);
+    });
 
-  test("should return multiple component names for multiple matches", () => {
-    // Arrange
-    const content = `o.jsx(FirstComponent, props); o.jsx(SecondComponent, otherProps);`;
+    test("should return multiple component names for multiple matches", () => {
+        // Arrange
+        const content = `o.jsx(FirstComponent, props); o.jsx(SecondComponent, otherProps);`;
 
-    // Act
-    const result = searchForwardComponent(content);
+        // Act
+        const result = searchForwardComponent(content);
 
-    // Assert
-    expect(result).toEqual(["FirstComponent", "SecondComponent"]);
-  });
+        // Assert
+        expect(result).toEqual(["FirstComponent", "SecondComponent"]);
+    });
 
-  test("should return an empty array when no component name is found", () => {
-    // Arrange
-    const content = `o.jsx("h1", {data: dataValue, index: "date"});`;
+    test("should return an empty array when no component name is found", () => {
+        // Arrange
+        const content = `o.jsx("h1", {data: dataValue, index: "date"});`;
 
-    // Act
-    const result = searchForwardComponent(content);
+        // Act
+        const result = searchForwardComponent(content);
 
-    // Assert
-    expect(result).toEqual([]);
-  });
+        // Assert
+        expect(result).toEqual([]);
+    });
 
-  test("should return an empty array when content is empty", () => {
-    // Arrange
-    const content = "";
+    test("should return an empty array when content is empty", () => {
+        // Arrange
+        const content = "";
 
-    // Act
-    const result = searchForwardComponent(content);
+        // Act
+        const result = searchForwardComponent(content);
 
-    // Assert
-    expect(result).toEqual([]);
-  });
+        // Assert
+        expect(result).toEqual([]);
+    });
 
-  test("should return an empty array when jsx is not used", () => {
-    // Arrange
-    const content = `const element = React.createElement("div", null, "Hello World");`;
+    test("should return an empty array when jsx is not used", () => {
+        // Arrange
+        const content = `const element = React.createElement("div", null, "Hello World");`;
 
-    // Act
-    const result = searchForwardComponent(content);
+        // Act
+        const result = searchForwardComponent(content);
 
-    // Assert
-    expect(result).toEqual([]);
-  });
+        // Assert
+        expect(result).toEqual([]);
+    });
 
-  test("should handle special characters in component names", () => {
-    // Arrange
-    const content = `o.jsx($Comp_1, props); o.jsx(_Comp$2, otherProps);`;
+    test("should handle special characters in component names", () => {
+        // Arrange
+        const content = `o.jsx($Comp_1, props); o.jsx(_Comp$2, otherProps);`;
 
-    // Act
-    const result = searchForwardComponent(content);
+        // Act
+        const result = searchForwardComponent(content);
 
-    // Assert
-    expect(result).toEqual(["$Comp_1", "_Comp$2"]);
-  });
+        // Assert
+        expect(result).toEqual(["$Comp_1", "_Comp$2"]);
+    });
 
-  test("should not return component names when they are quoted", () => {
-    // Arrange
-    const content = `o.jsx("ComponentName", props); o.jsx('AnotherComponent', otherProps);`;
+    test("should not return component names when they are quoted", () => {
+        // Arrange
+        const content = `o.jsx("ComponentName", props); o.jsx('AnotherComponent', otherProps);`;
 
-    // Act
-    const result = searchForwardComponent(content);
+        // Act
+        const result = searchForwardComponent(content);
 
-    // Assert
-    expect(result).toEqual([]);
-  });
+        // Assert
+        expect(result).toEqual([]);
+    });
 
-  test("should return component names when they are followed by a brace", () => {
-    // Arrange
-    const content = `o.jsx(ComponentName, {props: true});`;
+    test("should return component names when they are followed by a brace", () => {
+        // Arrange
+        const content = `o.jsx(ComponentName, {props: true});`;
 
-    // Act
-    const result = searchForwardComponent(content);
+        // Act
+        const result = searchForwardComponent(content);
 
-    // Assert
-    expect(result).toEqual(["ComponentName"]);
-  });
+        // Assert
+        expect(result).toEqual(["ComponentName"]);
+    });
 
-  test("should handle content with line breaks and multiple jsx calls", () => {
-    // Arrange
-    const content = `
+    test("should handle content with line breaks and multiple jsx calls", () => {
+        // Arrange
+        const content = `
       o.jsx(FirstComponent, {data: dataValue});
       o.jsx(SecondComponent, {index: "date"});
       o.jsx(ThirdComponent, {flag: true});
     `;
 
-    // Act
-    const result = searchForwardComponent(content);
+        // Act
+        const result = searchForwardComponent(content);
 
-    // Assert
-    expect(result).toEqual(["FirstComponent", "SecondComponent", "ThirdComponent"]);
-  });
+        // Assert
+        expect(result).toEqual(["FirstComponent", "SecondComponent", "ThirdComponent"]);
+    });
 
-  test("should handle content with nested jsx calls", () => {
-    // Arrange
-    const content = `o.jsx(ParentComponent, {children: o.jsx(ChildComponent, {})})`;
+    test("should handle content with nested jsx calls", () => {
+        // Arrange
+        const content = `o.jsx(ParentComponent, {children: o.jsx(ChildComponent, {})})`;
 
-    // Act
-    const result = searchForwardComponent(content);
+        // Act
+        const result = searchForwardComponent(content);
 
-    // Assert
-    expect(result).toEqual(["ParentComponent", "ChildComponent"]);
-  });
+        // Assert
+        expect(result).toEqual(["ParentComponent", "ChildComponent"]);
+    });
 
 });
