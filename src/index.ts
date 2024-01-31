@@ -5,12 +5,13 @@ import {
   log,
   replaceJsonKeysInFiles,
   setLogLevel,
-  createClassConversionJson,
   findAllFilesWithExt,
 } from "./utils";
 
+import { createSelectorConversionJson } from "./handlers/css";
+
 import Config from "./config";
-import { Options, OptionalOptions } from "./type";
+import { Options, OptionalOptions } from "./types";
 
 function obfuscate(options: Options) {
   setLogLevel(options.logLevel);
@@ -30,8 +31,8 @@ function obfuscate(options: Options) {
   }
 
   log("info", "Obfuscation", "Creating/Updating class conversion JSON");
-  createClassConversionJson({
-    classConversionJsonFolderPath: options.classConversionJsonFolderPath,
+  createSelectorConversionJson({
+    selectorConversionJsonFolderPath: options.classConversionJsonFolderPath,
     buildFolderPath: options.buildFolderPath,
 
     mode: options.mode,
@@ -47,7 +48,7 @@ function obfuscate(options: Options) {
   replaceJsonKeysInFiles({
     targetFolder: options.buildFolderPath,
     allowExtensions: options.allowExtensions,
-    classConversionJsonFolderPath: options.classConversionJsonFolderPath,
+    selectorConversionJsonFolderPath: options.classConversionJsonFolderPath,
 
     contentIgnoreRegexes: options.contentIgnoreRegexes,
 
@@ -94,6 +95,7 @@ function obfuscateCli() {
   const config = new Config(configPath ? require(configPath) : undefined).get();
   obfuscate(config);
   log("success", "Obfuscation", "Obfuscation complete");
+  log("info", "Give me a ⭐️ on GitHub if you like this plugin", "https://github.com/soranoo/next-css-obfuscator");
 }
 
 export { obfuscateCli, type OptionalOptions as Options };

@@ -1,4 +1,4 @@
-import { type Options, type OptionalOptions } from "./type";
+import { type Options, type OptionalOptions } from "./types";
 
 const defaultOptions: Options = {
     enable: true, // Enable or disable the plugin.

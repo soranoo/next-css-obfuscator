@@ -1,6 +1,6 @@
 type LogLevel = "debug" | "info" | "warn" | "error" | "success";
 type obfuscateMode = "random" | "simplify";
-type ClassConversion = { [key: string]: string };
+type SelectorConversion = { [key: string]: string };
 
 type Options = {
     enable: boolean;
@@ -54,7 +54,7 @@ type OptionalOptions = {
 export {
     type LogLevel,
     type obfuscateMode,
-    type ClassConversion,
+    type SelectorConversion,
     type Options,
     type OptionalOptions,
 }
