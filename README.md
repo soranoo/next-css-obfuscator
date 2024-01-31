@@ -7,11 +7,23 @@ Project start on 30-10-2023
 
 [![npm version](https://img.shields.io/npm/v/next-css-obfuscator?color=red&style=flat)](https://www.npmjs.com/package/next-css-obfuscator) [![npm downloads](https://img.shields.io/npm/dt/next-css-obfuscator?color=blue&style=flat)](https://www.npmjs.com/package/next-css-obfuscator)
 
-### 🎉 Version 2 has NOW been released 🎉
+Visit the [GitHub Page](https://github.com/soranoo/next-css-obfuscator/) for better reading experience.
+
+### 🎉 Version 2.1.0 has NOW been released 🎉
+  Shout out to [hoangnhan2ka3](https://github.com/hoangnhan2ka3) for providing a wonderful [issue](https://github.com/soranoo/next-css-obfuscator/issues/6) report. 
+
+  #### Changes:
+  - Much Much Much better CSS selector obfuscation
+  - Auto delete orginal CSS after obfuscation (only apply at full obfuscation)
+  - Removed `customTailwindDarkModeSelector` option, the dark mode selector will be automatically obfuscated at full obfuscation.
+  - Support TailwindCSS Universal Selector (eg. `*:pt-4`)
+  - More tests
+
+### Version 2 (Major Update)
   This version is deeply inspired by [PostCSS-Obfuscator](https://github.com/n4j1Br4ch1D/postcss-obfuscator). Shout out to [n4j1Br4ch1D](https://github.com/n4j1Br4ch1D) for creating such a great package and thank you [tremor](https://github.com/tremorlabs) for sponsoring this project.
 
   #### Changes:
-  - Support basic partially obfuscation
+  - Support basic partial obfuscation
   - Support TailwindCSS Dark Mode
   - New configuration file `next-css-obfuscator.config.cjs`
   - More configuration options
@@ -47,6 +59,8 @@ Give me a ⭐ if you like it.
   - [1. Not work at Vercel after updated](#1-not-work-at-vercel-after-updated)
   - [2. Lazy Setup - Obfuscate all files](#2-lazy-setup---obfuscate-all-files)
   - [3. It was working normally just now, but not now?](#3-it-was-working-normally-just-now-but-not-now)
+  - [4. Why are some original selectors still in the obfuscated CSS file after full obfuscation?](#4-why-are-some-original-selectors-still-in-the-obfuscated-css-file-after-full-obfuscation)
+  - [5. Why did I get a copy of the original CSS after partial obfuscation?](#5-why-did-i-get-a-copy-of-the-original-css-after-partial-obfuscation)
 - [👀 Demos](#-demos)
 - [⭐ TODO](#-todo)
 - [🐛 Known Issues](#-known-issues)
@@ -101,9 +115,9 @@ Edit the build files directly. (It may not be the best solution but it works.)
 
 (Theoretically it supports all CSS frameworks but I only tested it with TailwindCSS.)
 
-<!-- ## 📦 Requirements
+## 📦 Requirements
 
--  -->
+- ⌛ TIME 🕛
 
 ## 🚀 Getting Started
 
@@ -269,7 +283,6 @@ It may not be the best setting but it works for me. :)
 |enableMarkers|boolean|false|Enable or disable the obfuscation markers.|
 |markers|string[ ]|[ ]|Classes that indicate component(s) need to obfuscate.|
 |removeMarkersAfterObfuscated|boolean|true|Remove the obfuscation markers from HTML elements after obfuscation.|
-|customTailwindDarkModeSelector|string \| null|null| [TailwindCSS ONLY] The custom new dark mode selector, e.g. "dark-mode".|
 |logLevel|"debug" \| "info" \| "warn" \| "error" \| "success"| "info"|The log level.|
 
 ###### All options in one place
@@ -295,7 +308,6 @@ module.exports = {
     enableMarkers: false, // Enable or disable the obfuscate marker classes.
     markers: ["next-css-obfuscation"], // Classes that indicate component(s) need to obfuscate.
     removeMarkersAfterObfuscated: true, // Remove the obfuscation markers from HTML elements after obfuscation.
-    customTailwindDarkModeSelector: null, // [TailwindCSS ONLY] The custom new dark mode selector, e.g. "dark-mode".
 
     logLevel: "info", // Log level
 };
@@ -321,6 +333,43 @@ Enable `enableMarkers` and put the obfuscate marker class at every component inc
 
 Your convertion table may be messed up. Try to delete the `classConversionJsonFolderPath`(default: `css-obfuscator`) folder to reset the convertion table.
 
+### 4. Why are some original selectors still in the obfuscated CSS file after full obfuscation?
+
+In a normal situation, the package will only remove the original CSS that is related to the obfuscation and you should not see any CSS sharing the same declaration block.
+
+You are not expected to see this:
+```css
+/* example */
+
+/* orginal form */
+.text-stone-300 {
+  --tw-text-opacity: 1;
+  color: rgb(214 211 209 / var(--tw-text-opacity));
+}
+
+/* obfuscated form */
+.d8964 {
+  --tw-text-opacity: 1;
+  color: rgb(214 211 209 / var(--tw-text-opacity));
+}
+```
+But this:
+```css
+/* example */
+
+/* obfuscated form */
+.d8964 {
+  --tw-text-opacity: 1;
+  color: rgb(214 211 209 / var(--tw-text-opacity));
+}
+```
+
+If you encounter the first situation, it means something is wrong with the obfuscation. You may need to raise an [issue](https://github.com/soranoo/next-css-obfuscator/issues) with your configuration and the related code.
+
+### 5. Why did I get a copy of the original CSS after partial obfuscation?
+
+Since the original CSS may referenced by other components not included in the obfuscation, the package will not remove the original CSS to prevent breaking the the site.
+
 ## 👀 Demos
 
 1. [Next 14 App Router](https://github.com/soranoo/next-css-obfuscator/tree/main/demo/next14-app-router)
@@ -328,15 +377,17 @@ Your convertion table may be messed up. Try to delete the `classConversionJsonFo
 
 ## ⭐ TODO
 
-- [x] Partially obfuscation
+- [x] Partial obfuscation
 - [x] To be a totally independent package (remove dependency on [PostCSS-Obfuscator](https://github.com/n4j1Br4ch1D/postcss-obfuscato))
 - [ ] More tests
+- [ ] More domes ?
 
 ## 🐛 Known Issues
 
-- Partially obfuscation
+- Partial Obfuscation
   - Not work with complex component. (eg. A component with children components)
     - Reason: The obfuscation marker can't locate the correct code block to obfuscate.
+  - Potential Solution: track the function/variable call stack to locate the correct code block to obfuscate.
 
 ## 💖 Sponsors
 

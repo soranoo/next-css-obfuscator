@@ -36,5 +36,4 @@ We have added a new individual configuration file `next-css-obfuscator.config.cj
 | ➡️                   | refreshClassConversionJson     |
 | ➡️                   | enableMarkers                  |
 | ➡️                   | removeMarkersAfterObfuscated   |
-| ➡️                   | customTailwindDarkModeSelector |
 | ➡️                   | logLevel                       |
