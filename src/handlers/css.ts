@@ -90,7 +90,7 @@ function extractClassFromSelector(selector: string, replacementClassNames?: (str
     //? "\\\.\d+" for number with ".", eg. ".ml-1\.5" the ".ml-1.5" should be in the same group, before that ".ml-1\.5" will split into ".ml-1" and ".5"
     //? "\\\/\d+" for number with "/", eg. ".bg-emerald-400\/20" the ".bg-emerald-400\/20" should be in the same group, before that ".bg-emerald-400\/20" will split into ".bg-emerald-400" and "\/20"
     //? "(?:\\?\[[\w\-="\\%\+\(\)]+\])?" for [attribute / Tailwind CSS custom parameter] selector
-    const extractClassRegex = /(?<=[.:!\s]|(?<!\w)\.-)((?:\\\*)?(?:[\w\-]|\\\:|\\\.\d+|\\\/\d+|\\!)+(?:\\?\[\S+\])?)(?![\w\-]*\()/g;
+    const extractClassRegex = /(?<=[.:!\s]|(?<!\w)\.-)((?:\\\*)?(?:[\w\-]|\\\:|\\\.\d+|\\\/\d+|\\!)+(?:\\\[\S+\\\])?)(?![\w\-]*\()/g;
 
     const vendorPseudoClassRegexes = [
         /::?-moz-[\w-]+/g, // Firefox
@@ -235,18 +235,28 @@ function createSelectorConversionJson(
 
         if (classes && allowClassStartWith.some((start) => selector.startsWith(start))) {
             classes = classes.map((className) => {
+
+                // apply ignore list
                 if (classIgnore.includes(className)) {
                     return className;
                 }
+
+                // try to get the obfuscated selector from the selectorConversion
+                // if not found, create a new one
                 let obfuscatedSelector = selectorConversion[`.${className}`];
                 if (!obfuscatedSelector) {
                     const obfuscatedClass = createNewClassName(mode, className, classPrefix, classSuffix, classNameLength);
                     obfuscatedSelector = `.${obfuscatedClass}`;
                     selectorConversion[`.${className}`] = obfuscatedSelector;
                 }
+
+                // return the obfuscated class
                 return obfuscatedSelector.slice(1)
             });
+
+            // obfuscate the selector
             const { selector: obfuscatedSelector } = extractClassFromSelector(originalSelector, classes);
+
             selectorConversion[originalSelector] = obfuscatedSelector;
         }
     }
@@ -310,7 +320,11 @@ function renameCssSelector(oldSelector: string, newSelector: string, cssObj: any
     return cssObj;
 }
 
-function obfuscateCss(selectorConversion: SelectorConversion, cssPath: string, replaceOriginalSelector: boolean = false) {
+function obfuscateCss(
+    selectorConversion: SelectorConversion,
+    cssPath: string,
+    replaceOriginalSelector: boolean = false
+) {
     let cssContent = fs.readFileSync(cssPath, "utf-8");
 
     let cssObj = css.parse(cssContent);
@@ -329,6 +343,12 @@ function obfuscateCss(selectorConversion: SelectorConversion, cssPath: string, r
         usedKeyRegistery.add(actionSelector);
     });
 
+    // join all universal selectors (with ">*")
+    const universalSelectors = getAllSelector(cssObj).filter((selector) => selector.includes(">*"));
+    universalSelectors.forEach((universalSelector) => {
+        usedKeyRegistery.add(universalSelector);
+    });
+
     // modify css rules
     usedKeyRegistery.forEach((key) => {
         const originalSelectorName = key;
@@ -341,7 +361,12 @@ function obfuscateCss(selectorConversion: SelectorConversion, cssPath: string, r
             }
         }
     });
-    log("info", "CSS rules:", `Added ${cssObj.stylesheet.rules.length - cssRulesCount} new CSS rules to ${getFilenameFromPath(cssPath)}`);
+
+    if (replaceOriginalSelector) {
+        log("info", "CSS rules:", `Modified ${usedKeyRegistery.size} CSS rules to ${getFilenameFromPath(cssPath)}`);
+    } else {
+        log("info", "CSS rules:", `Added ${cssObj.stylesheet.rules.length - cssRulesCount} new CSS rules to ${getFilenameFromPath(cssPath)}`);
+    }
 
     const cssOptions = {
         compress: true,

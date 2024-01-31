@@ -327,7 +327,7 @@ describe("extractClassFromSelector", () => {
         // Assert
         expect(result).toEqual({
             selector: sample,
-            extractedClasses: ["class1[data-attr=\"value\"]", "class2[data-attr='value']"]
+            extractedClasses: ["class1", "class2"]
         });
     });
 
@@ -436,7 +436,7 @@ describe("extractClassFromSelector", () => {
     });
 
     test("should handle Tailwind CSS [custom parameter] selector", () => {
-        const sample = ".class1[100] .class2-[200]";
+        const sample = ".class1\\[100\\] .class2-\\[200\\]";
 
         // Act
         const result = extractClassFromSelector(sample);
@@ -444,7 +444,7 @@ describe("extractClassFromSelector", () => {
         // Assert
         expect(result).toEqual({
             selector: sample,
-            extractedClasses: ["class1[100]", "class2-[200]"]
+            extractedClasses: ["class1\\[100\\]", "class2-\\[200\\]"]
         })
     });
 
