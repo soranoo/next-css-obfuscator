@@ -215,7 +215,7 @@ function replaceJsonKeysInFiles(
 
   // Obfuscate CSS files
   cssPaths.forEach((cssPath) => {
-    obfuscateCss(classConversion, cssPath);
+    obfuscateCss(classConversion, cssPath, enableObfuscateMarkerClasses);
   });
 
 }
@@ -492,7 +492,6 @@ function obfuscateJs(content: string, key: string, classCoversion: ClassConversi
       });
     }
 
-
     const { obfuscatedContent, usedKeys } = obfuscateKeys(classCoversion, truncatedContent, contentIgnoreRegexes);
     addKeysToRegistery(usedKeys);
     if (truncatedContent !== obfuscatedContent) {
@@ -521,12 +520,9 @@ function copyCssData(targetSelector: string, newSelectorName: string, cssObj: an
       } else if (item.selectors) {
         // remove empty selectors
         item.selectors = item.selectors.filter((selector: any) => selector !== "");
-        if (item.selectors.includes(targetSelector)) {
-          // if (targetSelector.endsWith(".hover\\:border-b-2:hover")) {
-          // if (targetSelector.endsWith("border-b-2:hover")) {
-          //   console.log("targetSelector", targetSelector);
-          // }
 
+        // check if the selector is the target selector
+        if (item.selectors.includes(targetSelector)) {
           const newRule = JSON.parse(JSON.stringify(item));
           newRule.selectors = [newSelectorName];
 
@@ -543,14 +539,38 @@ function copyCssData(targetSelector: string, newSelectorName: string, cssObj: an
   return cssObj;
 }
 
-function obfuscateCss(classConversion: ClassConversion, cssPath: string) {
+function renameCssSelector(oldSelector: string, newSelector: string, cssObj: any) {
+  function recursive(rules: any[]): any[] {
+    return rules.map((item: any) => {
+      if (item.rules) {
+        return { ...item, rules: recursive(item.rules) };
+      } else if (item.selectors) {
+        // remove empty selectors
+        item.selectors = item.selectors.filter((selector: any) => selector !== "");
+
+        let updatedSelectors = item.selectors.map((selector: any) =>
+          selector === oldSelector ? newSelector : selector
+        );
+
+        return { ...item, selectors: updatedSelectors };
+      } else {
+        return item;
+      }
+    });
+  }
+  
+  cssObj.stylesheet.rules = recursive(cssObj.stylesheet.rules);
+  return cssObj;
+}
+
+function obfuscateCss(selectorConversion: ClassConversion, cssPath: string, replaceOriginalSelector: boolean = false) {
   let cssContent = fs.readFileSync(cssPath, "utf-8");
 
   let cssObj = css.parse(cssContent);
   const cssRulesCount = cssObj.stylesheet.rules.length;
 
   // join all selectors start with ":" (eg. ":is")
-  Object.keys(classConversion).forEach((key) => {
+  Object.keys(selectorConversion).forEach((key) => {
     if (key.startsWith(":")) {
       usedKeyRegistery.add(key);
     }
@@ -562,20 +582,22 @@ function obfuscateCss(classConversion: ClassConversion, cssPath: string) {
     usedKeyRegistery.add(actionSelector);
   });
 
-  // copy css rules
+  // modify css rules
   usedKeyRegistery.forEach((key) => {
     const originalSelectorName = key;
-    const obfuscatedSelectorName = classConversion[key];
+    const obfuscatedSelectorName = selectorConversion[key];
     if (obfuscatedSelectorName) {
-      // copy the original css rules and paste it with the obfuscated selector name
-      cssObj = copyCssData(originalSelectorName, classConversion[key], cssObj);
+      if (replaceOriginalSelector) {
+        cssObj = renameCssSelector(originalSelectorName, selectorConversion[key], cssObj);
+      } else {
+        cssObj = copyCssData(originalSelectorName, selectorConversion[key], cssObj);
+      }
     }
   });
   log("info", "CSS rules:", `Added ${cssObj.stylesheet.rules.length - cssRulesCount} new CSS rules to ${getFilenameFromPath(cssPath)}`);
 
   const cssOptions = {
-    // compress: true,
-    compress: false,
+    compress: true,
   };
   const cssObfuscatedContent = css.stringify(cssObj, cssOptions);
 
@@ -785,7 +807,7 @@ function createClassConversionJson(
     classSuffix = "",
     classIgnore = [],
 
-    enableObfuscateMarkers = false,
+    enableObfuscateMarkerClasses = false,
   }: {
     classConversionJsonFolderPath: string,
     buildFolderPath: string,
@@ -796,7 +818,7 @@ function createClassConversionJson(
     classSuffix?: string,
     classIgnore?: string[],
 
-    enableObfuscateMarkers?: boolean,
+    enableObfuscateMarkerClasses?: boolean,
   }) {
   if (!fs.existsSync(classConversionJsonFolderPath)) {
     fs.mkdirSync(classConversionJsonFolderPath);
@@ -805,7 +827,7 @@ function createClassConversionJson(
   const selectorConversion: ClassConversion = loadAndMergeJsonFiles(classConversionJsonFolderPath);
 
   // pre-defined ".dark", mainly for tailwindcss dark mode
-  if (enableObfuscateMarkers) {
+  if (enableObfuscateMarkerClasses) {
     selectorConversion[".dark"] = ".dark";
   }
 
@@ -980,5 +1002,5 @@ export {
   , replaceJsonKeysInFiles, setLogLevel
   , copyCssData, findContentBetweenMarker, findHtmlTagContentsByClass
   , findAllFilesWithExt, createClassConversionJson, extractClassFromSelector
-  , obfuscateKeys, searchForwardComponent, obfuscateForwardComponentJs
+  , obfuscateKeys, searchForwardComponent, obfuscateForwardComponentJs, renameCssSelector
 };
