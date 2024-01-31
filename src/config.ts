@@ -21,7 +21,7 @@ const defaultOptions: Options = {
     enableMarkers: false, // Enable or disable the obfuscate marker classes.
     markers: ["next-css-obfuscation"], // Classes that indicate component(s) need to obfuscate.
     removeMarkersAfterObfuscated: true, // Remove the obfuscation markers from HTML elements after obfuscation.
-
+    removeOriginalCss: false, // Delete original CSS from CSS files if it has a obfuscated version.
     logLevel: "info", // Log level
 };
 

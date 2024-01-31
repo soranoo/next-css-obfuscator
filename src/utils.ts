@@ -71,6 +71,7 @@ function replaceJsonKeysInFiles(
     enableObfuscateMarkerClasses,
     obfuscateMarkerClasses,
     removeObfuscateMarkerClassesAfterObfuscated,
+    removeOriginalCss,
   }: {
     targetFolder: string,
     allowExtensions: string[],
@@ -85,6 +86,7 @@ function replaceJsonKeysInFiles(
     enableObfuscateMarkerClasses: boolean,
     obfuscateMarkerClasses: string[],
     removeObfuscateMarkerClassesAfterObfuscated: boolean,
+    removeOriginalCss: boolean,
   }) {
   //ref: https://github.com/n4j1Br4ch1D/postcss-obfuscator/blob/main/utils.js
 
@@ -217,7 +219,7 @@ function replaceJsonKeysInFiles(
 
   // Obfuscate CSS files
   cssPaths.forEach((cssPath) => {
-    obfuscateCss(classConversion, cssPath, !enableObfuscateMarkerClasses);
+    obfuscateCss(classConversion, cssPath, removeOriginalCss);
   });
 
 }

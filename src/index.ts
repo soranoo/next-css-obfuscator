@@ -59,6 +59,7 @@ function obfuscate(options: Options) {
     enableObfuscateMarkerClasses: options.enableMarkers,
     obfuscateMarkerClasses: options.markers,
     removeObfuscateMarkerClassesAfterObfuscated: options.removeMarkersAfterObfuscated,
+    removeOriginalCss: options.removeOriginalCss,
   });
 }
 

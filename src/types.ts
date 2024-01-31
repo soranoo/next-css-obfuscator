@@ -23,6 +23,7 @@ type Options = {
     enableMarkers: boolean;
     markers: string[];
     removeMarkersAfterObfuscated: boolean;
+    removeOriginalCss: boolean;
 
     logLevel: LogLevel;
 }
@@ -47,6 +48,7 @@ type OptionalOptions = {
     enableMarkers?: boolean;
     markers?: string[];
     removeMarkersAfterObfuscated?: boolean;
+    removeOriginalCss?: boolean;
 
     logLevel?: LogLevel;
 }
