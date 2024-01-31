@@ -13,8 +13,8 @@ Visit the [GitHub Page](https://github.com/soranoo/next-css-obfuscator/) for bet
   Shout out to [hoangnhan2ka3](https://github.com/hoangnhan2ka3) for providing a wonderful [issue](https://github.com/soranoo/next-css-obfuscator/issues/6) report. 
 
   #### Changes:
-  - Much Much Much better CSS selector obfuscation
-  - Auto delete orginal CSS after obfuscation (only apply at full obfuscation)
+  - Much Much Much better quality of CSS selector obfuscation
+  - Delete original CSS automatically after obfuscation (only apply at full obfuscation)
   - Removed `customTailwindDarkModeSelector` option, the dark mode selector will be automatically obfuscated at full obfuscation.
   - Support TailwindCSS Universal Selector (eg. `*:pt-4`)
   - More tests
@@ -341,7 +341,7 @@ You are not expected to see this:
 ```css
 /* example */
 
-/* orginal form */
+/* original form */
 .text-stone-300 {
   --tw-text-opacity: 1;
   color: rgb(214 211 209 / var(--tw-text-opacity));
