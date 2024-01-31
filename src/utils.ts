@@ -217,7 +217,7 @@ function replaceJsonKeysInFiles(
 
   // Obfuscate CSS files
   cssPaths.forEach((cssPath) => {
-    obfuscateCss(classConversion, cssPath, enableObfuscateMarkerClasses);
+    obfuscateCss(classConversion, cssPath, !enableObfuscateMarkerClasses);
   });
 
 }
