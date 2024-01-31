@@ -16,8 +16,6 @@ const defaultOptions: Options = {
 
     whiteListedFolderPaths: [], // Only obfuscate files in these folders
     blackListedFolderPaths: ["./.next/cache"], // Don't obfuscate files in these folders
-    includeAnyMatchRegexes: [], // The regexes to match the file/folder paths to be processed.
-    excludeAnyMatchRegexes: [], // The regexes to match the file/folder paths to be ignored.
     enableMarkers: false, // Enable or disable the obfuscate marker classes.
     markers: ["next-css-obfuscation"], // Classes that indicate component(s) need to obfuscate.
     removeMarkersAfterObfuscated: true, // Remove the obfuscation markers from HTML elements after obfuscation.

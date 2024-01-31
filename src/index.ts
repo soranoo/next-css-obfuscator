@@ -45,6 +45,11 @@ function obfuscate(options: Options) {
   });
   log("success", "Obfuscation", "Class conversion JSON created/updated");
 
+  if ((options.includeAnyMatchRegexes && options.includeAnyMatchRegexes.length > 0)
+    || (options.excludeAnyMatchRegexes && options.excludeAnyMatchRegexes.length > 0)) {
+    log("warn", "Obfuscation", "'includeAnyMatchRegexes' and 'excludeAnyMatchRegexes' are deprecated, please use whiteListedFolderPaths and blackListedFolderPaths instead");
+  }
+
   replaceJsonKeysInFiles({
     targetFolder: options.buildFolderPath,
     allowExtensions: options.allowExtensions,
@@ -52,10 +57,8 @@ function obfuscate(options: Options) {
 
     contentIgnoreRegexes: options.contentIgnoreRegexes,
 
-    whiteListedFolderPaths: options.whiteListedFolderPaths,
-    blackListedFolderPaths: options.blackListedFolderPaths,
-    includeAnyMatchRegexes: options.includeAnyMatchRegexes,
-    excludeAnyMatchRegexes: options.excludeAnyMatchRegexes,
+    whiteListedFolderPaths: [...options.whiteListedFolderPaths, ...(options.includeAnyMatchRegexes || [])],
+    blackListedFolderPaths: [...options.blackListedFolderPaths, ...(options.excludeAnyMatchRegexes || [])],
     enableObfuscateMarkerClasses: options.enableMarkers,
     obfuscateMarkerClasses: options.markers,
     removeObfuscateMarkerClassesAfterObfuscated: options.removeMarkersAfterObfuscated,

@@ -12,14 +12,14 @@ type Options = {
     classLength: number;
     classPrefix: string;
     classSuffix: string;
-    classIgnore: string[];
+    classIgnore: (string | RegExp)[];
     allowExtensions: string[];
     contentIgnoreRegexes: RegExp[];
 
-    whiteListedFolderPaths: string[];
-    blackListedFolderPaths: string[];
-    includeAnyMatchRegexes: RegExp[];
-    excludeAnyMatchRegexes: RegExp[];
+    whiteListedFolderPaths: (string | RegExp)[];
+    blackListedFolderPaths: (string | RegExp)[];
+    includeAnyMatchRegexes?: RegExp[]; //! @deprecated
+    excludeAnyMatchRegexes?: RegExp[]; //! @deprecated
     enableMarkers: boolean;
     markers: string[];
     removeMarkersAfterObfuscated: boolean;
@@ -41,10 +41,10 @@ type OptionalOptions = {
     allowExtensions?: string[];
     contentIgnoreRegexes: RegExp[];
 
-    whiteListedFolderPaths?: string[];
-    blackListedFolderPaths?: string[];
-    includeAnyMatchRegexes?: RegExp[];
-    excludeAnyMatchRegexes?: RegExp[];
+    whiteListedFolderPaths?: (string | RegExp)[];
+    blackListedFolderPaths?: (string | RegExp)[];
+    includeAnyMatchRegexes?: RegExp[]; //! @deprecated
+    excludeAnyMatchRegexes?: RegExp[]; //! @deprecated
     enableMarkers?: boolean;
     markers?: string[];
     removeMarkersAfterObfuscated?: boolean;

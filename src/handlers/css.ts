@@ -166,7 +166,7 @@ function createSelectorConversionJson(
         classNameLength?: number,
         classPrefix?: string,
         classSuffix?: string,
-        classIgnore?: string[],
+        classIgnore?: (string | RegExp)[],
 
         enableObfuscateMarkerClasses?: boolean,
     }) {
@@ -237,7 +237,7 @@ function createSelectorConversionJson(
             classes = classes.map((className) => {
 
                 // apply ignore list
-                if (classIgnore.includes(className)) {
+                if (classIgnore.some(regex => new RegExp(regex).test(className))) {
                     return className;
                 }
 

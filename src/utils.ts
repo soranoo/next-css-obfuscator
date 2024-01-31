@@ -66,8 +66,6 @@ function replaceJsonKeysInFiles(
 
     whiteListedFolderPaths,
     blackListedFolderPaths,
-    includeAnyMatchRegexes,
-    excludeAnyMatchRegexes,
     enableObfuscateMarkerClasses,
     obfuscateMarkerClasses,
     removeObfuscateMarkerClassesAfterObfuscated,
@@ -79,10 +77,8 @@ function replaceJsonKeysInFiles(
 
     contentIgnoreRegexes: RegExp[],
 
-    whiteListedFolderPaths: string[],
-    blackListedFolderPaths: string[],
-    includeAnyMatchRegexes: RegExp[],
-    excludeAnyMatchRegexes: RegExp[],
+    whiteListedFolderPaths: (string | RegExp)[],
+    blackListedFolderPaths: (string | RegExp)[],
     enableObfuscateMarkerClasses: boolean,
     obfuscateMarkerClasses: string[],
     removeObfuscateMarkerClassesAfterObfuscated: boolean,
@@ -115,25 +111,14 @@ function replaceJsonKeysInFiles(
       let isTargetFile = true;
       if (whiteListedFolderPaths.length > 0) {
         isTargetFile = whiteListedFolderPaths.some((incloudPath) => {
-          return normalizePath(filePath).includes(normalizePath(incloudPath));
+          const regex = new RegExp(incloudPath);
+          return regex.test(normalizePath(filePath));
         });
       }
       if (blackListedFolderPaths.length > 0) {
         const res = !blackListedFolderPaths.some((incloudPath) => {
-          return normalizePath(filePath).includes(normalizePath(incloudPath));
-        });
-        if (!res) {
-          isTargetFile = false;
-        }
-      }
-      if (includeAnyMatchRegexes.length > 0) {
-        isTargetFile = includeAnyMatchRegexes.some((regex) => {
-          return normalizePath(filePath).match(regex);
-        });
-      }
-      if (excludeAnyMatchRegexes.length > 0) {
-        const res = !excludeAnyMatchRegexes.some((regex) => {
-          return normalizePath(filePath).match(regex);
+          const regex = new RegExp(incloudPath);
+          return regex.test(normalizePath(filePath));
         });
         if (!res) {
           isTargetFile = false;
