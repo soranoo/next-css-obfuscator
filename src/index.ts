@@ -5,12 +5,13 @@ import {
   log,
   replaceJsonKeysInFiles,
   setLogLevel,
-  createClassConversionJson,
   findAllFilesWithExt,
 } from "./utils";
 
+import { createSelectorConversionJson } from "./handlers/css";
+
 import Config from "./config";
-import { Options, OptionalOptions } from "./type";
+import { Options, OptionalOptions } from "./types";
 
 function obfuscate(options: Options) {
   setLogLevel(options.logLevel);
@@ -30,8 +31,8 @@ function obfuscate(options: Options) {
   }
 
   log("info", "Obfuscation", "Creating/Updating class conversion JSON");
-  createClassConversionJson({
-    classConversionJsonFolderPath: options.classConversionJsonFolderPath,
+  createSelectorConversionJson({
+    selectorConversionJsonFolderPath: options.classConversionJsonFolderPath,
     buildFolderPath: options.buildFolderPath,
 
     mode: options.mode,
@@ -40,24 +41,28 @@ function obfuscate(options: Options) {
     classSuffix: options.classSuffix,
     classIgnore: options.classIgnore,
 
-    customTailwindDarkModeSelector: options.customTailwindDarkModeSelector,
+    enableObfuscateMarkerClasses: options.enableMarkers,
   });
   log("success", "Obfuscation", "Class conversion JSON created/updated");
+
+  if ((options.includeAnyMatchRegexes && options.includeAnyMatchRegexes.length > 0)
+    || (options.excludeAnyMatchRegexes && options.excludeAnyMatchRegexes.length > 0)) {
+    log("warn", "Obfuscation", "'includeAnyMatchRegexes' and 'excludeAnyMatchRegexes' are deprecated, please use whiteListedFolderPaths and blackListedFolderPaths instead");
+  }
 
   replaceJsonKeysInFiles({
     targetFolder: options.buildFolderPath,
     allowExtensions: options.allowExtensions,
-    classConversionJsonFolderPath: options.classConversionJsonFolderPath,
+    selectorConversionJsonFolderPath: options.classConversionJsonFolderPath,
 
     contentIgnoreRegexes: options.contentIgnoreRegexes,
 
-    whiteListedFolderPaths: options.whiteListedFolderPaths,
-    blackListedFolderPaths: options.blackListedFolderPaths,
-    includeAnyMatchRegexes: options.includeAnyMatchRegexes,
-    excludeAnyMatchRegexes: options.excludeAnyMatchRegexes,
+    whiteListedFolderPaths: [...options.whiteListedFolderPaths, ...(options.includeAnyMatchRegexes || [])],
+    blackListedFolderPaths: [...options.blackListedFolderPaths, ...(options.excludeAnyMatchRegexes || [])],
     enableObfuscateMarkerClasses: options.enableMarkers,
     obfuscateMarkerClasses: options.markers,
     removeObfuscateMarkerClassesAfterObfuscated: options.removeMarkersAfterObfuscated,
+    removeOriginalCss: options.removeOriginalCss,
   });
 }
 
@@ -93,7 +98,8 @@ function obfuscateCli() {
 
   const config = new Config(configPath ? require(configPath) : undefined).get();
   obfuscate(config);
-  log("success", "Obfuscation", "Obfuscation complete");
+  log("success", "Obfuscation", "Completed~");
+  log("info", "Give me a ⭐️ on GitHub if you like this plugin", "https://github.com/soranoo/next-css-obfuscator");
 }
 
 export { obfuscateCli, type OptionalOptions as Options };

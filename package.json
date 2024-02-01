@@ -1,14 +1,15 @@
 {
   "name": "next-css-obfuscator",
-  "version": "2.0.6",
-  "description": "A temporary solution for using postcss-obfuscator in Next.js.",
+  "version": "2.1.0",
+  "description": "A package deeply inspired by PostCSS-Obfuscator but for Next.js.",
   "main": "dist/index.js",
   "type": "commonjs",
   "scripts": {
-    "build": "tsc",
+    "build": "npm run test && tsc",
     "dev": "tsc -w",
+    "test": "jest",
     "pub": "npm run build && npm publish",
-    "test": "jest"
+    "pub@beta": "npm run build && npm publish --tag beta"
   },
   "repository": {
     "type": "git",
@@ -25,6 +26,7 @@
     "@types/node": "^20.8.10",
     "@types/react": "^18.2.31",
     "jest": "^29.7.0",
+    "prettier": "^3.2.4",
     "ts-jest": "^29.1.1",
     "tslib": "^2.6.2",
     "typescript": "^5.0.2"
@@ -50,19 +52,11 @@
     "Protect CSS code",
     "Prevent CSS reverse-engineering",
     "tailwindcss",
-    "tailwindcss classes list",
-    "tailwindcss classes array json",
     "bootstrap",
-    "bootstrap classes array json",
     "Scramble HTML classes",
     "CSS anti-theft protection",
     "code privacy",
     "CSS code obfuscator",
-    "CSS class name encryption",
-    "anti web scraping",
-    "Anti-scraping tools",
-    "Anti-scraping technology",
-    "Web scraping prevention",
-    "Web crawling protection"
+    "CSS class name encryption"
   ]
 }

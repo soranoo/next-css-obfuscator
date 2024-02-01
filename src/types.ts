@@ -1,6 +1,6 @@
 type LogLevel = "debug" | "info" | "warn" | "error" | "success";
 type obfuscateMode = "random" | "simplify";
-type ClassConversion = { [key: string]: string };
+type SelectorConversion = { [key: string]: string };
 
 type Options = {
     enable: boolean;
@@ -12,18 +12,18 @@ type Options = {
     classLength: number;
     classPrefix: string;
     classSuffix: string;
-    classIgnore: string[];
+    classIgnore: (string | RegExp)[];
     allowExtensions: string[];
     contentIgnoreRegexes: RegExp[];
 
-    whiteListedFolderPaths: string[];
-    blackListedFolderPaths: string[];
-    includeAnyMatchRegexes: RegExp[];
-    excludeAnyMatchRegexes: RegExp[];
+    whiteListedFolderPaths: (string | RegExp)[];
+    blackListedFolderPaths: (string | RegExp)[];
+    includeAnyMatchRegexes?: RegExp[]; //! @deprecated
+    excludeAnyMatchRegexes?: RegExp[]; //! @deprecated
     enableMarkers: boolean;
     markers: string[];
     removeMarkersAfterObfuscated: boolean;
-    customTailwindDarkModeSelector: string | null;
+    removeOriginalCss: boolean;
 
     logLevel: LogLevel;
 }
@@ -41,14 +41,14 @@ type OptionalOptions = {
     allowExtensions?: string[];
     contentIgnoreRegexes: RegExp[];
 
-    whiteListedFolderPaths?: string[];
-    blackListedFolderPaths?: string[];
-    includeAnyMatchRegexes?: RegExp[];
-    excludeAnyMatchRegexes?: RegExp[];
+    whiteListedFolderPaths?: (string | RegExp)[];
+    blackListedFolderPaths?: (string | RegExp)[];
+    includeAnyMatchRegexes?: RegExp[]; //! @deprecated
+    excludeAnyMatchRegexes?: RegExp[]; //! @deprecated
     enableMarkers?: boolean;
     markers?: string[];
     removeMarkersAfterObfuscated?: boolean;
-    customTailwindDarkModeSelector?: string | null;
+    removeOriginalCss?: boolean;
 
     logLevel?: LogLevel;
 }
@@ -56,7 +56,7 @@ type OptionalOptions = {
 export {
     type LogLevel,
     type obfuscateMode,
-    type ClassConversion,
+    type SelectorConversion,
     type Options,
     type OptionalOptions,
 }

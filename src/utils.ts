@@ -1,8 +1,10 @@
 import fs from "fs";
 import path from "path";
-// @ts-ignore
-import css from 'css';
-import { LogLevel, obfuscateMode, ClassConversion } from "./type";
+import { LogLevel, SelectorConversion } from "./types";
+
+import { obfuscateCss } from "./handlers/css";
+import { findHtmlTagContentsByClass, findHtmlTagContents } from "./handlers/html";
+import { obfuscateJs } from "./handlers/js";
 
 //! ====================
 //! Log
@@ -58,35 +60,33 @@ function replaceJsonKeysInFiles(
   {
     targetFolder,
     allowExtensions,
-    classConversionJsonFolderPath,
+    selectorConversionJsonFolderPath,
 
     contentIgnoreRegexes,
 
     whiteListedFolderPaths,
     blackListedFolderPaths,
-    includeAnyMatchRegexes,
-    excludeAnyMatchRegexes,
     enableObfuscateMarkerClasses,
     obfuscateMarkerClasses,
     removeObfuscateMarkerClassesAfterObfuscated,
+    removeOriginalCss,
   }: {
     targetFolder: string,
     allowExtensions: string[],
-    classConversionJsonFolderPath: string,
+    selectorConversionJsonFolderPath: string,
 
     contentIgnoreRegexes: RegExp[],
 
-    whiteListedFolderPaths: string[],
-    blackListedFolderPaths: string[],
-    includeAnyMatchRegexes: RegExp[],
-    excludeAnyMatchRegexes: RegExp[],
+    whiteListedFolderPaths: (string | RegExp)[],
+    blackListedFolderPaths: (string | RegExp)[],
     enableObfuscateMarkerClasses: boolean,
     obfuscateMarkerClasses: string[],
     removeObfuscateMarkerClassesAfterObfuscated: boolean,
+    removeOriginalCss: boolean,
   }) {
   //ref: https://github.com/n4j1Br4ch1D/postcss-obfuscator/blob/main/utils.js
 
-  const classConversion: ClassConversion = loadAndMergeJsonFiles(classConversionJsonFolderPath);
+  const classConversion: SelectorConversion = loadAndMergeJsonFiles(selectorConversionJsonFolderPath);
 
   if (removeObfuscateMarkerClassesAfterObfuscated) {
     obfuscateMarkerClasses.forEach(obfuscateMarkerClass => {
@@ -111,25 +111,14 @@ function replaceJsonKeysInFiles(
       let isTargetFile = true;
       if (whiteListedFolderPaths.length > 0) {
         isTargetFile = whiteListedFolderPaths.some((incloudPath) => {
-          return normalizePath(filePath).includes(normalizePath(incloudPath));
+          const regex = new RegExp(incloudPath);
+          return regex.test(normalizePath(filePath));
         });
       }
       if (blackListedFolderPaths.length > 0) {
         const res = !blackListedFolderPaths.some((incloudPath) => {
-          return normalizePath(filePath).includes(normalizePath(incloudPath));
-        });
-        if (!res) {
-          isTargetFile = false;
-        }
-      }
-      if (includeAnyMatchRegexes.length > 0) {
-        isTargetFile = includeAnyMatchRegexes.some((regex) => {
-          return normalizePath(filePath).match(regex);
-        });
-      }
-      if (excludeAnyMatchRegexes.length > 0) {
-        const res = !excludeAnyMatchRegexes.some((regex) => {
-          return normalizePath(filePath).match(regex);
+          const regex = new RegExp(incloudPath);
+          return regex.test(normalizePath(filePath));
         });
         if (!res) {
           isTargetFile = false;
@@ -215,12 +204,12 @@ function replaceJsonKeysInFiles(
 
   // Obfuscate CSS files
   cssPaths.forEach((cssPath) => {
-    obfuscateCss(classConversion, cssPath);
+    obfuscateCss(classConversion, cssPath, removeOriginalCss);
   });
 
 }
 
-function obfuscateKeys(jsonData: ClassConversion, fileContent: string, contentIgnoreRegexes: RegExp[] = []) {
+function obfuscateKeys(jsonData: SelectorConversion, fileContent: string, contentIgnoreRegexes: RegExp[] = []) {
   //ref: https://github.com/n4j1Br4ch1D/postcss-obfuscator/blob/main/utils.js
 
   const usedKeys = new Set<string>();
@@ -295,7 +284,6 @@ function normalizePath(filePath: string) {
   return filePath.replace(/\\/g, "/");
 }
 
-
 function loadAndMergeJsonFiles(jsonFolderPath: string) {
   //ref: https://github.com/n4j1Br4ch1D/postcss-obfuscator/blob/main/utils.js
   const jsonFiles: { [key: string]: any } = {};
@@ -307,106 +295,6 @@ function loadAndMergeJsonFiles(jsonFolderPath: string) {
   });
 
   return jsonFiles;
-}
-
-function findHtmlTagContentsRecursive(content: string, targetTag: string, targetClass: string | null = null, foundTagContents: string[] = [], deep: number = 0, maxDeep: number = -1) {
-  let contentAfterTag = content;
-  const startTagWithClassRegexStr = targetClass ?
-    // ref: https://stackoverflow.com/a/16559544
-    `(<\\w+?\\s+?class\\s*=\\s*['\"][^'\"]*?\\b${targetClass}\\b)`
-    : "";
-  const startTagRegexStr = `(<${targetTag}[\\s|>])`;
-  const endTagRegexStr = `(<\/${targetTag}>)`;
-
-  // clear content before the start tag
-  const clearContentBeforeStartTagRegex = new RegExp(`${startTagWithClassRegexStr ? startTagWithClassRegexStr + ".*|" + startTagRegexStr : startTagRegexStr + ".*"}`, "i");
-  const contentAfterStartTagMatch = contentAfterTag.match(clearContentBeforeStartTagRegex);
-  if (contentAfterStartTagMatch) {
-    contentAfterTag = contentAfterStartTagMatch[0];
-  }
-
-  let endTagCont = 0;
-
-  const endTagContRegex = new RegExp(endTagRegexStr, "gi");
-  const endTagContMatch = contentAfterTag.match(endTagContRegex);
-  if (endTagContMatch) {
-    endTagCont = endTagContMatch.length;
-  }
-
-  let closeTagPoition = 0;
-
-  const tagPatternRegex = new RegExp(`${startTagWithClassRegexStr ? startTagWithClassRegexStr + "|" + startTagRegexStr : startTagRegexStr}|${endTagRegexStr}`, "gi");
-  const tagPatternMatch = contentAfterTag.match(tagPatternRegex);
-  if (tagPatternMatch) {
-    let tagCount = 0;
-    let markedPosition = false;
-    for (let i = 0; i < tagPatternMatch.length; i++) {
-      if (tagPatternMatch[i].startsWith("</")) {
-        if (!markedPosition) {
-          closeTagPoition = endTagCont - tagCount;
-          markedPosition = true;
-        }
-        tagCount--;
-      } else {
-        tagCount++;
-      }
-      if (tagCount == 0) {
-        break;
-      }
-    };
-  }
-
-  // match the last html end tag of all content and all content before it
-  const tagEndRegex = new RegExp(`(.*)${endTagRegexStr}`, "i");
-
-  for (let i = 0; i < closeTagPoition; i++) {
-    const tagCloseMatch = contentAfterTag.match(tagEndRegex);
-    if (tagCloseMatch) {
-      contentAfterTag = tagCloseMatch[1];
-    }
-  }
-
-  const clearContentAfterCloseTagRegex = new RegExp(`.*${endTagRegexStr}`, "i");
-  const clearContentAfterCloseTagMatch = contentAfterTag.match(clearContentAfterCloseTagRegex);
-  if (clearContentAfterCloseTagMatch) {
-    contentAfterTag = clearContentAfterCloseTagMatch[0];
-    foundTagContents.push(contentAfterTag);
-  }
-
-  // replace the contentAfterTag in content with ""
-  // only replace the first match
-  const remainingHtmlRegex = new RegExp(contentAfterTag.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') + "(.*)", "i");
-  const remainingHtmlMatch = content.match(remainingHtmlRegex);
-  if (remainingHtmlMatch) {
-    const remainingHtml = remainingHtmlMatch[1];
-    // check if any html tag is left
-    const remainingHtmlTagRegex = new RegExp(`(<\\w+?>)`, "i");
-    const remainingHtmlTagMatch = remainingHtml.match(remainingHtmlTagRegex);
-    if (remainingHtmlTagMatch) {
-      if (maxDeep === -1 || deep < maxDeep) {
-        return findHtmlTagContentsRecursive(remainingHtml, targetTag, targetClass, foundTagContents, deep + 1, maxDeep);
-      } else {
-        log("warn", "HTML search:", "Max deep reached, recursive break");
-        return foundTagContents;
-      }
-    }
-  }
-
-  return foundTagContents;
-}
-function findHtmlTagContents(content: string, targetTag: string, targetClass: string | null = null) {
-  return findHtmlTagContentsRecursive(content, targetTag, targetClass);
-}
-
-function findHtmlTagContentsByClass(content: string, targetClass: string) {
-  const regex = new RegExp(`(<(\\w+)\\s+class\\s*=\\s*['\"][^'\"]*?\\b${targetClass}\\b)`, "i");
-  const match = content.match(regex);
-  if (match) {
-    const tag = match[2];
-    return findHtmlTagContents(content, tag, targetClass);
-  } else {
-    return [];
-  }
 }
 
 /**
@@ -474,105 +362,10 @@ function findContentBetweenMarker(content: string, targetStr: string, openMarker
   return truncatedContents;
 }
 
-
-function obfuscateJs(content: string, key: string, classCoversion: ClassConversion
-  , filePath: string, contentIgnoreRegexes: RegExp[] = [], enableForwardComponentObfuscation = false) {
-  const truncatedContents = findContentBetweenMarker(content, key, "{", "}");
-  truncatedContents.forEach((truncatedContent) => {
-
-    if (enableForwardComponentObfuscation) {
-      //! this is a experimental feature, it may not work properly
-      const componentObfuscatedcomponentCodePairs = obfuscateForwardComponentJs(truncatedContent, content, classCoversion);
-      componentObfuscatedcomponentCodePairs.map((pair) => {
-        const { componentCode, componentObfuscatedCode } = pair;
-        if (componentCode !== componentObfuscatedCode) {
-          content = replaceFirstMatch(content, componentCode, componentObfuscatedCode);
-          log("debug", `Obscured keys in component:`, `${normalizePath(filePath)}`);
-        }
-      });
-    }
-
-
-    const { obfuscatedContent, usedKeys } = obfuscateKeys(classCoversion, truncatedContent, contentIgnoreRegexes);
-    addKeysToRegistery(usedKeys);
-    if (truncatedContent !== obfuscatedContent) {
-      content = content.replace(truncatedContent, obfuscatedContent);
-      log("debug", `Obscured keys with marker "${key}":`, `${normalizePath(filePath)}`);
-    }
-  });
-  return content;
-}
-
 function addKeysToRegistery(usedKeys: Set<string>) {
   usedKeys.forEach((key) => {
     usedKeyRegistery.add(key);
   });
-}
-
-function copyCssData(targetSelector: string, newSelectorName: string, cssObj: any) {
-  function recursive(rules: any[]): any[] {
-    return rules.map((item: any) => {
-      if (item.rules) {
-        let newRules = recursive(item.rules);
-        if (Array.isArray(newRules)) {
-          newRules = newRules.flat();
-        }
-        return { ...item, rules: newRules };
-      } else if (item.selectors) {
-        // remove empty selectors
-        item.selectors = item.selectors.filter((selector: any) => selector !== "");
-        if (item.selectors.includes(targetSelector)) {
-
-          const newRule = JSON.parse(JSON.stringify(item));
-          newRule.selectors = [newSelectorName];
-
-          return [item, newRule];
-        } else {
-          return item;
-        }
-      } else {
-        return item;
-      }
-    });
-  }
-  cssObj.stylesheet.rules = recursive(cssObj.stylesheet.rules).flat();
-  return cssObj;
-}
-
-function obfuscateCss(classConversion: ClassConversion, cssPath: string) {
-  let cssContent = fs.readFileSync(cssPath, "utf-8");
-
-  let cssObj = css.parse(cssContent);
-  const cssRulesCount = cssObj.stylesheet.rules.length;
-
-  // join all selectors start with ":" (eg. ":is")
-  Object.keys(classConversion).forEach((key) => {
-    if (key.startsWith(":")) {
-      usedKeyRegistery.add(key);
-    }
-  });
-
-  // copy css rules
-  usedKeyRegistery.forEach((key) => {
-    const originalSelectorName = key;
-    const obfuscatedSelectorName = classConversion[key];
-    if (obfuscatedSelectorName) {
-      // copy the original css rules and paste it with the obfuscated selector name
-      cssObj = copyCssData(originalSelectorName, classConversion[key], cssObj);
-    }
-  });
-  log("info", "CSS rules:", `Added ${cssObj.stylesheet.rules.length - cssRulesCount} new CSS rules to ${getFilenameFromPath(cssPath)}`);
-
-  const cssOptions = {
-    compress: true,
-  };
-  const cssObfuscatedContent = css.stringify(cssObj, cssOptions);
-
-  const sizeBefore = Buffer.byteLength(cssContent, "utf8");
-  fs.writeFileSync(cssPath, cssObfuscatedContent);
-  const sizeAfter = Buffer.byteLength(cssObfuscatedContent, "utf8");
-  const percentChange = Math.round(((sizeAfter) / sizeBefore) * 100);
-  log("success", "CSS obfuscated:", `Size from ${sizeBefore} to ${sizeAfter} bytes (${percentChange}%) in ${getFilenameFromPath(cssPath)}`);
 }
 
 /**
@@ -612,25 +405,6 @@ function findAllFilesWithExt(ext: string, targetFolderPath: string): string[] {
   return targetExtFiles;
 }
 
-function getAllSelector(cssObj: any): any[] {
-  const selectors: string[] = [];
-  function recursive(rules: any[]) {
-    for (const item of rules) {
-      if (item.rules) {
-        recursive(item.rules);
-      } else if (item.selectors) {
-        // remove empty selectors
-        item.selectors = item.selectors.filter((selector: any) => selector !== "");
-
-        selectors.push(...item.selectors);
-      }
-    }
-    return null;
-  }
-  recursive(cssObj.stylesheet.rules);
-  return selectors;
-}
-
 function getRandomString(length: number) {
   //ref: https://github.com/n4j1Br4ch1D/postcss-obfuscator/blob/main/utils.js
   // Generate a random string of characters with the specified length
@@ -650,252 +424,6 @@ function simplifyString(str: string) {
     : tempStr;
 }
 
-function createNewClassName(mode: obfuscateMode, className: string, classPrefix: string = "", classSuffix: string = "", classNameLength: number = 5) {
-  let newClassName = className;
-
-  switch (mode) {
-    case "random":
-      newClassName = getRandomString(classNameLength);
-      break;
-    case "simplify":
-      newClassName = simplifyString(className);
-      break;
-    default:
-      break;
-  }
-
-  if (classPrefix) {
-    newClassName = `${classPrefix}${newClassName}`;
-  }
-  if (classSuffix) {
-    newClassName = `${newClassName}${classSuffix}`;
-  }
-
-  return newClassName;
-}
-
-/**
- * Extracts classes from a CSS selector.
- * 
- * @param selector - The CSS selector to extract classes from.
- * @returns An array of extracted classes.
- * 
- * @example
- * // Returns: ["some-class", "some-class", "bg-white", "some-class", "bg-dark"]
- * extractClassFromSelector(":is(.some-class .some-class\\:!bg-white .some-class\\:bg-dark::-moz-placeholder)[data-active=\'true\']");
- * 
- * @example
- * // Returns: []
- * extractClassFromSelector("div");
- */
-function extractClassFromSelector(selector: string) {
-  //? "\\\:" for eg.".hover\:border-b-2:hover" the ".hover\:border-b-2" should be in the same group
-  //? "\\\.\d+" for number with ".", eg. ".ml-1\.5" the ".ml-1.5" should be in the same group, before that ".ml-1\.5" will split into ".ml-1" and ".5"
-  //? "\\\/\d+" for number with "/", eg. ".bg-emerald-400\/20" the ".bg-emerald-400\/20" should be in the same group, before that ".bg-emerald-400\/20" will split into ".bg-emerald-400" and "\/20"
-  //? "(?:\\?\[[\w\-="\\%\+\(\)]+\])?" for [attribute / Tailwind CSS custom parameter] selector
-  const extractClassRegex = /(?<=[.:!*\s]|(?<!\w)\.-)((?:[\w\-]|\\\:|\\\.\d+|\\\/\d+|\\!)+(?:\\?\[[\w\-="\\%\+\(\)]+\])?)(?![\w\-]*\()/g;
-  
-  const actionSelectors = [
-    ":hover", ":focus", ":active",
-    ":visited", ":link", ":target",
-    ":checked", ":disabled", ":enabled",
-    ":indeterminate", ":optional", ":required",
-    ":read-only", ":read-write", ":invalid",
-    ":valid", ":in-range", ":out-of-range",
-    ":placeholder-shown", ":fullscreen", ":default",
-    ":root", ":empty", ":first-child",
-    ":last-child", ":first-of-type", ":last-of-type",
-    ":only-child", ":only-of-type", ":nth-child",
-    ":nth-last-child", ":nth-of-type", ":nth-last-of-type",
-    ":first-letter", ":first-line", ":before",
-    ":after", ":selection", ":not",
-    ":where", ":is", ":matches"
-  ];
-
-  const vendorPseudoClassRegexes = [
-    /::?-moz-[\w-]+/g, // Firefox
-    /::?-ms-[\w-]+/g,  // Internet Explorer, Edge
-    /::?-webkit-[\w-]+/g, // Safari, Chrome, and Opera
-    /::?-o-[\w-]+/g, // Opera (old ver)
-  ]
-
-  // remove action selectors
-  actionSelectors.forEach((actionSelector) => {
-    selector = selector.replace(actionSelector, "");
-  });
-  
-  // remove vendor pseudo class
-  vendorPseudoClassRegexes.forEach((regex) => {
-    selector = selector.replace(regex, "");
-  });
-
-  let classes = selector.match(extractClassRegex) as string[] | undefined;
-
-  return classes || [];
-}
-
-function getKeyByValue(object: { [key: string]: string }, value: string) {
-  return Object.keys(object).find(key => object[key] === value);
-}
-
-function createClassConversionJson(
-  {
-    classConversionJsonFolderPath,
-    buildFolderPath,
-
-    mode = "random",
-    classNameLength = 5,
-    classPrefix = "",
-    classSuffix = "",
-    classIgnore = [],
-
-    customTailwindDarkModeSelector = null
-  }: {
-    classConversionJsonFolderPath: string,
-    buildFolderPath: string,
-
-    mode?: obfuscateMode,
-    classNameLength?: number,
-    classPrefix?: string,
-    classSuffix?: string,
-    classIgnore?: string[],
-
-    customTailwindDarkModeSelector?: string | null
-  }) {
-  if (!fs.existsSync(classConversionJsonFolderPath)) {
-    fs.mkdirSync(classConversionJsonFolderPath);
-  }
-
-  const selectorConversion: ClassConversion = loadAndMergeJsonFiles(classConversionJsonFolderPath);
-
-  const cssPaths = findAllFilesWithExt(".css", buildFolderPath);
-  const selectors: string[] = [];
-
-  cssPaths.forEach((cssPath) => {
-    const cssContent = fs.readFileSync(cssPath, "utf-8");
-    const cssObj = css.parse(cssContent);
-    selectors.push(...getAllSelector(cssObj));
-  });
-
-  // remove duplicated selectors
-  const uniqueSelectors = [...new Set(selectors)];
-
-  // for tailwindcss dark mode
-  if (customTailwindDarkModeSelector) {
-    selectorConversion[".dark"] = `.${customTailwindDarkModeSelector}`;
-  }
-
-  const allowClassStartWith = [".", ":is(", ":where(", ":not("
-    , ":matches(", ":nth-child(", ":nth-last-child("
-    , ":nth-of-type(", ":nth-last-of-type(", ":first-child("
-    , ":last-child(", ":first-of-type(", ":last-of-type("
-    , ":only-child(", ":only-of-type(", ":empty(", ":link("
-    , ":visited(", ":active(", ":hover(", ":focus(", ":target("
-    , ":lang(", ":enabled(", ":disabled(", ":checked(", ":default("
-    , ":indeterminate(", ":root(", ":before("
-    , ":after(", ":first-letter(", ":first-line(", ":selection("
-    , ":read-only(", ":read-write(", ":fullscreen(", ":optional("
-    , ":required(", ":valid(", ":invalid(", ":in-range(", ":out-of-range("
-    , ":placeholder-shown("
-  ];
-
-  const selectorClassPair: { [key: string]: string[] } = {};
-
-  for (let i = 0; i < uniqueSelectors.length; i++) {
-    const originalSelector = uniqueSelectors[i];
-    selectorClassPair[originalSelector] = extractClassFromSelector(originalSelector) || [];
-  }
-
-  // sort the selectorClassPair by the number of classes in the selector (from least to most)
-  // and remove the selector with no class
-  const sortedSelectorClassPair = Object.entries(selectorClassPair)
-    .sort((a, b) => a[1].length - b[1].length)
-    .filter((pair) => pair[1].length > 0);
-
-  for (let i = 0; i < sortedSelectorClassPair.length; i++) {
-    const [originalSelector, selectorClasses] = sortedSelectorClassPair[i];
-    // const selectorStartWith = originalSelector.slice(0, 1);
-    if (selectorClasses.length == 0) {
-      continue;
-    }
-    let selector = originalSelector;
-    let classes = selectorConversion[selector] ? [selectorConversion[selector].slice(1)] : selectorClasses;
-    if (classes && allowClassStartWith.some((start) => selector.startsWith(start))) {
-      if (selectorClasses.length > 1) {
-        const haveNotFoundClass = classes.some((className) => {
-          return !selectorConversion[`.${className}`];
-        });
-        classes = haveNotFoundClass ? [originalSelector.slice(1)] : classes;
-      }
-      classes.forEach((className) => {
-        if (classIgnore.includes(className)) {
-          return;
-        }
-        let newClassName = selectorConversion[`.${className}`];
-
-        if (selectorConversion[originalSelector]) {
-          selector = selectorConversion[originalSelector];
-        } else {
-          if (!newClassName) {
-            newClassName = createNewClassName(mode, className, classPrefix, classSuffix, classNameLength);
-            selectorConversion[`.${className}`] = `.${newClassName}`;
-          } else {
-            newClassName = newClassName.slice(1);
-          }
-          selector = selector.replace(className, newClassName);
-        }
-      });
-      selectorConversion[originalSelector] = selector;
-
-      // for tailwindcss dark mode
-      if (originalSelector.startsWith(`:is(.dark .dark\\:`)) {
-        const obfuscatedDarkSelector = selectorConversion[".dark"];
-        //eg. :is(.dark .dark\\:bg-emerald-400\\/20 .dark\\:bg-emerald-400\\/20) => .dark\\:bg-emerald-400\\/20
-        const matchWholeDarkSelector = /(?<=\.dark\s)([\w\\\/\-:.]*)/;
-        const match = originalSelector.match(matchWholeDarkSelector);
-        const wholeDarkSelector = match ? match[0] : "";
-        if (obfuscatedDarkSelector && classes.length > 2) {
-          //? since during the obfuscation, the class name will remove the "." at the start, so we need to add it back to prevent the class name got sliced
-          const obfuscatedWholeDarkSelector = wholeDarkSelector.replace(".dark", obfuscatedDarkSelector).replace(classes[2], selectorConversion[`.${classes[2]}`].slice(1));
-          selectorConversion[wholeDarkSelector] = obfuscatedWholeDarkSelector;
-        }
-      }
-    }
-  }
-
-  const jsonPath = path.join(process.cwd(), classConversionJsonFolderPath, "conversion.json");
-  fs.writeFileSync(jsonPath, JSON.stringify(selectorConversion, null, 2));
-}
-
-function searchForwardComponent(content: string) {
-  const componentSearchRegex = /(?<=\.jsx\()[^,|"|']+/g;
-  //eg. o.jsx(yt,{data:yc,index:"date
-  //    then return yt
-  //eg. o.jsx("h1",{data:yc,index:"date
-  //    then nothing should be returned
-
-  const match = content.match(componentSearchRegex);
-  if (match) {
-    return match;
-  }
-  return [];
-}
-
-function searchComponent(content: string, componentName: string) {
-  const componentSearchRegex = new RegExp(`\\b(?:const|let|var)\\s+(${componentName})\\s*=\\s*.*?(\\{)`, "g");
-  // eg, let yt=l().forwardRef((e,t)=>{let
-  const match = content.match(componentSearchRegex);
-  let openSymbolPos = -1;
-  if (match) {
-    openSymbolPos = content.indexOf(match[0]) + match[0].length;
-  }
-
-  const closeMarkerPos = findClosestSymbolPosition(content, "{", "}", openSymbolPos, "forward");
-  const componentContent = content.slice(openSymbolPos, closeMarkerPos);
-
-  return componentContent;
-}
-
 function replaceFirstMatch(source: string, find: string, replace: string): string {
   const index = source.indexOf(find);
   if (index !== -1) {
@@ -904,66 +432,9 @@ function replaceFirstMatch(source: string, find: string, replace: string): strin
   return source;
 }
 
-
-function obfuscateForwardComponentJs(searchContent: string, wholeContent: string, classConversion: ClassConversion) {
-  const componentNames = searchForwardComponent(searchContent).filter((componentName) => {
-    return !componentName.includes(".");
-  });
-
-  const componentsCode = componentNames.map(componentName => {
-    const componentContent = searchComponent(wholeContent, componentName);
-    return {
-      name: componentName,
-      code: componentContent
-    }
-  });
-  const componentsObfuscatedCode = componentsCode.map((componentContent) => {
-    const classNameBlocks = findContentBetweenMarker(componentContent.code, "className:", "{", "}");
-    const obfuscatedClassNameBlocks = classNameBlocks.map(block => {
-      const { obfuscatedContent, usedKeys } = obfuscateKeys(classConversion, block);
-      addKeysToRegistery(usedKeys);
-      return obfuscatedContent;
-    });
-
-    if (classNameBlocks.length !== obfuscatedClassNameBlocks.length) {
-      log("error", `Component obfuscation:`, `classNameBlocks.length !== obfuscatedClassNameBlocks.length`);
-      return componentContent;
-    }
-    let obscuredCode = componentContent.code;
-    for (let i = 0; i < classNameBlocks.length; i++) {
-      obscuredCode = replaceFirstMatch(obscuredCode, classNameBlocks[i], obfuscatedClassNameBlocks[i]);
-    }
-    log("debug", `Obscured keys in component:`, componentContent.name);
-    return {
-      name: componentContent.name,
-      code: obscuredCode
-    }
-  });
-
-  const componentObfuscatedcomponentCodePairs: { name: string, componentCode: string, componentObfuscatedCode: string }[] = [];
-  for (let i = 0; i < componentsCode.length; i++) {
-    if (componentsCode[i] !== componentsObfuscatedCode[i]) {
-      componentObfuscatedcomponentCodePairs.push({
-        name: componentsCode[i].name,
-        componentCode: componentsCode[i].code,
-        componentObfuscatedCode: componentsObfuscatedCode[i].code
-      });
-    }
-  }
-
-  for (let i = 0; i < componentsCode.length; i++) {
-    const childComponentObfuscatedcomponentCodePairs = obfuscateForwardComponentJs(componentsCode[i].code, wholeContent, classConversion);
-    componentObfuscatedcomponentCodePairs.push(...childComponentObfuscatedcomponentCodePairs);
-  }
-
-  console.log(componentObfuscatedcomponentCodePairs);
-  return componentObfuscatedcomponentCodePairs;
-}
-
 export {
-  getFilenameFromPath, log, normalizePath
-  , replaceJsonKeysInFiles, setLogLevel
-  , copyCssData, findContentBetweenMarker, findHtmlTagContentsByClass
-  , findAllFilesWithExt, createClassConversionJson, extractClassFromSelector
-  , obfuscateKeys, searchForwardComponent, obfuscateForwardComponentJs
+  getFilenameFromPath, log, normalizePath, loadAndMergeJsonFiles
+  , replaceJsonKeysInFiles, setLogLevel, findContentBetweenMarker, replaceFirstMatch
+  , findAllFilesWithExt, getRandomString, simplifyString, usedKeyRegistery
+  , obfuscateKeys, findClosestSymbolPosition, addKeysToRegistery
 };

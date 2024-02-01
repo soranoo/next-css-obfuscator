@@ -4,14 +4,37 @@ Project start on 30-10-2023
 
 ![Tests](https://github.com/soranoo/next-css-obfuscator/actions/workflows/auto_test.yml/badge.svg) [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)&nbsp;&nbsp;&nbsp;[![Donation](https://img.shields.io/static/v1?label=Donation&message=❤️&style=social)](https://github.com/soranoo/Donation)
 
+[![banner](./docs/imgs/banner.png)](https://github.com/soranoo/next-css-obfuscator)
 
 [![npm version](https://img.shields.io/npm/v/next-css-obfuscator?color=red&style=flat)](https://www.npmjs.com/package/next-css-obfuscator) [![npm downloads](https://img.shields.io/npm/dt/next-css-obfuscator?color=blue&style=flat)](https://www.npmjs.com/package/next-css-obfuscator)
 
-### 🎉 Version 2 has NOW been released 🎉
+---
+
+Visit the [GitHub Page](https://github.com/soranoo/next-css-obfuscator/) for better reading experience and latest docs. 😎
+
+--- 
+
+
+### 🎉 Version 2.1.0 has NOW been released 🎉
+  Shout out to [hoangnhan2ka3](https://github.com/hoangnhan2ka3) for providing a 💪wonderful [issue](https://github.com/soranoo/next-css-obfuscator/issues/6) report and a demo site. 
+
+  #### 📌 Changes
+  - Much Much Much better quality of CSS selector obfuscation
+  - Delete original CSS automatically after obfuscation (only apply at full obfuscation)
+  - Support TailwindCSS Universal Selector (eg. `*:pt-4`)
+  - More tests
+
+  #### 📌 Configuration Changes
+  - Removed `customTailwindDarkModeSelector` option, the dark mode selector will be automatically obfuscated at full obfuscation.
+  - Merged `includeAnyMatchRegexes` and `excludeAnyMatchRegexes` options into `whiteListedFolderPaths` and `blackListedFolderPaths` options. (Directly move the regexes to the `whiteListedFolderPaths` and `blackListedFolderPaths` options)
+  - Added `removeOriginalCss` option, default to `false`. Set to `true` to delete original CSS from CSS files if it has a obfuscated version.
+  - `classIgnore` option now supports Regex.
+
+### 💥 Version 2 (Major Update)
   This version is deeply inspired by [PostCSS-Obfuscator](https://github.com/n4j1Br4ch1D/postcss-obfuscator). Shout out to [n4j1Br4ch1D](https://github.com/n4j1Br4ch1D) for creating such a great package and thank you [tremor](https://github.com/tremorlabs) for sponsoring this project.
 
-  #### Changes:
-  - Support basic partially obfuscation
+  #### 📌 Changes
+  - Support basic partial obfuscation
   - Support TailwindCSS Dark Mode
   - New configuration file `next-css-obfuscator.config.cjs`
   - More configuration options
@@ -19,8 +42,8 @@ Project start on 30-10-2023
   - More tests
   - Better CSS parsing
   
-  #### Migration Guide:
-  - [Migrate from version 1.x to 2.x](docs/upgrade-to-v2.md)
+### 📚 Migration Guides
+- [Migrate from version 1.x to 2.x](docs/upgrade-to-v2.md)
 
 
 [version 1.x README](https://github.com/soranoo/next-css-obfuscator/tree/v.1.1.0)
@@ -36,6 +59,7 @@ Give me a ⭐ if you like it.
   - [How does this package work?](#how-does-this-package-work)
 - [🗝️ Features](#️-features)
 - [🛠️ Development Environment](#️-development-environment)
+- [📦 Requirements](#-requirements)
 - [🚀 Getting Started](#-getting-started)
   - [Installation](#installation)
   - [Setup](#setup)
@@ -47,10 +71,13 @@ Give me a ⭐ if you like it.
   - [1. Not work at Vercel after updated](#1-not-work-at-vercel-after-updated)
   - [2. Lazy Setup - Obfuscate all files](#2-lazy-setup---obfuscate-all-files)
   - [3. It was working normally just now, but not now?](#3-it-was-working-normally-just-now-but-not-now)
+  - [4. Why are some original selectors still in the obfuscated CSS file even the `removeOriginalCss` option is set to `true`?](#4-why-are-some-original-selectors-still-in-the-obfuscated-css-file-even-the-removeoriginalcss-option-is-set-to-true)
+  - [5. Why did I get a copy of the original CSS after partial obfuscation?](#5-why-did-i-get-a-copy-of-the-original-css-after-partial-obfuscation)
 - [👀 Demos](#-demos)
 - [⭐ TODO](#-todo)
 - [🐛 Known Issues](#-known-issues)
 - [💖 Sponsors](#-sponsors)
+- [🦾 Special Thanks](#-special-thanks)
 - [🤝 Contributing](#-contributing)
 - [📝 License](#-license)
 - [☕ Donation](#-donation)
@@ -101,9 +128,9 @@ Edit the build files directly. (It may not be the best solution but it works.)
 
 (Theoretically it supports all CSS frameworks but I only tested it with TailwindCSS.)
 
-<!-- ## 📦 Requirements
+## 📦 Requirements
 
--  -->
+- ⌛ TIME 🕛
 
 ## 🚀 Getting Started
 
@@ -195,6 +222,9 @@ For convenience, you may update your build script to:
 
 to make sure the build is always obfuscated and no need to run `obfuscate-build` manually.
 
+> [!NOTE]\
+> It is a good idea to add the `/css-obfuscator` folder to `.gitignore` to prevent the convertion table from being uploaded to the repository.
+
 #### Partially obfuscate
 To partially obfuscate your project, you have to add the obfuscate marker class to the components you want to obfuscate.
 
@@ -235,15 +265,16 @@ module.exports = {
   refreshClassConversionJson: false, // recommended set to true if not in production
   allowExtensions: [".jsx", ".tsx", ".js", ".ts", ".html", ".rsc"],
 
-  blackListedFolderPaths: ["./.next/cache"],
-  excludeAnyMatchRegexes: [
+  blackListedFolderPaths: [
+    "./.next/cache",
     /\.next\/server\/pages\/api/,
     /_document..*js/,
     /_app-.*/,
+    /__.*/, // <= maybe helpful if you are using Next.js Lcal Fonts [1*]
   ],
-  customTailwindDarkModeSelector: "dm",
 };
 ```
+[*1] See this [comment](https://github.com/soranoo/next-css-obfuscator/issues/6#issuecomment-1919495298)
 
 It may not be the best setting but it works for me. :)
 
@@ -259,17 +290,15 @@ It may not be the best setting but it works for me. :)
 |classLength|number|5|The length of the obfuscated class name if in random mode.|
 |classPrefix|string|""|The prefix of the obfuscated class name.|
 |classSuffix|string|""|The suffix of the obfuscated class name.|
-|classIgnore|string[ ]|[ ]|The class names to be ignored during obfuscation.|
+|classIgnore|(string \| Regex)[ ]|[ ]|The class names to be ignored during obfuscation.|
 |allowExtensions|string[ ]|[".jsx", ".tsx", ".js", ".ts", ".html", ".rsc"]|The file extensions to be processed.|
-|contentIgnoreRegexes|RegExp[ ]|[ ]|The regexes to match the content to be ignored  during obfuscation.|
-|whiteListedFolderPaths|string[ ]|[ ]|The folder paths to be processed. Empty array means all folders will be processed.|
-|blackListedFolderPaths|string[ ]|[ ]|The folder paths to be ignored.|
-|includeAnyMatchRegexes|RegExp[ ]|[ ]|The regexes to match the file/folder paths to be processed.|
-|excludeAnyMatchRegex|RegExp[ ]|[ ]|The regexes to match the file/folder paths to be ignored.|
+|contentIgnoreRegexes|RegExp[ ]|[/\.jsxs\)\("\w+"/g]|The regexes to match the content to be ignored  during obfuscation.|
+|whiteListedFolderPaths|(string \| Regex)[ ]|[ ]|The folder paths/Regex to be processed. Empty array means all folders will be processed.|
+|blackListedFolderPaths|(string \| Regex)[ ]|[ ]|The folder paths/Regex to be ignored.|
 |enableMarkers|boolean|false|Enable or disable the obfuscation markers.|
 |markers|string[ ]|[ ]|Classes that indicate component(s) need to obfuscate.|
 |removeMarkersAfterObfuscated|boolean|true|Remove the obfuscation markers from HTML elements after obfuscation.|
-|customTailwindDarkModeSelector|string \| null|null| [TailwindCSS ONLY] The custom new dark mode selector, e.g. "dark-mode".|
+|removeOriginalCss|boolean|false|Delete original CSS from CSS files if it has a obfuscated version. (*NOT recommended* using in partial obfuscation)
 |logLevel|"debug" \| "info" \| "warn" \| "error" \| "success"| "info"|The log level.|
 
 ###### All options in one place
@@ -286,17 +315,16 @@ module.exports = {
     classSuffix: "", // Suffix of the obfuscated class name.
     classIgnore: [], // The class names to be ignored during obfuscation.
     allowExtensions: [".jsx", ".tsx", ".js", ".ts", ".html", ".rsc"], // The file extensions to be processed.
-    contentIgnoreRegexes: [], // The regexes to match the file content to be ignored during obfuscation.
+    contentIgnoreRegexes: [
+        /\.jsxs\)\("\w+"/g, // avoid accidentally obfuscate the HTML tag
+    ], // The regexes to match the file content to be ignored during obfuscation.
 
     whiteListedFolderPaths: [], // Only obfuscate files in these folders
     blackListedFolderPaths: ["./.next/cache"], // Don't obfuscate files in these folders
-    includeAnyMatchRegexes: [], // The regexes to match the file/folder paths to be processed.
-    excludeAnyMatchRegexes: [], // The regexes to match the file/folder paths to be ignored.
     enableMarkers: false, // Enable or disable the obfuscate marker classes.
     markers: ["next-css-obfuscation"], // Classes that indicate component(s) need to obfuscate.
     removeMarkersAfterObfuscated: true, // Remove the obfuscation markers from HTML elements after obfuscation.
-    customTailwindDarkModeSelector: null, // [TailwindCSS ONLY] The custom new dark mode selector, e.g. "dark-mode".
-
+    removeOriginalCss: false, // Delete original CSS from CSS files if it has a obfuscated version.
     logLevel: "info", // Log level
 };
 ```
@@ -321,22 +349,62 @@ Enable `enableMarkers` and put the obfuscate marker class at every component inc
 
 Your convertion table may be messed up. Try to delete the `classConversionJsonFolderPath`(default: `css-obfuscator`) folder to reset the convertion table.
 
+### 4. Why are some original selectors still in the obfuscated CSS file even the `removeOriginalCss` option is set to `true`?
+
+In a normal situation, the package will only remove the original CSS that is related to the obfuscation and you should not see any CSS sharing the same declaration block.
+
+You are not expected to see this:
+```css
+/* example.css */
+
+/* original form */
+.text-stone-300 {
+  --tw-text-opacity: 1;
+  color: rgb(214 211 209 / var(--tw-text-opacity));
+}
+
+/* obfuscated form */
+.d8964 {
+  --tw-text-opacity: 1;
+  color: rgb(214 211 209 / var(--tw-text-opacity));
+}
+```
+But this:
+```css
+/* example.css */
+
+/* obfuscated form */
+.d8964 {
+  --tw-text-opacity: 1;
+  color: rgb(214 211 209 / var(--tw-text-opacity));
+}
+```
+
+If you encounter the first situation, it means something is wrong with the obfuscation. You may need to raise an [issue](https://github.com/soranoo/next-css-obfuscator/issues) with your configuration and the related code.
+
+### 5. Why did I get a copy of the original CSS after partial obfuscation?
+
+Since the original CSS may referenced by other components not included in the obfuscation, the package will not remove the original CSS to prevent breaking the the site.
+
 ## 👀 Demos
 
 1. [Next 14 App Router](https://github.com/soranoo/next-css-obfuscator/tree/main/demo/next14-app-router)
 2. [Next 14 App Router Partially Obfuscated](https://github.com/soranoo/next-css-obfuscator/tree/main/demo/next14-app-router-partially-obfuscated)
+3. [hoangnhan.co.uk](https://hoangnhan.co.uk/) (BY [hoangnhan2ka3](https://github.com/hoangnhan2ka3))
 
 ## ⭐ TODO
 
-- [x] Partially obfuscation
+- [x] Partial obfuscation
 - [x] To be a totally independent package (remove dependency on [PostCSS-Obfuscator](https://github.com/n4j1Br4ch1D/postcss-obfuscato))
 - [ ] More tests
+- [ ] More domes ?
 
 ## 🐛 Known Issues
 
-- Partially obfuscation
+- Partial Obfuscation
   - Not work with complex component. (eg. A component with children components)
     - Reason: The obfuscation marker can't locate the correct code block to obfuscate.
+  - Potential Solution: track the function/variable call stack to locate the correct code block to obfuscate.
 
 ## 💖 Sponsors
 
@@ -353,6 +421,18 @@ Your convertion table may be messed up. Try to delete the `classConversionJsonFo
 </table>
 
 #### Individuals (0)
+
+## 🦾 Special Thanks
+<table>
+  <tr>
+  <td align="center">
+    <a href="https://github.com/hoangnhan2ka3">
+      <img src="https://avatars.githubusercontent.com/u/147973044?v=4" width="100" alt=""/>
+      <br><sub><b>hoangnhan2ka3</b></sub>
+    </a>
+  </td>
+  </tr>
+</table>
 
 ## 🤝 Contributing
 

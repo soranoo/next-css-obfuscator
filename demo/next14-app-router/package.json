@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "next build && npm run obfuscate-build",
+    "build": "next build ",
     "dev": "next dev",
     "lint": "next lint",
     "start": "next start",
@@ -28,7 +28,7 @@
     "cross-env": "^7.0.3",
     "eslint": "^8.54.0",
     "eslint-config-next": "^14.0.4",
-    "next-css-obfuscator": "^2.0.0",
+    "next-css-obfuscator": "^2.1.0-beta2",
     "postcss": "^8.4.32",
     "postcss-cli": "^11.0.0",
     "prettier": "^3.1.0",
