@@ -65,7 +65,7 @@ Give me a ⭐ if you like it.
   - [Setup](#setup)
   - [Usage 🎉](#usage-)
 - [🔧 My Setting](#-my-setting)
-- [📖 PostCSS Options Reference](#-postcss-options-reference)
+- [📖 Config Options Reference](#-config-options-reference)
 - [💻 CLI](#-cli)
 - [💡 Tips](#-tips)
   - [1. Not work at Vercel after updated](#1-not-work-at-vercel-after-updated)
@@ -180,7 +180,7 @@ Visit the [npm](https://www.npmjs.com/package/next-css-obfuscator) page.
 
 
 
-    Feel free to checkout [📖 PostCSS Options Reference](#-postcss-options-reference) for more options and details.
+    Feel free to checkout [📖 Config Options Reference](#-config-options-reference) for more options and details.
 
     > [!NOTE]\
     > The obfuscation will never work as expected, tweak the options with your own needs.
@@ -278,7 +278,7 @@ module.exports = {
 
 It may not be the best setting but it works for me. :)
 
-## 📖 PostCSS Options Reference
+## 📖 Config Options Reference
 
 | Option                       | Type                                                        | Default                  | Description                                                                                                                     |
 | ---------------------------- | ----------------------------------------------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------- |
@@ -397,7 +397,7 @@ Since the original CSS may referenced by other components not included in the ob
 - [x] Partial obfuscation
 - [x] To be a totally independent package (remove dependency on [PostCSS-Obfuscator](https://github.com/n4j1Br4ch1D/postcss-obfuscato))
 - [ ] More tests
-- [ ] More domes ?
+- [ ] More demos ?
 
 ## 🐛 Known Issues
 
