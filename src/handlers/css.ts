@@ -90,7 +90,7 @@ function extractClassFromSelector(selector: string, replacementClassNames?: (str
     //? "\\\.\d+" for number with ".", eg. ".ml-1\.5" the ".ml-1.5" should be in the same group, before that ".ml-1\.5" will split into ".ml-1" and ".5"
     //? "\\\/\d+" for number with "/", eg. ".bg-emerald-400\/20" the ".bg-emerald-400\/20" should be in the same group, before that ".bg-emerald-400\/20" will split into ".bg-emerald-400" and "\/20"
     //? "(?:\\?\[[\w\-="\\%\+\(\)]+\])?" for [attribute / Tailwind CSS custom parameter] selector
-    const extractClassRegex = /(?<=[.:!\s]|(?<!\w)\.-)((?:\\\*)?(?:[\w\-]|\\\:|\\\.\d+|\\\/\d+|\\!)+(?:\\\[\S+\\\])?)(?![\w\-]*\()/g;
+    const extractClassRegex = /(?<=[.:!\s]|(?<!\w)\.-)((?:\\\*)?(?:[\w\-]|\\\:|\\\.\d+|\\\/\d+|\\!|(?:\\\[(?:[^\[\]\s])*\\\]))+)(?![\w\-]*\()/g;
 
     const vendorPseudoClassRegexes = [
         /::?-moz-[\w-]+/g, // Firefox
@@ -99,18 +99,19 @@ function extractClassFromSelector(selector: string, replacementClassNames?: (str
         /::?-o-[\w-]+/g, // Opera (old ver)
     ]
 
-    // remove action selectors
+    // temporary remove action selectors
     selector = selector.replace(findActionSelectorsRegex, (match) => {
         return createKey(match);
     });
 
-    // replace vendor pseudo class
+    // temporary remove vendor pseudo classes
     vendorPseudoClassRegexes.forEach((regex, i) => {
         selector = selector.replace(regex, (match) => {
             return createKey(match);
         });
     });
 
+    // extract classes
     let classes = selector.match(extractClassRegex) as string[] | undefined;
 
     // replace classes with replacementClassNames
@@ -119,6 +120,8 @@ function extractClassFromSelector(selector: string, replacementClassNames?: (str
             return replacementClassNames.shift() || originalClassName;
         });
     }
+
+    // place back the pseudo classes
     selector = decodeKey(selector);
 
     return {

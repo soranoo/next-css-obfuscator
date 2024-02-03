@@ -486,4 +486,29 @@ describe("extractClassFromSelector", () => {
             extractedClasses: ["class1"]
         })
     });
+
+    test("should handle Tailwind CSS [custom selector] child elements selector", () => {
+        const sample = `
+        .\\[\\&\\>\\class1\\]:after
+        .\\[\\&_class2\\]:hover
+        .\\[\\&_\\.class3\\]\\:class4
+        .\\[\\&_\\#id1\\]::moz-placeholder
+        .\\[\\&_\\#id2\\]\\:class5.\\[\\&_\\#id\\]\\:class6
+        `;
+
+        //  .\[\&_a\[class\]\]:hover <= will not work, (?:\\\[(?:[^\[\]\s]*|(?R))*\\\]))+) , javascript regex does not support recursive regex
+        
+        // Act
+        const result = extractClassFromSelector(sample);
+
+        // Assert
+        expect(result).toEqual({
+            selector: sample,
+            extractedClasses: [
+                "\\[\\&\\>\\class1\\]", "\\[\\&_class2\\]",
+                "\\[\\&_\\.class3\\]\\:class4", "\\[\\&_\\#id1\\]",
+                "\\[\\&_\\#id2\\]\\:class5", "\\[\\&_\\#id\\]\\:class6"
+            ]
+        })
+    });
 });
