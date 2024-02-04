@@ -53,10 +53,20 @@ type OptionalOptions = {
     logLevel?: LogLevel;
 }
 
+interface HtmlCharacterEntityConversion {
+    [key: string]: string;
+    "&": string;
+    "<": string;
+    ">": string;
+    '"': string;
+    "'": string;
+  }
+
 export {
     type LogLevel,
     type obfuscateMode,
     type SelectorConversion,
     type Options,
     type OptionalOptions,
+    type HtmlCharacterEntityConversion
 }

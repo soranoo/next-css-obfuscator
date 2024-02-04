@@ -90,7 +90,7 @@ function extractClassFromSelector(selector: string, replacementClassNames?: (str
     //? "\\\.\d+" for number with ".", eg. ".ml-1\.5" the ".ml-1.5" should be in the same group, before that ".ml-1\.5" will split into ".ml-1" and ".5"
     //? "\\\/\d+" for number with "/", eg. ".bg-emerald-400\/20" the ".bg-emerald-400\/20" should be in the same group, before that ".bg-emerald-400\/20" will split into ".bg-emerald-400" and "\/20"
     //? "(?:\\?\[[\w\-="\\%\+\(\)]+\])?" for [attribute / Tailwind CSS custom parameter] selector
-    const extractClassRegex = /(?<=[.:!\s]|(?<!\w)\.-)((?:\\\*)?(?:[\w\-]|\\\:|\\\.\d+|\\\/\d+|\\!|(?:\\\[(?:[^\[\]\s])*\\\]))+)(?![\w\-]*\()/g;
+    const extractClassRegex = /(?<=[.:!]|(?<!\w)\.-)((?:\\\*)?(?:[\w\-]|\\\:|\\\.\d+|\\\/\d+|\\!|(?:\\\[(?:[^\[\]\s])*\\\]))+)(?![\w\-]*\()/g;
 
     const vendorPseudoClassRegexes = [
         /::?-moz-[\w-]+/g, // Firefox
@@ -326,8 +326,15 @@ function renameCssSelector(oldSelector: string, newSelector: string, cssObj: any
 function obfuscateCss(
     selectorConversion: SelectorConversion,
     cssPath: string,
-    replaceOriginalSelector: boolean = false
+    replaceOriginalSelector: boolean = false,
+    outCssPath?: string,
 ) {
+    if (!outCssPath) {
+        outCssPath = cssPath;
+    } else if (!fs.existsSync(path.dirname(outCssPath))) {
+        fs.mkdirSync(path.dirname(outCssPath));
+    }
+
     let cssContent = fs.readFileSync(cssPath, "utf-8");
 
     let cssObj = css.parse(cssContent);
@@ -346,8 +353,14 @@ function obfuscateCss(
         usedKeyRegistery.add(actionSelector);
     });
 
-    // join all universal selectors (with ">*")
-    const universalSelectors = getAllSelector(cssObj).filter((selector) => selector.includes(">*"));
+    // join all Tailwind CSS [child] selectors (eg. ".\[\&_\.side-box\]\:absolute .side-box")
+    const tailwindCssChildSelectors = getAllSelector(cssObj).filter((selector) => selector.startsWith(".\\["));
+    tailwindCssChildSelectors.forEach((tailwindCssChildSelector) => {
+        usedKeyRegistery.add(tailwindCssChildSelector);
+    });
+
+    // join all child selectors (eg. ">*")
+    const universalSelectors = getAllSelector(cssObj).filter((selector) => selector.includes(">"));
     universalSelectors.forEach((universalSelector) => {
         usedKeyRegistery.add(universalSelector);
     });
@@ -377,7 +390,7 @@ function obfuscateCss(
     const cssObfuscatedContent = css.stringify(cssObj, cssOptions);
 
     const sizeBefore = Buffer.byteLength(cssContent, "utf8");
-    fs.writeFileSync(cssPath, cssObfuscatedContent);
+    fs.writeFileSync(outCssPath, cssObfuscatedContent);
     const sizeAfter = Buffer.byteLength(cssObfuscatedContent, "utf8");
     const percentChange = Math.round(((sizeAfter) / sizeBefore) * 100);
     log("success", "CSS obfuscated:", `Size from ${sizeBefore} to ${sizeAfter} bytes (${percentChange}%) in ${getFilenameFromPath(cssPath)}`);
