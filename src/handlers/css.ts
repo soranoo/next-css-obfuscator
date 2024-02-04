@@ -85,12 +85,9 @@ function extractClassFromSelector(selector: string, replacementClassNames?: (str
         return str;
     }
 
-    //? "(?:\\\*)?" for "*" selector, eg. ".\*\:pt-2"
-    //? "\\\:" for eg.".hover\:border-b-2:hover" the ".hover\:border-b-2" should be in the same group
-    //? "\\\.\d+" for number with ".", eg. ".ml-1\.5" the ".ml-1.5" should be in the same group, before that ".ml-1\.5" will split into ".ml-1" and ".5"
-    //? "\\\/\d+" for number with "/", eg. ".bg-emerald-400\/20" the ".bg-emerald-400\/20" should be in the same group, before that ".bg-emerald-400\/20" will split into ".bg-emerald-400" and "\/20"
-    //? "(?:\\?\[[\w\-="\\%\+\(\)]+\])?" for [attribute / Tailwind CSS custom parameter] selector
-    const extractClassRegex = /(?<=[.:!]|(?<!\w)\.-)((?:\\\*)?(?:[\w\-]|\\\:|\\\.\d+|\\\/\d+|\\!|(?:\\\[(?:[^\[\]\s])*\\\]))+)(?![\w\-]*\()/g;
+    //? "\\[\w\%\:\.\!\*\<\>\/]" handle escaped characters
+    //? "(?:\\\[(?:[^\[\]\s])*\\\]))+)" handle [attribute / Tailwind CSS custom parameter] selector
+    const extractClassRegex = /(?<=[.:!]|(?<!\w)\.-)((?:[\w\-]|\\[\w\%\:\.\!\*\<\>\/]|(?:\\\[(?:[^\[\]\s])*\\\]))+)(?![\w\-]*\()/g;
 
     const vendorPseudoClassRegexes = [
         /::?-moz-[\w-]+/g, // Firefox

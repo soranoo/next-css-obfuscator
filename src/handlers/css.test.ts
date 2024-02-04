@@ -421,9 +421,9 @@ describe("extractClassFromSelector", () => {
             extractedClasses: ["class-1\\/2"]
         })
     });
-
-    test("should handle Tailwind CSS universal selector", () => {
-        const sample = ".\\*\\:class1 .class2\\*\\:class3";
+    
+    test("should handle Tailwind CSS selector with '%' at the number", () => {
+        const sample = ".\\[\\.class1\\]\\:to-85\\%";
 
         // Act
         const result = extractClassFromSelector(sample);
@@ -431,7 +431,20 @@ describe("extractClassFromSelector", () => {
         // Assert
         expect(result).toEqual({
             selector: sample,
-            extractedClasses: ["\\*\\:class1", "class2", "class3"]
+            extractedClasses: ["\\[\\.class1\\]\\:to-85\\%"]
+        })
+    });
+
+    test("should handle Tailwind CSS universal selector", () => {
+        const sample = ".\\*\\:class1 .class2\\*\\:class3 .class4\\*:.class5";
+
+        // Act
+        const result = extractClassFromSelector(sample);
+
+        // Assert
+        expect(result).toEqual({
+            selector: sample,
+            extractedClasses: ["\\*\\:class1", "class2\\*\\:class3", "class4\\*", "class5"]
         })
     });
 
