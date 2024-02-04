@@ -231,7 +231,7 @@ function createSelectorConversionJson(
         }
 
         let selector = originalSelector;
-        let classes = selectorConversion[selector] ? [selectorConversion[selector].slice(1)] : selectorClasses;
+        let classes = selectorClasses;
 
         if (classes && allowClassStartWith.some((start) => selector.startsWith(start))) {
             classes = classes.map((className) => {
