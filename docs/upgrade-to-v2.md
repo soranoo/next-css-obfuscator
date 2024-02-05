@@ -36,4 +36,5 @@ We have added a new individual configuration file `next-css-obfuscator.config.cj
 | ➡️                   | enableMarkers                 |
 | ➡️                   | removeMarkersAfterObfuscated  |
 | ➡️                   | removeOriginalCss             |
+| ➡️                   | generatorSeed                 |
 | ➡️                   | logLevel                      |

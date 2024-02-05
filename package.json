@@ -1,6 +1,6 @@
 {
   "name": "next-css-obfuscator",
-  "version": "2.1.5",
+  "version": "2.2.0",
   "description": "A package deeply inspired by PostCSS-Obfuscator but for Next.js.",
   "main": "dist/index.js",
   "type": "commonjs",
@@ -33,6 +33,7 @@
   },
   "dependencies": {
     "css-parse": "^2.0.0",
+    "recoverable-random": "^1.0.3",
     "yargs": "^17.7.2"
   },
   "bin": {

@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import NumberGenerator from "recoverable-random";
 import {
   type LogLevel,
   type SelectorConversion,
@@ -435,15 +436,26 @@ function findAllFilesWithExt(ext: string, targetFolderPath: string): string[] {
   return targetExtFiles;
 }
 
-function getRandomString(length: number) {
+let rng: NumberGenerator | undefined = undefined;
+function getRandomString(length: number, seed?: string, rngStateCode?: string) {
+  if (!rng) {
+    rng = new NumberGenerator(seed);
+  }
+  if (rngStateCode) {
+    rng.recoverState(rngStateCode);
+  }
+
   //ref: https://github.com/n4j1Br4ch1D/postcss-obfuscator/blob/main/utils.js
   // Generate a random string of characters with the specified length
-  const randomString = Math.random()
+  const randomString = rng.random(0, 1, true)
     .toString(36)
     .substring(2, length - 1 + 2);
   // Combine the random string with a prefix to make it a valid class name (starts with a letter, contains only letters, digits, hyphens, and underscores)
   const randomLetter = String.fromCharCode(Math.floor(Math.random() * 26) + 97); // 97 is the ASCII code for lowercase 'a'
-  return `${randomLetter}${randomString}`;
+  return {
+    rngStateCode: rng.getStateCode(),
+    randomString: `${randomLetter}${randomString}`,
+  };
 }
 
 function simplifyString(str: string) {

@@ -1,5 +1,5 @@
 type LogLevel = "debug" | "info" | "warn" | "error" | "success";
-type obfuscateMode = "random" | "simplify";
+type obfuscateMode = "random" | "predictable" | "simplify";
 type SelectorConversion = { [key: string]: string };
 
 type Options = {
@@ -24,6 +24,7 @@ type Options = {
     markers: string[];
     removeMarkersAfterObfuscated: boolean;
     removeOriginalCss: boolean;
+    generatorSeed: string;
 
     logLevel: LogLevel;
 }
@@ -49,6 +50,7 @@ type OptionalOptions = {
     markers?: string[];
     removeMarkersAfterObfuscated?: boolean;
     removeOriginalCss?: boolean;
+    generatorSeed?: string;
 
     logLevel?: LogLevel;
 }

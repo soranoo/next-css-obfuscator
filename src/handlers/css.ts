@@ -14,12 +14,23 @@ import {
 } from "../utils";
 import { obfuscateMode, SelectorConversion } from "../types";
 
-function createNewClassName(mode: obfuscateMode, className: string, classPrefix: string = "", classSuffix: string = "", classNameLength: number = 5) {
+function createNewClassName(
+    mode: obfuscateMode,
+    className: string,
+    classPrefix: string = "",
+    classSuffix: string = "",
+    classNameLength: number = 5,
+    seed: string = Math.random().toString()
+) {
     let newClassName = className;
+    let randomStringGeneraterStateCode: string | undefined = undefined;
 
     switch (mode) {
         case "random":
-            newClassName = getRandomString(classNameLength);
+        case "predictable":
+            const { rngStateCode, randomString } = getRandomString(classNameLength, seed, mode === "predictable" ? randomStringGeneraterStateCode : undefined);
+            newClassName = randomString;
+            randomStringGeneraterStateCode = rngStateCode;
             break;
         case "simplify":
             newClassName = simplifyString(className);
@@ -158,6 +169,7 @@ function createSelectorConversionJson(
         classIgnore = [],
 
         enableObfuscateMarkerClasses = false,
+        generatorSeed: generaterSeed = Math.random().toString(),
     }: {
         selectorConversionJsonFolderPath: string,
         buildFolderPath: string,
@@ -169,6 +181,7 @@ function createSelectorConversionJson(
         classIgnore?: (string | RegExp)[],
 
         enableObfuscateMarkerClasses?: boolean,
+        generatorSeed?: string,
     }) {
     if (!fs.existsSync(selectorConversionJsonFolderPath)) {
         fs.mkdirSync(selectorConversionJsonFolderPath);
@@ -245,7 +258,7 @@ function createSelectorConversionJson(
                 // if not found, create a new one
                 let obfuscatedSelector = selectorConversion[`.${className}`];
                 if (!obfuscatedSelector) {
-                    const obfuscatedClass = createNewClassName(mode, className, classPrefix, classSuffix, classNameLength);
+                    const obfuscatedClass = createNewClassName(mode, className, classPrefix, classSuffix, classNameLength, generaterSeed);
                     obfuscatedSelector = `.${obfuscatedClass}`;
                     selectorConversion[`.${className}`] = obfuscatedSelector;
                 }
