@@ -14,6 +14,7 @@ import {
 } from "../utils";
 import { obfuscateMode, SelectorConversion } from "../types";
 
+let randomStringGeneraterStateCode: string | undefined = undefined;
 function createNewClassName(
     mode: obfuscateMode,
     className: string,
@@ -23,7 +24,6 @@ function createNewClassName(
     seed: string = Math.random().toString()
 ) {
     let newClassName = className;
-    let randomStringGeneraterStateCode: string | undefined = undefined;
 
     switch (mode) {
         case "random":

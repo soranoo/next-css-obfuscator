@@ -438,6 +438,10 @@ function findAllFilesWithExt(ext: string, targetFolderPath: string): string[] {
 
 let rng: NumberGenerator | undefined = undefined;
 function getRandomString(length: number, seed?: string, rngStateCode?: string) {
+  if (length <= 0 || !Number.isInteger(length)) {
+    throw new Error("Length must be a positive integer");
+  }
+
   if (!rng) {
     rng = new NumberGenerator(seed);
   }
@@ -451,7 +455,7 @@ function getRandomString(length: number, seed?: string, rngStateCode?: string) {
     .toString(36)
     .substring(2, length - 1 + 2);
   // Combine the random string with a prefix to make it a valid class name (starts with a letter, contains only letters, digits, hyphens, and underscores)
-  const randomLetter = String.fromCharCode(Math.floor(Math.random() * 26) + 97); // 97 is the ASCII code for lowercase 'a'
+  const randomLetter = String.fromCharCode(Math.floor(rng.random(0, 1, true) * 26) + 97); // 97 is the ASCII code for lowercase 'a'
   return {
     rngStateCode: rng.getStateCode(),
     randomString: `${randomLetter}${randomString}`,
