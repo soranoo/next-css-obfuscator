@@ -52,5 +52,8 @@ If applicable, add screenshots to help explain your problem.
 <!-- In most cases, you have to provide related files from `.next` -->
 <!-- EG. For incorrect class name extraction, you have to provide your CSS files (`./.next/static/css`) -->
 
+**Demos (if any)**
+N/A
+
 **Additional context**
 Add any other context about the problem here.
