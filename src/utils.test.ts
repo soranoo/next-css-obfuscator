@@ -221,6 +221,74 @@ describe("getRandomString", () => {
 
     // Assert
     expect(result.rngStateCode).toBeDefined();
-    expect(typeof result.rngStateCode).toBe("string");
+    expect(typeof parseInt(result.rngStateCode)).toBe("number");
+  });
+});
+
+//! ================================
+//! simplifyString
+//! ================================
+
+describe("simplifyString", () => {
+  let rng: NumberGenerator;
+
+  beforeEach(() => {
+    rng = new NumberGenerator("default-seed");
+  });
+
+  test("should throw an error for empty string", () => {
+    // Act & Assert
+    expect(() => simplifyString("")).toThrow("String can not be empty");
+  });
+
+  test("should return a simplified string and rng state code", () => {
+    // Arrange
+    const input = "a1e2i3o4u5w6_-";
+
+    // Act
+    const result = simplifyString(input, "seed");
+
+    // Assert
+    expect(result.randomString.length).toBeLessThan(input.length);
+    expect(typeof parseInt(result.rngStateCode)).toBe("number");
+  });
+
+  test("should recover RNG state from state code", () => {
+    // Arrange
+    const stateCode = "some-state-code";
+    const input = "test";
+    rng.recoverState(stateCode);
+    const expectedStateCode = rng.getStateCode();
+
+    // Act
+    const result = simplifyString(input, undefined, stateCode);
+
+    // Assert
+    expect(result.rngStateCode).toBe(expectedStateCode);
+  });
+
+  test("should handle strings without vowels or numbers", () => {
+    // Arrange
+    const input = "bcdfghjklmnpqrstvxyz";
+    const expectedOutput = input; // No vowels or numbers to remove
+
+    // Act
+    const result = simplifyString(input, "seed");
+
+    // Assert
+    expect(result.randomString).toBe(expectedOutput);
+  });
+
+  test("should handle strings with only vowels and numbers", () => {
+    // Arrange
+    const input = "aeiou12345";
+    const expectedOutput = ""; // All characters should be removed
+
+    // Act
+    const result = simplifyString(input, "seed");
+    console.log(result);
+
+    // Assert
+    expect(result.randomString).toHaveLength(1); // Should contain one random character
   });
 });

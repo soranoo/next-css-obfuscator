@@ -2,7 +2,7 @@ import { type Options, type OptionalOptions } from "./types";
 
 const defaultOptions: Options = {
     enable: true, // Enable or disable the plugin.
-    mode: "random", // Obfuscate mode, "random", "predictable" or "simplify".
+    mode: "random", // Obfuscate mode, "random" or "simplify".
     buildFolderPath: ".next", // Build folder of your project.
     classConversionJsonFolderPath: "./css-obfuscator", // The folder path to store the before obfuscate and after obfuscated classes conversion table.
     refreshClassConversionJson: false, // Refresh the class conversion JSON file.
@@ -22,7 +22,7 @@ const defaultOptions: Options = {
     markers: ["next-css-obfuscation"], // Classes that indicate component(s) need to obfuscate.
     removeMarkersAfterObfuscated: true, // Remove the obfuscation markers from HTML elements after obfuscation.
     removeOriginalCss: false, // Delete original CSS from CSS files if it has a obfuscated version.
-    generatorSeed: Math.random().toString(), // The seed for the random generator.
+    generatorSeed: "-1", // The seed for the random generator. "-1" means use random seed.
     logLevel: "info", // Log level
 };
 

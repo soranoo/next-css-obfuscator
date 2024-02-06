@@ -73,7 +73,7 @@ Give me a ⭐ if you like it.
   - [3. It was working normally just now, but not now?](#3-it-was-working-normally-just-now-but-not-now)
   - [4. Why are some original selectors still in the obfuscated CSS file even the `removeOriginalCss` option is set to `true`?](#4-why-are-some-original-selectors-still-in-the-obfuscated-css-file-even-the-removeoriginalcss-option-is-set-to-true)
   - [5. Why did I get a copy of the original CSS after partial obfuscation?](#5-why-did-i-get-a-copy-of-the-original-css-after-partial-obfuscation)
-  - [6. How to deal with CSS cache in PaaS like `Vercel`?](#6-how-to-deal-with-css-cache-in-paas-like-vercel)
+  - [6. How to deal with CSS cache in PaaS like Vercel?](#6-how-to-deal-with-css-cache-in-paas-like-vercel)
 - [👀 Demos](#-demos)
 - [⭐ TODO](#-todo)
 - [🐛 Known Issues](#-known-issues)
@@ -284,7 +284,7 @@ It may not be the best setting but it works for me. :)
 | Option                       | Type                                                        | Default                  | Description                                                                                                                     |
 | ---------------------------- | ----------------------------------------------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------- |
 | enable                       | boolean                                                     | true                     | Enable or disable the obfuscation.                                                                                              |
-|mode| string| "random" | Obfuscate mode, "random", "predictable" or "simplify".<br><br> "predictable" means the obfuscated class name will be the same if the same class name is obfuscated again.|
+|mode| string| "random" | Obfuscate mode, "random" or "simplify".|
 |buildFolderPath|string|"./.next"|The folder path to store the build files built by Next.js.|
 |classConversionJsonFolderPath|string|"./css-obfuscator"|The folder path to store the before obfuscate and after obfuscated classes conversion table.|
 |refreshClassConversionJson|boolean|false|Refresh the class conversion JSON file(s) at every obfuscation. Good for setting tweaking but not recommended for production.|
@@ -300,14 +300,14 @@ It may not be the best setting but it works for me. :)
 |markers|string[ ]|[ ]|Classes that indicate component(s) need to obfuscate.|
 |removeMarkersAfterObfuscated|boolean|true|Remove the obfuscation markers from HTML elements after obfuscation.|
 |removeOriginalCss|boolean|false|Delete original CSS from CSS files if it has a obfuscated version. (*NOT recommended* using in partial obfuscation)
-|generatorSeed|string|[random string]|The seed for the random class name generator. Only apply in "random" and "predictable" mode. And this is a required option if you are in "predictable" mode.
+|generatorSeed|string|"-1"|The seed for the random class name generator. "-1" means use random seed.|
 |logLevel|"debug" \| "info" \| "warn" \| "error" \| "success"| "info"|The log level.|
 
 ###### All options in one place
 ```js
 module.exports = {
     enable: true, // Enable or disable the plugin.
-    mode: "random", // Obfuscate mode, "random", "predictable" or "simplify".
+    mode: "random", // Obfuscate mode, "random" or "simplify".
     buildFolderPath: ".next", // Build folder of your project.
     classConversionJsonFolderPath: "./css-obfuscator", // The folder path to store the before obfuscate and after obfuscated classes conversion table.
     refreshClassConversionJson: false, // Refresh the class conversion JSON file.
@@ -327,7 +327,7 @@ module.exports = {
     markers: ["next-css-obfuscation"], // Classes that indicate component(s) need to obfuscate.
     removeMarkersAfterObfuscated: true, // Remove the obfuscation markers from HTML elements after obfuscation.
     removeOriginalCss: false, // Delete original CSS from CSS files if it has a obfuscated version.
-    generatorSeed: Math.random().toString(), // The seed for the random generator.
+    generatorSeed: "-1", // The seed for the random generator. "-1" means use random seed.
     logLevel: "info", // Log level
 };
 ```
@@ -389,13 +389,15 @@ If you encounter the first situation, it means something is wrong with the obfus
 
 Since the original CSS may referenced by other components not included in the obfuscation, the package will not remove the original CSS to prevent breaking the the site.
 
-### 6. How to deal with CSS cache in PaaS like `Vercel`?
+### 6. How to deal with CSS cache in PaaS like [Vercel](https://vercel.com/)?
 
-You may discover that the obfuscated class conversion table updates every time you deploy your site to `Vercel` even if the `refreshClassConversionJson` option is set to `false`. As a result, the CSS file will update in every deployment and break the CDN cache. This is because `Vercel` will not keep the files generated by the previous deployment. To fix this, you can set the `mode` option to `predictable` and provide a `generatorSeed` to make sure the obfuscated class name will be the same if the same class name is obfuscated again.
+(I will take [Vercel](https://vercel.com/) as an example)
+
+You may discover that the obfuscated class conversion table updates every time you deploy your site to [Vercel](https://vercel.com/) even if the `refreshClassConversionJson` option is set to `false`. As a result, the CSS file will update in every deployment and break the CDN cache. This is because [Vercel](https://vercel.com/) will not keep the files generated by the previous deployment. To fix this, you can simply provide a fixed `generatorSeed` to make sure the obfuscated class name will be the same as the previous.
 
 > [!NOTE]\
 > *Promotion*🗯️\
-> Do you know the mechanism behind `predictable` mode is powered by my another package `recoverable-random`? [Check it out](https://github.com/soranoo/recoverable-random)
+> Do you know the mechanism behind it is powered by my another package `recoverable-random`? [Check it out](https://github.com/soranoo/recoverable-random)
 
 ## 👀 Demos
 
@@ -415,7 +417,7 @@ You may discover that the obfuscated class conversion table updates every time y
 - Partial Obfuscation
   - Not work with complex component. (eg. A component with children components)
     - Reason: The obfuscation marker can't locate the correct code block to obfuscate.
-  - Potential Solution: track the function/variable call stack to locate the correct code block to obfuscate.
+  - Potential Solution: track the function/variable call stack to locate the correct code block to obfuscate. (under PoC)
 
 ## 💖 Sponsors
 

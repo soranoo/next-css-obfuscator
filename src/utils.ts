@@ -127,12 +127,18 @@ function replaceJsonKeysInFiles(
       let isTargetFile = true;
       if (whiteListedFolderPaths.length > 0) {
         isTargetFile = whiteListedFolderPaths.some((incloudPath) => {
+          if (typeof incloudPath === "string") {
+            return normalizePath(filePath).includes(incloudPath);
+          }
           const regex = new RegExp(incloudPath);
           return regex.test(normalizePath(filePath));
         });
       }
       if (blackListedFolderPaths.length > 0) {
         const res = !blackListedFolderPaths.some((incloudPath) => {
+          if (typeof incloudPath === "string") {
+            return normalizePath(filePath).includes(incloudPath);
+          }
           const regex = new RegExp(incloudPath);
           return regex.test(normalizePath(filePath));
         });
@@ -437,6 +443,7 @@ function findAllFilesWithExt(ext: string, targetFolderPath: string): string[] {
 }
 
 let rng: NumberGenerator | undefined = undefined;
+
 function getRandomString(length: number, seed?: string, rngStateCode?: string) {
   if (length <= 0 || !Number.isInteger(length)) {
     throw new Error("Length must be a positive integer");
@@ -462,12 +469,26 @@ function getRandomString(length: number, seed?: string, rngStateCode?: string) {
   };
 }
 
-function simplifyString(str: string) {
+function simplifyString(str: string, seed?: string, rngStateCode?: string) {
+  if (!str) {
+    throw new Error("String can not be empty");
+  }
+  if (!rng) {
+    rng = new NumberGenerator(seed);
+  }
+  if (rngStateCode) {
+    rng.recoverState(rngStateCode);
+  }
+
   //ref: https://github.com/n4j1Br4ch1D/postcss-obfuscator/blob/main/utils.js
   const tempStr = str.replace(/[aeiouw\d_-]/gi, "");
-  return tempStr.length < 1
-    ? String.fromCharCode(Math.floor(Math.random() * 26) + 97) + tempStr
-    : tempStr;
+
+  return {
+    rngStateCode: rng.getStateCode(),
+    randomString: tempStr.length < 1
+      ? String.fromCharCode(Math.floor(rng.random(0, 1, true) * 26) + 97) + tempStr
+      : tempStr,
+  };
 }
 
 function replaceFirstMatch(source: string, find: string, replace: string): string {

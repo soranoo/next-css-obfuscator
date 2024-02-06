@@ -2,6 +2,7 @@ import path from "path";
 import fs from "fs";
 // @ts-ignore
 import css from 'css';
+import NumberGenerator from "recoverable-random";
 
 import {
     log,
@@ -25,19 +26,28 @@ function createNewClassName(
 ) {
     let newClassName = className;
 
+    let { rngStateCode, randomString }: { rngStateCode: string, randomString: string } = { rngStateCode: "", randomString: "" };
+
+    //? Based on the mechanism behind `recoverable-random` library
+    //? `stateCode` is directly equivalent to the `seed`
+    //? so recover the stateCode is the same as setting the seed
+    //? so the seed input of `getRandomString` and `simplifyString`
+    //? in the following usage are meaningless
+    //? :)
+
     switch (mode) {
         case "random":
-        case "predictable":
-            const { rngStateCode, randomString } = getRandomString(classNameLength, seed, mode === "predictable" ? randomStringGeneraterStateCode : undefined);
-            newClassName = randomString;
-            randomStringGeneraterStateCode = rngStateCode;
+            ({ rngStateCode, randomString } = getRandomString(classNameLength, seed, seed + NumberGenerator.stringToSeed(className).toString()));
             break;
         case "simplify":
-            newClassName = simplifyString(className);
+            ({ rngStateCode, randomString } = simplifyString(className, seed, seed + NumberGenerator.stringToSeed(className).toString()));
             break;
         default:
             break;
     }
+
+    newClassName = randomString;
+    randomStringGeneraterStateCode = rngStateCode;
 
     if (classPrefix) {
         newClassName = `${classPrefix}${newClassName}`;
@@ -169,7 +179,7 @@ function createSelectorConversionJson(
         classIgnore = [],
 
         enableObfuscateMarkerClasses = false,
-        generatorSeed: generaterSeed = Math.random().toString(),
+        generatorSeed = Math.random().toString(),
     }: {
         selectorConversionJsonFolderPath: string,
         buildFolderPath: string,
@@ -250,7 +260,12 @@ function createSelectorConversionJson(
             classes = classes.map((className) => {
 
                 // apply ignore list
-                if (classIgnore.some(regex => new RegExp(regex).test(className))) {
+                if (classIgnore.some(regex => {
+                    if (typeof regex === "string") {
+                        return className === regex;
+                    }
+                    return new RegExp(regex).test(className)
+                })) {
                     return className;
                 }
 
@@ -258,7 +273,7 @@ function createSelectorConversionJson(
                 // if not found, create a new one
                 let obfuscatedSelector = selectorConversion[`.${className}`];
                 if (!obfuscatedSelector) {
-                    const obfuscatedClass = createNewClassName(mode, className, classPrefix, classSuffix, classNameLength, generaterSeed);
+                    const obfuscatedClass = createNewClassName(mode, className, classPrefix, classSuffix, classNameLength, generatorSeed);
                     obfuscatedSelector = `.${obfuscatedClass}`;
                     selectorConversion[`.${className}`] = obfuscatedSelector;
                 }

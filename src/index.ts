@@ -42,7 +42,7 @@ function obfuscate(options: Options) {
     classIgnore: options.classIgnore,
 
     enableObfuscateMarkerClasses: options.enableMarkers,
-    generatorSeed: options.generatorSeed,
+    generatorSeed: options.generatorSeed === "-1" ? undefined : options.generatorSeed,
   });
   log("success", "Obfuscation", "Class conversion JSON created/updated");
 
