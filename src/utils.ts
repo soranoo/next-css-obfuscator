@@ -220,7 +220,7 @@ function replaceJsonKeysInFiles(
         if ([".js"].includes(fileExt)) {
           const obfuscateScriptContent = obfuscateJs(
             fileContent,
-            "jsx",
+            enableJsAst ? "" : "jsx",
             classConversion,
             filePath,
             contentIgnoreRegexes,

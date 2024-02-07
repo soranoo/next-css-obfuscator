@@ -425,7 +425,7 @@ You may discover that the obfuscated class conversion table updates every time y
 
 ### 7. When to use `enableJsAst`?
 
-If you are going to partially obfuscate your site, you may want to enable this option to obfuscate. It gives the ability to trace the variable that related to class name in a JS file which the normal basic partial obfuscation can't do.
+~~If you are going to partially obfuscate your site, you may want to enable this option to obfuscate. It gives the ability to trace the variable that related to class name in a JS file which the normal basic partial obfuscation can't do.~~ (WIP)
 
 > [!WARNING]\
 > Note that if a shared component under obfuscation marker, that component will be obfuscated and may affect the other components(with no obfuscation marker) that use the same shared component.
@@ -453,7 +453,7 @@ If you are going to obfuscate the whole site, you will get a way more accurate o
 
 ## 🐛 Known Issues
 
-- [x] Partial Obfuscation (SOLVED)
+- [ ] Partial Obfuscation
   - Not work with complex component. (eg. A component with children components)
     - Reason: The obfuscation marker can't locate the correct code block to obfuscate.
   - Potential Solution: track the function/variable call stack to locate the correct code block to obfuscate.

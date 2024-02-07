@@ -100,7 +100,7 @@ function obfuscateJs(content: string, key: string, selectorCoversion: SelectorCo
 
   if (useAst) {
     try {
-      const { obfuscatedCode, usedKeys } = obfuscateJsWithAst(content, selectorCoversion, [key], true);
+      const { obfuscatedCode, usedKeys } = obfuscateJsWithAst(content, selectorCoversion, key ? [key] : [], true);
       addKeysToRegistery(usedKeys);
       if (content !== obfuscatedCode) {
         log("debug", `Obscured keys with AST and marker "${key}":`, `${normalizePath(filePath)}`);
