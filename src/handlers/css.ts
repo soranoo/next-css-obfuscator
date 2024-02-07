@@ -179,7 +179,7 @@ function createSelectorConversionJson(
         classIgnore = [],
 
         enableObfuscateMarkerClasses = false,
-        generatorSeed = Math.random().toString(),
+        generatorSeed = Math.random().toString().slice(2, 10), // take 8 digits from the random number
     }: {
         selectorConversionJsonFolderPath: string,
         buildFolderPath: string,
