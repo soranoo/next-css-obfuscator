@@ -1,13 +1,14 @@
 {
   "name": "next-css-obfuscator",
-  "version": "2.2.2",
+  "version": "2.2.3",
   "description": "A package deeply inspired by PostCSS-Obfuscator but for Next.js.",
   "main": "dist/index.js",
   "type": "commonjs",
   "scripts": {
+    "test": "tsc & jest",
+    "test@cover": "tsc & jest --coverage",
     "build": "npm run test && tsc",
     "dev": "tsc -w",
-    "test": "jest",
     "pub": "npm run build && npm publish",
     "pub@beta": "npm run build && npm publish --tag beta"
   },
@@ -32,8 +33,11 @@
     "typescript": "^5.0.2"
   },
   "dependencies": {
+    "@babel/generator": "^7.23.6",
+    "@babel/parser": "^7.23.9",
+    "@babel/traverse": "^7.23.9",
     "css-parse": "^2.0.0",
-    "recoverable-random": "^1.0.4",
+    "recoverable-random": "^1.0.5",
     "yargs": "^17.7.2"
   },
   "bin": {

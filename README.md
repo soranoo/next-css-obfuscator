@@ -74,6 +74,7 @@ Give me a ⭐ if you like it.
   - [4. Why are some original selectors still in the obfuscated CSS file even the `removeOriginalCss` option is set to `true`?](#4-why-are-some-original-selectors-still-in-the-obfuscated-css-file-even-the-removeoriginalcss-option-is-set-to-true)
   - [5. Why did I get a copy of the original CSS after partial obfuscation?](#5-why-did-i-get-a-copy-of-the-original-css-after-partial-obfuscation)
   - [6. How to deal with CSS cache in PaaS like Vercel?](#6-how-to-deal-with-css-cache-in-paas-like-vercel)
+  - [7. When to use `enableJsAst`?](#7-when-to-use-enablejsast)
 - [👀 Demos](#-demos)
 - [⭐ TODO](#-todo)
 - [🐛 Known Issues](#-known-issues)
@@ -303,8 +304,27 @@ It may not be the best setting but it works for me. :)
 |generatorSeed|string|"-1"|The seed for the random class name generator. "-1" means use random seed.|
 |logLevel|"debug" \| "info" \| "warn" \| "error" \| "success"| "info"|The log level.|
 
-###### All options in one place
+### Experimental Features Options 🚧
+| Option| Type| Default| Description| Stage |
+| - | - | - | - | - |
+|enableJsAst|boolean|false|Whether to obfuscate JS files using abstract syntax tree parser. <br><br>`contentIgnoreRegexes` option will be ignored if this option is enabled.|Beta|
+
+> [!NOTE]\
+> The above options are still at the early stage of development and may not work as expected.
+>
+> Open an [issue](https://github.com/soranoo/next-css-obfuscator/issues) if you encounter any issues.
+
+> [!NOTE]\
+> **Stages** - \
+> 1. **PoC**: Proof of Concept. The feature is still in the concept stage and strongly not recommended to use in production.
+> 2. **Alpha**: The feature is still in the early stage of development and may not work as expected.
+> 3. **Beta**: The feature is almost completed and should work as expected but may have some issues. (if no issue is reported in a period, it will be considered stable.)
+> 4. **Stable**: The feature is in the final stage of development and should work as expected.
+
+### All options in one place 📦
 ```js
+// next-css-obfuscator.config.cjs
+
 module.exports = {
     enable: true, // Enable or disable the plugin.
     mode: "random", // Obfuscate mode, "random" or "simplify".
@@ -328,6 +348,10 @@ module.exports = {
     removeMarkersAfterObfuscated: true, // Remove the obfuscation markers from HTML elements after obfuscation.
     removeOriginalCss: false, // Delete original CSS from CSS files if it has a obfuscated version.
     generatorSeed: "-1", // The seed for the random generator. "-1" means use random seed.
+
+    //! Experimental feature
+    enableJsAst: false, // Whether to obfuscate JS files using abstract syntax tree parser (Experimental feature)
+
     logLevel: "info", // Log level
 };
 ```
@@ -399,6 +423,21 @@ You may discover that the obfuscated class conversion table updates every time y
 > *Promotion*🗯️\
 > Do you know the mechanism behind it is powered by my another package `recoverable-random`? [Check it out](https://github.com/soranoo/recoverable-random)
 
+### 7. When to use `enableJsAst`?
+
+If you are going to partially obfuscate your site, you may want to enable this option to obfuscate. It gives the ability to trace the variable that related to class name in a JS file which the normal basic partial obfuscation can't do.
+
+> [!WARNING]\
+> Note that if a shared component under obfuscation marker, that component will be obfuscated and may affect the other components(with no obfuscation marker) that use the same shared component.
+
+If you are going to obfuscate the whole site, you will get a way more accurate obfuscation by enabling this option without putting a ton of time into tweaking the options.
+
+> [!NOTE]\
+> As a trade-off, this will take more time to obfuscate.
+
+> [!NOTE]\
+> This method can only trace the variable within the same JS file. It can't trace the variable that is imported from another file.
+
 ## 👀 Demos
 
 1. [Next 14 App Router](https://github.com/soranoo/next-css-obfuscator/tree/main/demo/next14-app-router)
@@ -414,10 +453,10 @@ You may discover that the obfuscated class conversion table updates every time y
 
 ## 🐛 Known Issues
 
-- Partial Obfuscation
+- [x] Partial Obfuscation (SOLVED)
   - Not work with complex component. (eg. A component with children components)
     - Reason: The obfuscation marker can't locate the correct code block to obfuscate.
-  - Potential Solution: track the function/variable call stack to locate the correct code block to obfuscate. (under PoC)
+  - Potential Solution: track the function/variable call stack to locate the correct code block to obfuscate.
 
 ## 💖 Sponsors
 

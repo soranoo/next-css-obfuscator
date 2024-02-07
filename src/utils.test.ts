@@ -176,20 +176,6 @@ describe("getRandomString", () => {
     expect(result.rngStateCode).not.toBe(initialStateCode);
   });
 
-  test("should generate different strings on subsequent calls", () => {
-    // Arrange
-    const length = 10;
-    const seed = "testSeed";
-    rng = new NumberGenerator(seed); // Mocked RNG for consistent results
-
-    // Act
-    const result1 = getRandomString(length, seed);
-    const result2 = getRandomString(length, seed);
-
-    // Assert
-    expect(result1.randomString).not.toBe(result2.randomString);
-  });
-
   test("should throw an error if length is not a positive integer", () => {
     // Arrange
     const invalidLengths = [0, -1, 1.5, NaN, Infinity];

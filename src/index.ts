@@ -64,6 +64,8 @@ function obfuscate(options: Options) {
     obfuscateMarkerClasses: options.markers,
     removeObfuscateMarkerClassesAfterObfuscated: options.removeMarkersAfterObfuscated,
     removeOriginalCss: options.removeOriginalCss,
+
+    enableJsAst: options.enableJsAst,
   });
 }
 

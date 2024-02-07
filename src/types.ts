@@ -26,6 +26,8 @@ type Options = {
     removeOriginalCss: boolean;
     generatorSeed: string;
 
+    enableJsAst: boolean;
+
     logLevel: LogLevel;
 }
 type OptionalOptions = {
@@ -51,6 +53,8 @@ type OptionalOptions = {
     removeMarkersAfterObfuscated?: boolean;
     removeOriginalCss?: boolean;
     generatorSeed?: string;
+
+    enableJsAst?: boolean;
 
     logLevel?: LogLevel;
 }

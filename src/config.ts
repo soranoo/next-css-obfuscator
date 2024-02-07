@@ -23,6 +23,10 @@ const defaultOptions: Options = {
     removeMarkersAfterObfuscated: true, // Remove the obfuscation markers from HTML elements after obfuscation.
     removeOriginalCss: false, // Delete original CSS from CSS files if it has a obfuscated version.
     generatorSeed: "-1", // The seed for the random generator. "-1" means use random seed.
+    
+    //! Experimental feature
+    enableJsAst: false, // Whether to obfuscate JS files using abstract syntax tree parser. (Experimental feature)
+    
     logLevel: "info", // Log level
 };
 

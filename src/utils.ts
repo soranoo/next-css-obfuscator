@@ -86,6 +86,8 @@ function replaceJsonKeysInFiles(
     obfuscateMarkerClasses,
     removeObfuscateMarkerClassesAfterObfuscated,
     removeOriginalCss,
+
+    enableJsAst,
   }: {
     targetFolder: string,
     allowExtensions: string[],
@@ -99,6 +101,8 @@ function replaceJsonKeysInFiles(
     obfuscateMarkerClasses: string[],
     removeObfuscateMarkerClassesAfterObfuscated: boolean,
     removeOriginalCss: boolean,
+
+    enableJsAst: boolean,
   }) {
   //ref: https://github.com/n4j1Br4ch1D/postcss-obfuscator/blob/main/utils.js
 
@@ -177,7 +181,14 @@ function replaceJsonKeysInFiles(
 
               const scriptTagContents = findHtmlTagContents(html, "script");
               scriptTagContents.forEach(scriptTagContent => {
-                const obfuscateScriptContent = obfuscateJs(scriptTagContent, obfuscateMarkerClass, classConversion, filePath, contentIgnoreRegexes, true);
+                const obfuscateScriptContent = obfuscateJs(
+                  scriptTagContent,
+                  obfuscateMarkerClass,
+                  classConversion,
+                  filePath,
+                  contentIgnoreRegexes,
+                  enableJsAst
+                );
                 if (scriptTagContent !== obfuscateScriptContent) {
                   html = html.replace(scriptTagContent, obfuscateScriptContent);
                   log("debug", `Obscured keys under HTML script tag in file:`, normalizePath(filePath));
@@ -189,7 +200,13 @@ function replaceJsonKeysInFiles(
               }
             }
           } else {
-            const obfuscateScriptContent = obfuscateJs(fileContent, obfuscateMarkerClass, classConversion, filePath, contentIgnoreRegexes, true);
+            const obfuscateScriptContent = obfuscateJs(fileContent,
+              obfuscateMarkerClass,
+              classConversion,
+              filePath,
+              contentIgnoreRegexes,
+              enableJsAst
+            );
             if (fileContent !== obfuscateScriptContent) {
               fileContent = obfuscateScriptContent;
               log("debug", `Obscured keys in JS like content file:`, normalizePath(filePath));
@@ -198,8 +215,17 @@ function replaceJsonKeysInFiles(
 
         });
       } else {
+        /* Handle Full Obfuscation */
+
         if ([".js"].includes(fileExt)) {
-          const obfuscateScriptContent = obfuscateJs(fileContent, "jsx", classConversion, filePath, contentIgnoreRegexes);
+          const obfuscateScriptContent = obfuscateJs(
+            fileContent,
+            "jsx",
+            classConversion,
+            filePath,
+            contentIgnoreRegexes,
+            enableJsAst
+          );
           if (fileContent !== obfuscateScriptContent) {
             fileContent = obfuscateScriptContent;
             log("debug", `Obscured keys in JSX related file:`, normalizePath(filePath));

@@ -11,7 +11,8 @@
     "removeComments": true,
     "importHelpers": true,
     "esModuleInterop": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "moduleResolution": "node",
   },
   "exclude": [
     "node_modules",
