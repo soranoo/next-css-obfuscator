@@ -26,7 +26,6 @@ function obfuscateJsWithAst(
   // traverse AST to find key-value pairs
   traverse(ast, {
     ObjectProperty(path) {
-
       // handle className
       if (t.isIdentifier(path.node.key) && path.node.key.name === "className") {
         searchStringLiterals(path.get("value"), (str) => {
@@ -48,7 +47,6 @@ function obfuscateJsWithAst(
           }
         });
       }
-
     },
   });
 
