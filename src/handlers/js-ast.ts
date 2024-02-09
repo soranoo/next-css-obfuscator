@@ -50,7 +50,14 @@ function obfuscateJsWithAst(
     },
   });
 
-  const obfuscatedCode = generator(ast, {}, code);
+  const options = {
+    compact: true,
+    concise: true,
+    retainLines: false,
+    comments: false,
+    minified: true,
+  };
+  const obfuscatedCode = generator(ast, options, code);
   return {
     obfuscatedCode: obfuscatedCode.code,
     usedKeys: usedKeys

@@ -307,7 +307,7 @@ It may not be the best setting but it works for me. :)
 ### Experimental Features Options 🚧
 | Option| Type| Default| Description| Stage |
 | - | - | - | - | - |
-|enableJsAst|boolean|false|Whether to obfuscate JS files using abstract syntax tree parser. <br><br>`contentIgnoreRegexes` option will be ignored if this option is enabled.|Beta|
+|enableJsAst|boolean|false|Whether to obfuscate JS files using abstract syntax tree parser. <br><br>`contentIgnoreRegexes` option will be ignored if this option is enabled.|Alpha|
 
 > [!NOTE]\
 > The above options are still at the early stage of development and may not work as expected.
