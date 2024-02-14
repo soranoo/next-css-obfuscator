@@ -102,7 +102,6 @@ function obfuscateCli() {
   const config = new Config(configPath ? require(configPath) : undefined).get();
   obfuscate(config);
   log("success", "Obfuscation", "Completed~");
-  log("info", "Give me a ⭐️ on GitHub if you like this plugin", "https://github.com/soranoo/next-css-obfuscator");
 }
 
 export { obfuscateCli, type OptionalOptions as Options };

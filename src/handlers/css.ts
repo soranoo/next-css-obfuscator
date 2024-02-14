@@ -12,6 +12,7 @@ import {
     findAllFilesWithExt,
     usedKeyRegistery,
     getFilenameFromPath,
+    duplicationCheck,
 } from "../utils";
 import { obfuscateMode, SelectorConversion } from "../types";
 
@@ -31,13 +32,13 @@ function createNewClassName(
     //? Based on the mechanism behind `recoverable-random` library
     //? `stateCode` is directly equivalent to the `seed`
     //? so recover the stateCode is the same as setting the seed
-    //? so the seed input of `getRandomString` and `simplifyString`
-    //? in the following usage are meaningless
+    //? so the seed input `simplifyString`
+    //? in the following usage is meaningless
     //? :)
 
     switch (mode) {
         case "random":
-            ({ rngStateCode, randomString } = getRandomString(classNameLength, seed, seed + NumberGenerator.stringToSeed(className).toString()));
+            ({ rngStateCode, randomString } = getRandomString(classNameLength, seed, undefined, className));
             break;
         case "simplify":
             ({ rngStateCode, randomString } = simplifyString(className, seed, seed + NumberGenerator.stringToSeed(className).toString()));
@@ -291,6 +292,13 @@ function createSelectorConversionJson(
 
     const jsonPath = path.join(process.cwd(), selectorConversionJsonFolderPath, "conversion.json");
     fs.writeFileSync(jsonPath, JSON.stringify(selectorConversion, null, 2));
+    if (duplicationCheck(Object.keys(selectorConversion))) {
+        if (mode == "random") {
+            log("error", "Obfuscation", "Duplicated class names found in the conversion JSON, try to increase the class name length / open an issue on GitHub https://github.com/soranoo/next-css-obfuscator/issues");
+        } else {
+            log("error", "Obfuscation", "Duplicated class names found in the conversion JSON, please open an issue on GitHub https://github.com/soranoo/next-css-obfuscator/issues");
+        }
+    }
 }
 
 function copyCssData(targetSelector: string, newSelectorName: string, cssObj: any) {

@@ -3,6 +3,7 @@ import {
   getFilenameFromPath,
   getRandomString,
   simplifyString,
+  duplicationCheck,
 } from "./utils";
 import NumberGenerator from "recoverable-random";
 
@@ -276,5 +277,101 @@ describe("simplifyString", () => {
 
     // Assert
     expect(result.randomString).toHaveLength(1); // Should contain one random character
+  });
+});
+
+
+//! ================================
+//! duplicationCheck
+//! ================================
+
+describe("duplicationCheck", () => {
+
+  test("should return false for an array with no duplicates", () => {
+    // Arrange
+    const input = ["apple", "banana", "cherry"];
+
+    // Act
+    const result = duplicationCheck(input);
+
+    // Assert
+    expect(result).toBe(false);
+  });
+
+  test("should return true for an array with duplicates", () => {
+    // Arrange
+    const input = ["apple", "banana", "apple"];
+
+    // Act
+    const result = duplicationCheck(input);
+
+    // Assert
+    expect(result).toBe(true);
+  });
+
+  test("should return false for an empty array", () => {
+    // Arrange
+    const input: string[] = [];
+
+    // Act
+    const result = duplicationCheck(input);
+
+    // Assert
+    expect(result).toBe(false);
+  });
+
+  test("should return false for an array with one element", () => {
+    // Arrange
+    const input = ["apple"];
+
+    // Act
+    const result = duplicationCheck(input);
+
+    // Assert
+    expect(result).toBe(false);
+  });
+
+  test("should return true for an array with all elements being the same", () => {
+    // Arrange
+    const input = ["apple", "apple", "apple"];
+
+    // Act
+    const result = duplicationCheck(input);
+
+    // Assert
+    expect(result).toBe(true);
+  });
+
+  test("should handle case sensitivity properly", () => {
+    // Arrange
+    const input = ["apple", "Apple"];
+
+    // Act
+    const result = duplicationCheck(input);
+
+    // Assert
+    expect(result).toBe(false);
+  });
+
+  test("should return true for an array with duplicates that are not adjacent", () => {
+    // Arrange
+    const input = ["apple", "banana", "cherry", "apple", "date"];
+
+    // Act
+    const result = duplicationCheck(input);
+
+    // Assert
+    expect(result).toBe(true);
+  });
+
+  test("should return false for an array with similar but unique strings", () => {
+    // Arrange
+    const input = ["a", "ab", "abc", "abcd"];
+
+    // Act
+    const result = duplicationCheck(input);
+
+    // Assert
+    expect(result).toBe(false);
   });
 });

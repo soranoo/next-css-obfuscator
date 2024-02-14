@@ -470,7 +470,7 @@ function findAllFilesWithExt(ext: string, targetFolderPath: string): string[] {
 
 let rng: NumberGenerator | undefined = undefined;
 
-function getRandomString(length: number, seed?: string, rngStateCode?: string) {
+function getRandomString(length: number, seed?: string, rngStateCode?: string, str?: string) {
   if (length <= 0 || !Number.isInteger(length)) {
     throw new Error("Length must be a positive integer");
   }
@@ -482,11 +482,15 @@ function getRandomString(length: number, seed?: string, rngStateCode?: string) {
     rng.recoverState(rngStateCode);
   }
 
+  let rn = rng.random(0, 1, true);
+  if (str && seed) {
+    // can create a more collision resistant "random number" but in fact it's not random number
+    rn = parseFloat(`0.${NumberGenerator.stringToSeed(str) + NumberGenerator.stringToSeed(seed)}`);
+  }
+
   //ref: https://github.com/n4j1Br4ch1D/postcss-obfuscator/blob/main/utils.js
   // Generate a random string of characters with the specified length
-  const randomString = rng.random(0, 1, true)
-    .toString(36)
-    .substring(2, length - 1 + 2);
+  const randomString = rn.toString(36).substring(2, length - 1 + 2);
   // Combine the random string with a prefix to make it a valid class name (starts with a letter, contains only letters, digits, hyphens, and underscores)
   const randomLetter = String.fromCharCode(Math.floor(rng.random(0, 1, true) * 26) + 97); // 97 is the ASCII code for lowercase 'a'
   return {
@@ -525,9 +529,19 @@ function replaceFirstMatch(source: string, find: string, replace: string): strin
   return source;
 }
 
+/**
+ * Check if there are any duplicates in an array of strings
+ * @param arr - an array of strings
+ * @returns - true if there are any duplicates, false otherwise
+ */
+function duplicationCheck(arr: string[]) {
+  const set = new Set(arr);
+  return arr.length !== set.size;
+}
+
 export {
   getFilenameFromPath, log, normalizePath, loadAndMergeJsonFiles
   , replaceJsonKeysInFiles, setLogLevel, findContentBetweenMarker, replaceFirstMatch
   , findAllFilesWithExt, getRandomString, simplifyString, usedKeyRegistery
-  , obfuscateKeys, findClosestSymbolPosition, addKeysToRegistery
+  , obfuscateKeys, findClosestSymbolPosition, addKeysToRegistery, duplicationCheck
 };
