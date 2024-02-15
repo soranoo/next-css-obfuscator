@@ -217,7 +217,7 @@ function createSelectorConversionJson(
     // remove duplicated selectors
     const uniqueSelectors = [...new Set(selectors)];
 
-    const allowClassStartWith = [".", ":is(", ":where(", ":not("
+    const allowClassStartWith = [".", "#", ":is(", ":where(", ":not("
         , ":matches(", ":nth-child(", ":nth-last-child("
         , ":nth-of-type(", ":nth-last-of-type(", ":first-child("
         , ":last-child(", ":first-of-type(", ":last-of-type("
