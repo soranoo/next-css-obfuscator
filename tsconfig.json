@@ -21,7 +21,7 @@
     "jest.config.d.ts",
     "bin",
     "patched-postcss-obfuscator",
-    "demo",
+    "demos",
     "src/*.test.*"
   ]
 }
