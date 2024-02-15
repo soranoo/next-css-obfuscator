@@ -1,6 +1,6 @@
 # NEXT-CSS-OBFUSCATOR
 
-Project start on 30-10-2023
+Project starts on 30-10-2023
 
 ![Tests](https://github.com/soranoo/next-css-obfuscator/actions/workflows/auto_test.yml/badge.svg) [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)&nbsp;&nbsp;&nbsp;[![Donation](https://img.shields.io/static/v1?label=Donation&message=❤️&style=social)](https://github.com/soranoo/Donation)
 
@@ -38,7 +38,7 @@ Visit the [GitHub Page](https://github.com/soranoo/next-css-obfuscator/) for bet
   - Support TailwindCSS Dark Mode
   - New configuration file `next-css-obfuscator.config.cjs`
   - More configuration options
-  - Now become a independent sulotion (no need to patch `PostCSS-Obfuscator` anymore)
+  - Now become a independent solution (no need to patch `PostCSS-Obfuscator` anymore)
   - More tests
   - Better CSS parsing
   
@@ -54,7 +54,7 @@ Give me a ⭐ if you like it.
 
 - [🤔 Why this?](#-why-this)
 - [💡 How does it work?](#-how-does-it-work)
-  - [Where is issue in PostCSS-Obfuscator?](#where-is-issue-in-postcss-obfuscator)
+  - [Where is the issue in PostCSS-Obfuscator?](#where-is-the-issue-in-postcss-obfuscator)
   - [How does this package solve the issue?](#how-does-this-package-solve-the-issue)
   - [How does this package work?](#how-does-this-package-work)
 - [🗝️ Features](#️-features)
@@ -81,6 +81,7 @@ Give me a ⭐ if you like it.
 - [💖 Sponsors](#-sponsors)
 - [🦾 Special Thanks](#-special-thanks)
 - [🤝 Contributing](#-contributing)
+- [🏛️ Commercial Usage](#️-commercial-usage)
 - [📝 License](#-license)
 - [☕ Donation](#-donation)
 
@@ -90,9 +91,9 @@ Because in the current version of [PostCSS-Obfuscator](https://github.com/n4j1Br
 
 ## 💡 How does it work?
 
-### Where is issue in PostCSS-Obfuscator?
+### Where is the issue in PostCSS-Obfuscator?
 
-`PostCSS-Obfuscator` will not edit the build files instead it will create a new folder and put the obfuscated source code files in it. This is where the issue is. Next.js will not recognize the obfuscated files and will not include them in the build. I tried to point Nextjs to build the obfuscated files (by simply change the obfuscated source code folder to `src`) but it didn't work.
+`PostCSS-Obfuscator` will not edit the build files instead it will create a new folder and put the obfuscated source code files in it. This is where the issue is. Next.js will not recognize the obfuscated files and will not include them in the build. I tried to point Nextjs to build the obfuscated files (by simply changing the obfuscated source code folder to `src`) but it didn't work.
 
 ### How does this package solve the issue?
 
@@ -108,10 +109,10 @@ Edit the build files directly. (It may not be the best solution but it works.)
 
 - WORK WITH NEXT.JS !!!!!!!!!!!!!!!!!!!
 
-> [!NOTE]\
+> [!IMPORTANT]\
 > This package is NOT guaranteed to work with EVERYONE. Check the site carefully before using it in production.
 
-> [!WARNING]\
+> [!IMPORTANT]\
 > As a trade-off, the obfuscation will make your CSS files larger.
 
 ## 🛠️ Development Environment
@@ -184,7 +185,7 @@ Visit the [npm](https://www.npmjs.com/package/next-css-obfuscator) page.
 
     Feel free to checkout [📖 Config Options Reference](#-config-options-reference) for more options and details.
 
-    > [!NOTE]\
+    > [!NOTE]
     > The obfuscation will never work as expected, tweak the options with your own needs.
 
 2. Add the following code to `package.json`:
@@ -206,10 +207,10 @@ Visit the [npm](https://www.npmjs.com/package/next-css-obfuscator) page.
 (You may need to delete the `.next/cache` folder before running `npm run start` to make sure the obfuscation takes effect. And don't forget to `shift + F5` refresh the page.`)
 
 > [!WARNING]\
-> NEVER run `obfuscate-build` twice in a row. It may mess up the build files and obfuscation convertion table. You can remove the `classConversionJsonFolderPath`(default: `css-obfuscator`) folder to reset the convertion table.
+> NEVER run `obfuscate-build` twice in a row. It may mess up the build files and the obfuscation conversion table. You can remove the `classConversionJsonFolderPath`(default: `css-obfuscator`) folder to reset the conversion table.
 
 > [!NOTE]\
-> For better development experience, it is recommanded to enable `refreshClassConversionJson` option in `next-css-obfuscator.config.cjs` and disable it in production.
+> For better development experience, it is recommended to enable `refreshClassConversionJson` option in `next-css-obfuscator.config.cjs` and disable it in production.
 
 For convenience, you may update your build script to:
 
@@ -225,7 +226,7 @@ For convenience, you may update your build script to:
 to make sure the build is always obfuscated and no need to run `obfuscate-build` manually.
 
 > [!NOTE]\
-> It is a good idea to add the `/css-obfuscator` folder to `.gitignore` to prevent the convertion table from being uploaded to the repository.
+> It is a good idea to add the `/css-obfuscator` folder to `.gitignore` to prevent the conversion table from being uploaded to the repository.
 
 #### Partially obfuscate
 To partially obfuscate your project, you have to add the obfuscate marker class to the components you want to obfuscate.
@@ -252,7 +253,7 @@ export default function HomePage() {
 }
 ```
 
-See [Next 14 App Router Partially Obfuscated Demo](https://github.com/soranoo/next-css-obfuscator/tree/main/demo/next14-app-router-partially-obfuscated) for more details.
+See [Next 14 App Router Partially Obfuscated Demo](https://github.com/soranoo/next-css-obfuscator/tree/main/demos/next14-app-router-partially-obfuscated) for more details.
 
 ## 🔧 My Setting
 
@@ -310,13 +311,13 @@ It may not be the best setting but it works for me. :)
 |enableJsAst|boolean|false|Whether to obfuscate JS files using abstract syntax tree parser. <br><br>`contentIgnoreRegexes` option will be ignored if this option is enabled.|Alpha|
 
 > [!NOTE]\
-> The above options are still at the early stage of development and may not work as expected.
+> The above options are still at the early stages of development and may not work as expected.
 >
 > Open an [issue](https://github.com/soranoo/next-css-obfuscator/issues) if you encounter any issues.
 
 > [!NOTE]\
-> **Stages** - \
-> 1. **PoC**: Proof of Concept. The feature is still in the concept stage and strongly not recommended to use in production.
+> **Stages** -
+> 1. **PoC**: Proof of Concept. The feature is still in the concept stage and is not recommended in production.
 > 2. **Alpha**: The feature is still in the early stage of development and may not work as expected.
 > 3. **Beta**: The feature is almost completed and should work as expected but may have some issues. (if no issue is reported in a period, it will be considered stable.)
 > 4. **Stable**: The feature is in the final stage of development and should work as expected.
@@ -366,7 +367,7 @@ next-css-obfuscator --config ./path/to/your/config/file
 
 ### 1. Not work at Vercel after updated ?
 
-If you are using this package with Vercel, you may found the package not work as expected after updated. This is because Vercel will cache the last build for a faster build time. To fix this you have to redeploy with the `Use existing build cache` option disabled.
+If you are using this package with Vercel, you may find the package does not work as expected after being updated. This is because Vercel will cache the last build for a faster build time. To fix this you have to redeploy with the `Use existing build cache` option disabled.
 
 ### 2. Lazy Setup - Obfuscate all files
 
@@ -374,7 +375,7 @@ Enable `enableMarkers` and put the obfuscate marker class at every component inc
 
 ### 3. It was working normally just now, but not now?
 
-Your convertion table may be messed up. Try to delete the `classConversionJsonFolderPath`(default: `css-obfuscator`) folder to reset the convertion table.
+Your conversion table may be messed up. Try to delete the `classConversionJsonFolderPath`(default: `css-obfuscator`) folder to reset the conversion table.
 
 ### 4. Why are some original selectors still in the obfuscated CSS file even the `removeOriginalCss` option is set to `true`?
 
@@ -411,7 +412,7 @@ If you encounter the first situation, it means something is wrong with the obfus
 
 ### 5. Why did I get a copy of the original CSS after partial obfuscation?
 
-Since the original CSS may referenced by other components not included in the obfuscation, the package will not remove the original CSS to prevent breaking the the site.
+Since the original CSS may be referenced by other components not included in the obfuscation, the package will not remove the original CSS to prevent breaking the the site.
 
 ### 6. How to deal with CSS cache in PaaS like [Vercel](https://vercel.com/)?
 
@@ -419,29 +420,25 @@ Since the original CSS may referenced by other components not included in the ob
 
 You may discover that the obfuscated class conversion table updates every time you deploy your site to [Vercel](https://vercel.com/) even if the `refreshClassConversionJson` option is set to `false`. As a result, the CSS file will update in every deployment and break the CDN cache. This is because [Vercel](https://vercel.com/) will not keep the files generated by the previous deployment. To fix this, you can simply provide a fixed `generatorSeed` to make sure the obfuscated class name will be the same as the previous.
 
-> [!NOTE]\
-> *Promotion*🗯️\
-> Do you know the mechanism behind it is powered by my another package `recoverable-random`? [Check it out](https://github.com/soranoo/recoverable-random)
-
 ### 7. When to use `enableJsAst`?
 
-~~If you are going to partially obfuscate your site, you may want to enable this option to obfuscate. It gives the ability to trace the variable that related to class name in a JS file which the normal basic partial obfuscation can't do.~~ (WIP)
+~~If you are going to partially obfuscate your site, you may want to enable this option to obfuscate. It gives the ability to trace the variable that is related to the class name in a JS file which the normal basic partial obfuscation can't do.~~ (WIP)
 
-> [!WARNING]\
-> Note that if a shared component under obfuscation marker, that component will be obfuscated and may affect the other components(with no obfuscation marker) that use the same shared component.
+> [!IMPORTANT]
+> Note that if a shared component is under the obfuscation marker, that component will be obfuscated and may affect other components(with no obfuscation marker) that use the same shared component.
 
 If you are going to obfuscate the whole site, you will get a way more accurate obfuscation by enabling this option without putting a ton of time into tweaking the options.
 
-> [!NOTE]\
+> [!NOTE]
 > As a trade-off, this will take more time to obfuscate.
 
-> [!NOTE]\
+> [!NOTE]
 > This method can only trace the variable within the same JS file. It can't trace the variable that is imported from another file.
 
 ## 👀 Demos
 
-1. [Next 14 App Router](https://github.com/soranoo/next-css-obfuscator/tree/main/demo/next14-app-router)
-2. [Next 14 App Router Partially Obfuscated](https://github.com/soranoo/next-css-obfuscator/tree/main/demo/next14-app-router-partially-obfuscated)
+1. [Next 14 App Router](https://github.com/soranoo/next-css-obfuscator/tree/main/demos/next14-app-router)
+2. [Next 14 App Router Partially Obfuscated](https://github.com/soranoo/next-css-obfuscator/tree/main/demos/next14-app-router-partially-obfuscated)
 3. [hoangnhan.co.uk](https://hoangnhan.co.uk/) (BY [hoangnhan2ka3](https://github.com/hoangnhan2ka3))
 
 ## ⭐ TODO
@@ -454,7 +451,7 @@ If you are going to obfuscate the whole site, you will get a way more accurate o
 ## 🐛 Known Issues
 
 - [ ] Partial Obfuscation
-  - Not work with complex component. (eg. A component with children components)
+  - Not work with complex components. (eg. A component with shared component(s))
     - Reason: The obfuscation marker can't locate the correct code block to obfuscate.
   - Potential Solution: track the function/variable call stack to locate the correct code block to obfuscate.
 
@@ -489,6 +486,14 @@ If you are going to obfuscate the whole site, you will get a way more accurate o
 ## 🤝 Contributing
 
 Contributions are welcome! If you find a bug or have a feature request, please open an issue. If you want to contribute code, please fork the repository and run `npm run test` before submit a pull request.
+
+## 🏛️ Commercial Usage
+
+#### Individual🕺
+Are you using this package for a personal project? That's great! You can support us by starring this repo on Github ⭐🌟⭐.
+
+#### Organization 👯‍♂️
+Are you using this package within your organization and generating revenue from it? Fantastic! We depend on your support to continue developing and maintaining the package under an MIT License. You might consider showing your support through [Github Sponsors](https://github.com/sponsors/soranoo).
 
 ## 📝 License
 
