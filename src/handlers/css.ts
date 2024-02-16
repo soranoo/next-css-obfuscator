@@ -360,6 +360,7 @@ function obfuscateCss(
     selectorConversion: SelectorConversion,
     cssPath: string,
     replaceOriginalSelector: boolean = false,
+    isFullObfuscation: boolean = false,
     outCssPath?: string,
 ) {
     if (!outCssPath) {
@@ -373,30 +374,36 @@ function obfuscateCss(
     let cssObj = css.parse(cssContent);
     const cssRulesCount = cssObj.stylesheet.rules.length;
 
-    // join all selectors start with ":" (eg. ":is")
-    Object.keys(selectorConversion).forEach((key) => {
-        if (key.startsWith(":")) {
+    if (isFullObfuscation) {
+        Object.keys(selectorConversion).forEach((key) => {
             usedKeyRegistery.add(key);
-        }
-    });
-
-    // join all selectors with action selectors
-    const actionSelectors = getAllSelector(cssObj).filter((selector) => selector.match(findActionSelectorsRegex));
-    actionSelectors.forEach((actionSelector) => {
-        usedKeyRegistery.add(actionSelector);
-    });
-
-    // join all Tailwind CSS [child] selectors (eg. ".\[\&_\.side-box\]\:absolute .side-box")
-    const tailwindCssChildSelectors = getAllSelector(cssObj).filter((selector) => selector.startsWith(".\\["));
-    tailwindCssChildSelectors.forEach((tailwindCssChildSelector) => {
-        usedKeyRegistery.add(tailwindCssChildSelector);
-    });
-
-    // join all child selectors (eg. ">*")
-    const universalSelectors = getAllSelector(cssObj).filter((selector) => selector.includes(">"));
-    universalSelectors.forEach((universalSelector) => {
-        usedKeyRegistery.add(universalSelector);
-    });
+        });
+    } else {
+        // join all selectors start with ":" (eg. ":is")
+        Object.keys(selectorConversion).forEach((key) => {
+            if (key.startsWith(":")) {
+                usedKeyRegistery.add(key);
+            }
+        });
+    
+        // join all selectors with action selectors
+        const actionSelectors = getAllSelector(cssObj).filter((selector) => selector.match(findActionSelectorsRegex));
+        actionSelectors.forEach((actionSelector) => {
+            usedKeyRegistery.add(actionSelector);
+        });
+    
+        // join all Tailwind CSS [child] selectors (eg. ".\[\&_\.side-box\]\:absolute .side-box")
+        const tailwindCssChildSelectors = getAllSelector(cssObj).filter((selector) => selector.startsWith(".\\["));
+        tailwindCssChildSelectors.forEach((tailwindCssChildSelector) => {
+            usedKeyRegistery.add(tailwindCssChildSelector);
+        });
+    
+        // join all child selectors (eg. ">*")
+        const universalSelectors = getAllSelector(cssObj).filter((selector) => selector.includes(">"));
+        universalSelectors.forEach((universalSelector) => {
+            usedKeyRegistery.add(universalSelector);
+        });
+    }
 
     // modify css rules
     usedKeyRegistery.forEach((key) => {
