@@ -4,6 +4,7 @@ src
 jest.config.d.ts
 jest.config.js
 tsconfig.json
-demo
+demos
 .prettierignore
 .prettierrc
+*.test.*
