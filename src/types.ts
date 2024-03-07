@@ -1,5 +1,5 @@
 type LogLevel = "debug" | "info" | "warn" | "error" | "success";
-type obfuscateMode = "random" | "simplify";
+type obfuscateMode = "random" | "simplify" | "simplify-seedable";
 type SelectorConversion = { [key: string]: string };
 
 type Options = {

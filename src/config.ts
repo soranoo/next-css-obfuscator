@@ -2,7 +2,7 @@ import { type Options, type OptionalOptions } from "./types";
 
 const defaultOptions: Options = {
     enable: true, // Enable or disable the plugin.
-    mode: "random", // Obfuscate mode, "random" or "simplify".
+    mode: "random", // Obfuscate mode, "random", "simplify" or "simplify-seedable".
     buildFolderPath: ".next", // Build folder of your project.
     classConversionJsonFolderPath: "./css-obfuscator", // The folder path to store the before obfuscate and after obfuscated classes conversion table.
     refreshClassConversionJson: false, // Refresh the class conversion JSON file.

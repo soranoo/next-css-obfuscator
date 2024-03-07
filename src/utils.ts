@@ -476,7 +476,14 @@ function getRandomString(length: number, seed?: string, rngStateCode?: string, s
   };
 }
 
-function simplifyString(str: string, seed?: string, rngStateCode?: string) {
+/**
+ * 
+ * @param str 
+ * @param seed 
+ * @param rngStateCode 
+ * @returns 
+ */
+function seedableSimplifyString(str: string, seed?: string, rngStateCode?: string) {
   if (!str) {
     throw new Error("String can not be empty");
   }
@@ -496,6 +503,36 @@ function simplifyString(str: string, seed?: string, rngStateCode?: string) {
       ? String.fromCharCode(Math.floor(rng.random(0, 1, true) * 26) + 97) + tempStr
       : tempStr,
   };
+}
+
+/**
+ * Get a simplified string from a number
+ * @param alphabetPoistion (starting from 1)
+ * @returns alphabet string
+ * 
+ * @example
+ * simplifyString(1) // returns "a"
+ * simplifyString(26) // returns "z"
+ * simplifyString(27) // returns "aa"
+ * simplifyString(52) // returns "az"
+ * simplifyString(53) // returns "ba"
+ */
+function simplifyString(alphabetPoistion: number) {
+  if (alphabetPoistion <= 0 || !Number.isInteger(alphabetPoistion)) {
+    throw new Error("Position must be a positive integer");
+  }
+
+  let dividend = alphabetPoistion;
+  let columnName = "";
+  let modulo = 0;
+
+  while (dividend > 0) {
+    modulo = (dividend - 1) % 26;
+    columnName = String.fromCharCode(97 + modulo) + columnName;
+    dividend = Math.floor((dividend - modulo) / 26);
+  }
+
+  return columnName;
 }
 
 function replaceFirstMatch(source: string, find: string, replace: string): string {
@@ -537,7 +574,7 @@ function decodeKey(str: string) {
 export {
   getFilenameFromPath, log, normalizePath, loadAndMergeJsonFiles
   , replaceJsonKeysInFiles, setLogLevel, findContentBetweenMarker, replaceFirstMatch
-  , findAllFilesWithExt, getRandomString, simplifyString, usedKeyRegistery
+  , findAllFilesWithExt, getRandomString, seedableSimplifyString, usedKeyRegistery
   , obfuscateKeys, findClosestSymbolPosition, addKeysToRegistery, duplicationCheck
-  , createKey, decodeKey
+  , createKey, decodeKey, simplifyString
 };

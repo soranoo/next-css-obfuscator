@@ -7,6 +7,7 @@ import NumberGenerator from "recoverable-random";
 import {
     log,
     getRandomString,
+    seedableSimplifyString,
     simplifyString,
     loadAndMergeJsonFiles,
     findAllFilesWithExt,
@@ -19,6 +20,7 @@ import {
 import { obfuscateMode, SelectorConversion } from "../types";
 
 let randomStringGeneraterStateCode: string | undefined = undefined;
+let currentAlphabetPoistion = 1;
 function createNewClassName(
     mode: obfuscateMode,
     className: string,
@@ -34,7 +36,7 @@ function createNewClassName(
     //? Based on the mechanism behind `recoverable-random` library
     //? `stateCode` is directly equivalent to the `seed`
     //? so recover the stateCode is the same as setting the seed
-    //? so the seed input `simplifyString`
+    //? so the seed input `seedableSimplifyString`
     //? in the following usage is meaningless
     //? :)
 
@@ -42,8 +44,12 @@ function createNewClassName(
         case "random":
             ({ rngStateCode, randomString } = getRandomString(classNameLength, seed, undefined, className));
             break;
+        case "simplify-seedable":
+            ({ rngStateCode, randomString } = seedableSimplifyString(className, seed, seed + NumberGenerator.stringToSeed(className).toString()));
+            break;
         case "simplify":
-            ({ rngStateCode, randomString } = simplifyString(className, seed, seed + NumberGenerator.stringToSeed(className).toString()));
+            randomString = simplifyString(currentAlphabetPoistion);
+            currentAlphabetPoistion++;
             break;
         default:
             break;
