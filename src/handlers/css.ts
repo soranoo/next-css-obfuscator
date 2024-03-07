@@ -65,7 +65,7 @@ function createNewClassName(
 //? CSS action selectors always at the end of the selector
 //? and they can be stacked, eg. "class:hover:active"
 //? action selectors can start with ":" or "::"
-const findActionSelectorsRegex = /(?<!\\)(?:\:\w[\w-]+)(?=\:|\)|\s|\(|$|"|{)/g;
+const findActionSelectorsRegex = /(?<!\\)(?:\:\w[\w-]+)(?=\:|\)|\s|\(|$|"|{|>)/g;
 
 /**
  * Extracts classes from a CSS selector.

@@ -334,7 +334,7 @@ describe("extractClassFromSelector", () => {
     });
 
     test("should handle action pseudo-class selector correctly", () => {
-        const sample = ".class1\\:hover\\:class2:after .class3\\:hover\\:class4:after:hover :is(.class5 .class6\\:hover\\:class7:hover:after) :is(.hover\\:class8\\:class9):after";
+        const sample = ".class1\\:hover\\:class2:after .class3\\:hover\\:class4:after:hover :is(.class5 .class6\\:hover\\:class7:hover:after) :is(.hover\\:class8\\:class9):after>:last-child";
 
         // Act
         const result = extractClassFromSelector(sample);
