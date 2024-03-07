@@ -1,3 +1,4 @@
+import { describe, it, expect } from "vitest";
 import traverse, { NodePath } from "@babel/traverse";
 import * as t from "@babel/types";
 import * as parser from "@babel/parser";

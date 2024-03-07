@@ -13,6 +13,8 @@ import {
     usedKeyRegistery,
     getFilenameFromPath,
     duplicationCheck,
+    createKey,
+    decodeKey,
 } from "../utils";
 import { obfuscateMode, SelectorConversion } from "../types";
 
@@ -83,30 +85,6 @@ const findActionSelectorsRegex = /(?<!\\)(?:\:\w[\w-]+)(?=\:|\)|\s|\(|$|"|{)/g;
  * extractClassFromSelector("div");
  */
 function extractClassFromSelector(selector: string, replacementClassNames?: (string | undefined)[]) {
-    function toBase64Key(str: string) {
-        return `${Buffer.from(str).toString("base64")}`;
-    }
-    function fromBase64Key(str: string) {
-        return `${Buffer.from(str, "base64").toString("ascii")}`;
-    }
-
-    function createKey(str: string) {
-        const b64 = toBase64Key(str).replace(/=/g, "");
-        return `{{{{{{${b64}}}}}}}`;
-    }
-
-    function decodeKey(str: string) {
-        const regex = /{{{{{{([\w\+\/]+)}}}}}}/g;
-        str = str.replace(regex, (match, p1) => {
-            // Calculate the number of '=' needed
-            const padding = p1.length % 4 === 0 ? 0 : 4 - (p1.length % 4);
-            // Add back the '='
-            const b64 = p1 + "=".repeat(padding);
-            return fromBase64Key(b64);
-        });
-        return str;
-    }
-
     //? "\\[\w\%\:\.\!\*\<\>\/]" handle escaped characters
     //? "(?:\\\[(?:[^\[\]\s])*\\\]))+)" handle [attribute / Tailwind CSS custom parameter] selector
     const extractClassRegex = /(?<=[.:!]|(?<!\w)\.-)((?:[\w\-]|\\[\w\%\:\.\!\*\<\>\/]|(?:\\\[(?:[^\[\]\s])*\\\]))+)(?![\w\-]*\()/g;

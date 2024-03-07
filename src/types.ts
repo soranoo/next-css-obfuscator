@@ -61,11 +61,6 @@ type OptionalOptions = {
 
 interface HtmlCharacterEntityConversion {
     [key: string]: string;
-    "&": string;
-    "<": string;
-    ">": string;
-    '"': string;
-    "'": string;
   }
 
 export {

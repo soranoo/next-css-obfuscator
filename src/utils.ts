@@ -8,7 +8,7 @@ import {
 } from "./types";
 
 import { obfuscateCss } from "./handlers/css";
-import { findHtmlTagContentsByClass, findHtmlTagContents } from "./handlers/html";
+import { obfuscateHtmlClassNames } from "./handlers/html";
 import { obfuscateJs } from "./handlers/js";
 
 //! ====================
@@ -57,11 +57,13 @@ function setLogLevel(level: LogLevel) {
 //! Constants
 //! ====================
 const HTML_CHARACTER_ENTITY_CONVERSION: HtmlCharacterEntityConversion = {
-  "&": "&amp;",
-  "<": "&lt;",
-  ">": "&gt;",
-  '"': "&quot;",
-  "'": "&#39;",
+  "\\&": "&amp;",
+  "\\<": "&lt;",
+  "\\>": "&gt;",
+  '\\"': "&quot;",
+  "\\'": "&#39;",
+
+  "\\2c": ",", //! not working
 };
 
 //! ====================
@@ -169,33 +171,9 @@ function replaceJsonKeysInFiles(
             if (htmlMatch) {
               let html = htmlMatch[0];
               const htmlOriginal = html;
-              const tagContents = findHtmlTagContentsByClass(html, obfuscateMarkerClass);
-              tagContents.forEach(tagContent => {
-                const { obfuscatedContent, usedKeys } = obfuscateKeys(classConversion, tagContent, contentIgnoreRegexes);
-                addKeysToRegistery(usedKeys);
-                if (tagContent !== obfuscatedContent) {
-                  html = html.replace(tagContent, obfuscatedContent);
-                  log("debug", `Obscured keys under HTML tag in file:`, normalizePath(filePath));
-                }
-              });
-
-              const scriptTagContents = findHtmlTagContents(html, "script");
-              scriptTagContents.forEach(scriptTagContent => {
-                const obfuscateScriptContent = obfuscateJs(
-                  scriptTagContent,
-                  obfuscateMarkerClass,
-                  classConversion,
-                  filePath,
-                  contentIgnoreRegexes,
-                  enableJsAst
-                );
-                if (scriptTagContent !== obfuscateScriptContent) {
-                  html = html.replace(scriptTagContent, obfuscateScriptContent);
-                  log("debug", `Obscured keys under HTML script tag in file:`, normalizePath(filePath));
-                }
-              });
-
-              if (htmlOriginal !== html) {
+              const { obfuscatedContent, usedKeys } = obfuscateHtmlClassNames(fileContent, classConversion, obfuscateMarkerClass);
+              addKeysToRegistery(usedKeys);
+              if (htmlOriginal !== obfuscatedContent) {
                 fileContent = fileContent.replace(htmlOriginal, html);
               }
             }
@@ -231,12 +209,7 @@ function replaceJsonKeysInFiles(
             log("debug", `Obscured keys in JSX related file:`, normalizePath(filePath));
           }
         } else {
-          const { obfuscatedContent, usedKeys } = obfuscateKeys(
-            classConversion,
-            fileContent,
-            contentIgnoreRegexes,
-            [".html"].includes(fileExt)
-          );
+          const { obfuscatedContent, usedKeys } = obfuscateHtmlClassNames(fileContent, classConversion);
           fileContent = obfuscatedContent;
           addKeysToRegistery(usedKeys);
         }
@@ -273,11 +246,15 @@ function obfuscateKeys(
   const usedKeys = new Set<string>();
   Object.keys(selectorConversion).forEach((key) => {
     const fileContentOriginal = fileContent;
-    let keyUse = escapeRegExp(key.slice(1).replace(/\\/g, ""));
+    // let keyUse = escapeRegExp(key.slice(1).replace(/\\/g, ""));
+    let keyUse = key.slice(1);
 
     if (useHtmlEntity) {
-      keyUse = keyUse.replace(/(?:\&|\<|\>|\"|\')/g, (m: string) => HTML_CHARACTER_ENTITY_CONVERSION[m]);
+      for (const [key, value] of Object.entries(HTML_CHARACTER_ENTITY_CONVERSION)) {
+        keyUse = keyUse.replace(new RegExp(value, "g"), key);
+      }
     }
+    keyUse = escapeRegExp(keyUse.replace(/\\/g, ""));
 
     //? sample: "text-sm w-full\n      text-right\n p-2 flex gap-2 hover:bg-gray-100 dark:hover:bg-red-700 text-right"
     let exactMatchRegex = new RegExp(`([\\s"'\\\`]|^)(${keyUse})(?=$|[\\s"'\\\`]|\\\\n)`, 'g'); // match exact wording & avoid ` ' ""
@@ -425,7 +402,7 @@ function findContentBetweenMarker(content: string, targetStr: string, openMarker
   return truncatedContents;
 }
 
-function addKeysToRegistery(usedKeys: Set<string>) {
+function addKeysToRegistery(usedKeys: Set<string> | string[]) {
   usedKeys.forEach((key) => {
     usedKeyRegistery.add(key);
   });
@@ -539,9 +516,28 @@ function duplicationCheck(arr: string[]) {
   return arr.length !== set.size;
 }
 
+
+function createKey(str: string) {
+  const b64 = Buffer.from(str).toString("base64").replace(/=/g, "");
+  return `{{{{{{${b64}}}}}}}`;
+}
+
+function decodeKey(str: string) {
+  const regex = /{{{{{{([\w\+\/]+)}}}}}}/g;
+  str = str.replace(regex, (match, p1) => {
+    // Calculate the number of '=' needed
+    const padding = p1.length % 4 === 0 ? 0 : 4 - (p1.length % 4);
+    // Add back the '='
+    const b64 = p1 + "=".repeat(padding);
+    return Buffer.from(b64, "base64").toString("ascii");
+  });
+  return str;
+}
+
 export {
   getFilenameFromPath, log, normalizePath, loadAndMergeJsonFiles
   , replaceJsonKeysInFiles, setLogLevel, findContentBetweenMarker, replaceFirstMatch
   , findAllFilesWithExt, getRandomString, simplifyString, usedKeyRegistery
   , obfuscateKeys, findClosestSymbolPosition, addKeysToRegistery, duplicationCheck
+  , createKey, decodeKey
 };

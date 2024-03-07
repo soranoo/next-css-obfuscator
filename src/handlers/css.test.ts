@@ -1,3 +1,5 @@
+import { describe, it, expect, test } from "vitest";
+
 // @ts-ignore
 import css from "css";
 
@@ -201,7 +203,7 @@ describe("copyCssData", () => {
 
 describe("extractClassFromSelector", () => {
 
-    test("should extract single class from simple selector", () => {
+    it("should extract single class from simple selector", () => {
         const sample = ".example htmlTag";
 
         // Act
