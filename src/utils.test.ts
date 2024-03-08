@@ -1,9 +1,11 @@
+import { describe, it, expect, test, beforeEach } from "vitest";
 import {
   findContentBetweenMarker,
   getFilenameFromPath,
   getRandomString,
-  simplifyString,
+  seedableSimplifyString,
   duplicationCheck,
+  simplifyString,
 } from "./utils";
 import NumberGenerator from "recoverable-random";
 
@@ -213,10 +215,10 @@ describe("getRandomString", () => {
 });
 
 //! ================================
-//! simplifyString
+//! seedableSimplifyString
 //! ================================
 
-describe("simplifyString", () => {
+describe("seedableSimplifyString", () => {
   let rng: NumberGenerator;
 
   beforeEach(() => {
@@ -225,7 +227,7 @@ describe("simplifyString", () => {
 
   test("should throw an error for empty string", () => {
     // Act & Assert
-    expect(() => simplifyString("")).toThrow("String can not be empty");
+    expect(() => seedableSimplifyString("")).toThrow("String can not be empty");
   });
 
   test("should return a simplified string and rng state code", () => {
@@ -233,7 +235,7 @@ describe("simplifyString", () => {
     const input = "a1e2i3o4u5w6_-";
 
     // Act
-    const result = simplifyString(input, "seed");
+    const result = seedableSimplifyString(input, "seed");
 
     // Assert
     expect(result.randomString.length).toBeLessThan(input.length);
@@ -248,7 +250,7 @@ describe("simplifyString", () => {
     const expectedStateCode = rng.getStateCode();
 
     // Act
-    const result = simplifyString(input, undefined, stateCode);
+    const result = seedableSimplifyString(input, undefined, stateCode);
 
     // Assert
     expect(result.rngStateCode).toBe(expectedStateCode);
@@ -260,7 +262,7 @@ describe("simplifyString", () => {
     const expectedOutput = input; // No vowels or numbers to remove
 
     // Act
-    const result = simplifyString(input, "seed");
+    const result = seedableSimplifyString(input, "seed");
 
     // Assert
     expect(result.randomString).toBe(expectedOutput);
@@ -272,7 +274,7 @@ describe("simplifyString", () => {
     const expectedOutput = ""; // All characters should be removed
 
     // Act
-    const result = simplifyString(input, "seed");
+    const result = seedableSimplifyString(input, "seed");
     console.log(result);
 
     // Assert
@@ -373,5 +375,45 @@ describe("duplicationCheck", () => {
 
     // Assert
     expect(result).toBe(false);
+  });
+});
+
+
+//! ================================
+//! simplifyString
+//! ================================
+
+describe("simplifyString", () => {
+
+  test.each([
+    { position: 1, expected: "a" },
+    { position: 26, expected: "z" },
+    { position: 27, expected: "aa" },
+    { position: 52, expected: "az" },
+    { position: 53, expected: "ba" },
+    { position: 702, expected: "zz" },
+    { position: 703, expected: "aaa" },
+  ])("returns correct string for position $position", ({ position, expected }) => {
+    // Act
+    const result = simplifyString(position);
+
+    // Assert
+    expect(result).toBe(expected);
+  });
+
+  test("throws error for negative position", () => {
+    // Arrange
+    const input = -1;
+
+    // Act & Assert
+    expect(() => simplifyString(input)).toThrow("Position must be a positive integer");
+  });
+
+  test("throws error for non-integer position", () => {
+    // Arrange
+    const input = 27.5;
+
+    // Act & Assert
+    expect(() => simplifyString(input)).toThrow("Position must be a positive integer");
   });
 });

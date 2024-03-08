@@ -7,16 +7,20 @@ import NumberGenerator from "recoverable-random";
 import {
     log,
     getRandomString,
+    seedableSimplifyString,
     simplifyString,
     loadAndMergeJsonFiles,
     findAllFilesWithExt,
     usedKeyRegistery,
     getFilenameFromPath,
     duplicationCheck,
+    createKey,
+    decodeKey,
 } from "../utils";
 import { obfuscateMode, SelectorConversion } from "../types";
 
 let randomStringGeneraterStateCode: string | undefined = undefined;
+let currentAlphabetPoistion = 1;
 function createNewClassName(
     mode: obfuscateMode,
     className: string,
@@ -32,7 +36,7 @@ function createNewClassName(
     //? Based on the mechanism behind `recoverable-random` library
     //? `stateCode` is directly equivalent to the `seed`
     //? so recover the stateCode is the same as setting the seed
-    //? so the seed input `simplifyString`
+    //? so the seed input `seedableSimplifyString`
     //? in the following usage is meaningless
     //? :)
 
@@ -40,8 +44,12 @@ function createNewClassName(
         case "random":
             ({ rngStateCode, randomString } = getRandomString(classNameLength, seed, undefined, className));
             break;
+        case "simplify-seedable":
+            ({ rngStateCode, randomString } = seedableSimplifyString(className, seed, seed + NumberGenerator.stringToSeed(className).toString()));
+            break;
         case "simplify":
-            ({ rngStateCode, randomString } = simplifyString(className, seed, seed + NumberGenerator.stringToSeed(className).toString()));
+            randomString = simplifyString(currentAlphabetPoistion);
+            currentAlphabetPoistion++;
             break;
         default:
             break;
@@ -63,7 +71,7 @@ function createNewClassName(
 //? CSS action selectors always at the end of the selector
 //? and they can be stacked, eg. "class:hover:active"
 //? action selectors can start with ":" or "::"
-const findActionSelectorsRegex = /(?<!\\)(?:\:\w[\w-]+)(?=\:|\)|\s|\(|$|"|{)/g;
+const findActionSelectorsRegex = /(?<!\\)(?:\:\w[\w-]+)(?=\:|\)|\s|\(|$|"|{|>)/g;
 
 /**
  * Extracts classes from a CSS selector.
@@ -83,30 +91,6 @@ const findActionSelectorsRegex = /(?<!\\)(?:\:\w[\w-]+)(?=\:|\)|\s|\(|$|"|{)/g;
  * extractClassFromSelector("div");
  */
 function extractClassFromSelector(selector: string, replacementClassNames?: (string | undefined)[]) {
-    function toBase64Key(str: string) {
-        return `${Buffer.from(str).toString("base64")}`;
-    }
-    function fromBase64Key(str: string) {
-        return `${Buffer.from(str, "base64").toString("ascii")}`;
-    }
-
-    function createKey(str: string) {
-        const b64 = toBase64Key(str).replace(/=/g, "");
-        return `{{{{{{${b64}}}}}}}`;
-    }
-
-    function decodeKey(str: string) {
-        const regex = /{{{{{{([\w\+\/]+)}}}}}}/g;
-        str = str.replace(regex, (match, p1) => {
-            // Calculate the number of '=' needed
-            const padding = p1.length % 4 === 0 ? 0 : 4 - (p1.length % 4);
-            // Add back the '='
-            const b64 = p1 + "=".repeat(padding);
-            return fromBase64Key(b64);
-        });
-        return str;
-    }
-
     //? "\\[\w\%\:\.\!\*\<\>\/]" handle escaped characters
     //? "(?:\\\[(?:[^\[\]\s])*\\\]))+)" handle [attribute / Tailwind CSS custom parameter] selector
     const extractClassRegex = /(?<=[.:!]|(?<!\w)\.-)((?:[\w\-]|\\[\w\%\:\.\!\*\<\>\/]|(?:\\\[(?:[^\[\]\s])*\\\]))+)(?![\w\-]*\()/g;

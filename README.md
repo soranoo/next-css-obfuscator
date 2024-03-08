@@ -153,7 +153,7 @@ Visit the [npm](https://www.npmjs.com/package/next-css-obfuscator) page.
     ```javascript
     module.exports = {
         enable: true,
-        mode: "random", // random | simplify
+        mode: "random", // random | simplify | simplify-seedable
         refreshClassConversionJson: false, // recommended set to true if not in production
         allowExtensions: [".jsx", ".tsx", ".js", ".ts", ".html", ".rsc"],
       };
@@ -163,7 +163,7 @@ Visit the [npm](https://www.npmjs.com/package/next-css-obfuscator) page.
     ```javascript
     module.exports = {
         enable: true,
-        mode: "random", // random | simplify
+        mode: "random", // random | simplify | simplify-seedable
         refreshClassConversionJson: false, // recommended set to true if not in production
         allowExtensions: [".jsx", ".tsx", ".js", ".ts", ".html", ".rsc"],
 
@@ -264,7 +264,7 @@ If you are interested in my setting (from my production site), here it is
 
 module.exports = {
   enable: true,
-  mode: "random", // random | simplify
+  mode: "random", // random | simplify | simplify-seedable
   refreshClassConversionJson: false, // recommended set to true if not in production
   allowExtensions: [".jsx", ".tsx", ".js", ".ts", ".html", ".rsc"],
 
@@ -286,7 +286,7 @@ It may not be the best setting but it works for me. :)
 | Option                       | Type                                                        | Default                  | Description                                                                                                                     |
 | ---------------------------- | ----------------------------------------------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------- |
 | enable                       | boolean                                                     | true                     | Enable or disable the obfuscation.                                                                                              |
-|mode| string| "random" | Obfuscate mode, "random" or "simplify".|
+|mode| "random" \| "simplify" \| "simplify-seedable" | "random" | Obfuscate mode, <br><br>**random**: Fixed size random class name <br><br>**simplify**: Alphabetic class name, like [medium](https://medium.com/) <br><br>**simplify-seedable**: Random dynamic size class name|
 |buildFolderPath|string|"./.next"|The folder path to store the build files built by Next.js.|
 |classConversionJsonFolderPath|string|"./css-obfuscator"|The folder path to store the before obfuscate and after obfuscated classes conversion table.|
 |refreshClassConversionJson|boolean|false|Refresh the class conversion JSON file(s) at every obfuscation. Good for setting tweaking but not recommended for production.|
@@ -302,7 +302,7 @@ It may not be the best setting but it works for me. :)
 |markers|string[ ]|[ ]|Classes that indicate component(s) need to obfuscate.|
 |removeMarkersAfterObfuscated|boolean|true|Remove the obfuscation markers from HTML elements after obfuscation.|
 |removeOriginalCss|boolean|false|Delete original CSS from CSS files if it has a obfuscated version. (*NOT recommended* using in partial obfuscation)
-|generatorSeed|string|"-1"|The seed for the random class name generator. "-1" means use random seed.|
+|generatorSeed|string|"-1"|The seed for the random class name generator. "-1" means use random seed. <br><br>For "random" and "simplify-seedable" mode only. |
 |logLevel|"debug" \| "info" \| "warn" \| "error" \| "success"| "info"|The log level.|
 
 ### Experimental Features Options 🚧
@@ -328,7 +328,7 @@ It may not be the best setting but it works for me. :)
 
 module.exports = {
     enable: true, // Enable or disable the plugin.
-    mode: "random", // Obfuscate mode, "random" or "simplify".
+    mode: "random", // Obfuscate mode, "random", "simplify" or "simplify-seedable"
     buildFolderPath: ".next", // Build folder of your project.
     classConversionJsonFolderPath: "./css-obfuscator", // The folder path to store the before obfuscate and after obfuscated classes conversion table.
     refreshClassConversionJson: false, // Refresh the class conversion JSON file.
