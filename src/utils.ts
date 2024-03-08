@@ -8,7 +8,7 @@ import {
 } from "./types";
 
 import { obfuscateCss } from "./handlers/css";
-import { obfuscateHtmlClassNames } from "./handlers/html";
+import { obfuscateHtmlClassNames, findHtmlTagContentsByClass, findHtmlTagContents } from "./handlers/html";
 import { obfuscateJs } from "./handlers/js";
 
 //! ====================
@@ -171,11 +171,50 @@ function replaceJsonKeysInFiles(
             if (htmlMatch) {
               let html = htmlMatch[0];
               const htmlOriginal = html;
-              const { obfuscatedContent, usedKeys } = obfuscateHtmlClassNames(fileContent, classConversion, obfuscateMarkerClass);
-              addKeysToRegistery(usedKeys);
-              if (htmlOriginal !== obfuscatedContent) {
-                fileContent = fileContent.replace(htmlOriginal, html);
+
+              //! rollback
+              const tagContents = findHtmlTagContentsByClass(html, obfuscateMarkerClass);
+              tagContents.forEach(tagContent => {
+                const { obfuscatedContent, usedKeys } = obfuscateKeys(classConversion, tagContent, contentIgnoreRegexes);
+                addKeysToRegistery(usedKeys);
+                if (tagContent !== obfuscatedContent) {
+                  html = html.replace(tagContent, obfuscatedContent);
+                  log("debug", `Obscured keys under HTML tag in file:`, normalizePath(filePath));
+                }
+              });
+
+              //! rollback
+              const scriptTagContents = findHtmlTagContents(html, "script");
+              scriptTagContents.forEach(scriptTagContent => {
+                const obfuscateScriptContent = obfuscateJs(
+                  scriptTagContent,
+                  obfuscateMarkerClass,
+                  classConversion,
+                  filePath,
+                  contentIgnoreRegexes,
+                  enableJsAst
+                );
+                if (scriptTagContent !== obfuscateScriptContent) {
+                  html = html.replace(scriptTagContent, obfuscateScriptContent);
+                  log("debug", `Obscured keys under HTML script tag in file:`, normalizePath(filePath));
+                }
+              });
+
+              //! rollback
+              if (htmlOriginal !== html) {
+                const { obfuscatedContent, usedKeys } = obfuscateHtmlClassNames(fileContent, classConversion, obfuscateMarkerClass);
+                addKeysToRegistery(usedKeys);
+                if (htmlOriginal !== obfuscatedContent) {
+                  fileContent = fileContent.replace(htmlOriginal, html);
+                }
               }
+
+
+              // const { obfuscatedContent, usedKeys } = obfuscateHtmlClassNames(fileContent, classConversion, obfuscateMarkerClass);
+              // addKeysToRegistery(usedKeys);
+              // if (htmlOriginal !== obfuscatedContent) {
+              //   fileContent = fileContent.replace(htmlOriginal, html);
+              // }
             }
           } else {
             const obfuscateScriptContent = obfuscateJs(fileContent,
@@ -209,7 +248,16 @@ function replaceJsonKeysInFiles(
             log("debug", `Obscured keys in JSX related file:`, normalizePath(filePath));
           }
         } else {
-          const { obfuscatedContent, usedKeys } = obfuscateHtmlClassNames(fileContent, classConversion);
+          //! rollback
+          const { obfuscatedContent, usedKeys } = obfuscateKeys(
+            classConversion,
+            fileContent,
+            contentIgnoreRegexes,
+            [".html"].includes(fileExt)
+          );
+
+          // const { obfuscatedContent, usedKeys } = obfuscateHtmlClassNames(fileContent, classConversion);
+          
           fileContent = obfuscatedContent;
           addKeysToRegistery(usedKeys);
         }
