@@ -58,7 +58,7 @@ function setLogLevel(level: LogLevel) {
 //! ====================
 const HTML_CHARACTER_ENTITY_CONVERSION: HtmlCharacterEntityConversion = {
   "\\&": "&amp;",
-  "&": "&amp;",
+  "&": "&amp;", //? must later than "\\&"
   "\\<": "&lt;",
   "\\>": "&gt;",
   '\\"': "&quot;",
