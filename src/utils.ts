@@ -58,7 +58,7 @@ function setLogLevel(level: LogLevel) {
 //! ====================
 const HTML_CHARACTER_ENTITY_CONVERSION: HtmlCharacterEntityConversion = {
   "\\&": "&amp;",
-  "&": "&amp;", //? must later than "\\&"
+  "&": "&amp;", //? must later than "\\&", ref issue: #30
   "\\<": "&lt;",
   "\\>": "&gt;",
   '\\"': "&quot;",
@@ -203,11 +203,11 @@ function replaceJsonKeysInFiles(
 
               //! rollback
               if (htmlOriginal !== html) {
-                const { obfuscatedContent, usedKeys } = obfuscateHtmlClassNames(fileContent, classConversion, obfuscateMarkerClass);
-                addKeysToRegistery(usedKeys);
-                if (htmlOriginal !== obfuscatedContent) {
-                  fileContent = fileContent.replace(htmlOriginal, html);
-                }
+                // const { obfuscatedContent, usedKeys } = obfuscateHtmlClassNames(fileContent, classConversion, obfuscateMarkerClass);
+                // addKeysToRegistery(usedKeys);
+                // if (htmlOriginal !== obfuscatedContent) {
+                fileContent = fileContent.replace(htmlOriginal, html);
+                // }
               }
 
 
@@ -258,7 +258,7 @@ function replaceJsonKeysInFiles(
           );
 
           // const { obfuscatedContent, usedKeys } = obfuscateHtmlClassNames(fileContent, classConversion);
-          
+
           fileContent = obfuscatedContent;
           addKeysToRegistery(usedKeys);
         }
@@ -299,9 +299,10 @@ function obfuscateKeys(
     let keyUse = key.slice(1);
 
     if (useHtmlEntity) {
-      for (const [key, value] of Object.entries(HTML_CHARACTER_ENTITY_CONVERSION)) {
-        keyUse = keyUse.replace(new RegExp(value, "g"), key);
-      }
+      const regex = new RegExp(`(${Object.keys(HTML_CHARACTER_ENTITY_CONVERSION).join("|")})`, "g");
+      keyUse = keyUse.replace(regex, (m: string) => {
+        return HTML_CHARACTER_ENTITY_CONVERSION[m]
+      });
     }
     keyUse = escapeRegExp(keyUse.replace(/\\/g, ""));
 
