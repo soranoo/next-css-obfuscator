@@ -56,15 +56,17 @@ function setLogLevel(level: LogLevel) {
 //! ====================
 //! Constants
 //! ====================
-const HTML_CHARACTER_ENTITY_CONVERSION: HtmlCharacterEntityConversion = {
-  "\\&": "&amp;",
-  "\\<": "&lt;",
-  "\\>": "&gt;",
-  '\\"': "&quot;",
-  "\\'": "&#39;",
 
-  "\\2c": ",", //! not working
-};
+//! deprecated
+// const HTML_CHARACTER_ENTITY_CONVERSION: HtmlCharacterEntityConversion = {
+//   "\\&": "&amp;",
+//   "\\<": "&lt;",
+//   "\\>": "&gt;",
+//   '\\"': "&quot;",
+//   "\\'": "&#39;",
+
+//   "\\2c": ",", //! not working
+// };
 
 //! ====================
 //! 
@@ -305,12 +307,13 @@ function obfuscateKeys(
     // let keyUse = escapeRegExp(key.slice(1).replace(/\\/g, ""));
     let keyUse = key.slice(1);
 
-    if (useHtmlEntity) {
-      const regex = new RegExp(`(${Object.keys(HTML_CHARACTER_ENTITY_CONVERSION).join("|")})`, "g");
-      keyUse = keyUse.replace(regex, (m: string) => {
-        return HTML_CHARACTER_ENTITY_CONVERSION[m]
-      });
-    }
+    //! deprecated
+    // if (useHtmlEntity) {
+    //   const regex = new RegExp(`(${Object.keys(HTML_CHARACTER_ENTITY_CONVERSION).join("|")})`, "g");
+    //   keyUse = keyUse.replace(regex, (m: string) => {
+    //     return HTML_CHARACTER_ENTITY_CONVERSION[m]
+    //   });
+    // }
     keyUse = escapeRegExp(keyUse.replace(/\\/g, ""));
 
     //? sample: "text-sm w-full\n      text-right\n p-2 flex gap-2 hover:bg-gray-100 dark:hover:bg-red-700 text-right"
