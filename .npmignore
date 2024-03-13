@@ -8,3 +8,4 @@ demos
 .prettierignore
 .prettierrc
 *.test.*
+coverage
