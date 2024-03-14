@@ -47,7 +47,7 @@ describe("obfuscateHtmlClassNames", () => {
     const selectorConversion: SelectorConversion = { ".foo": ".a" };
 
     // Act
-    const result = obfuscateHtmlClassNames(html, selectorConversion);
+    const result = obfuscateHtmlClassNames({ html, selectorConversion });
 
     // Assert
     expect(result.obfuscatedContent).toEqual(`<div class="a"></div>`);
@@ -61,7 +61,7 @@ describe("obfuscateHtmlClassNames", () => {
     const keyClass = "key";
 
     // Act
-    const result = obfuscateHtmlClassNames(html, selectorConversion, keyClass);
+    const result = obfuscateHtmlClassNames({ html, selectorConversion, obfuscateMarkerClass: keyClass });
 
     // Assert
     expect(result.obfuscatedContent).toEqual(`<div class="key"><span class="a"></span><span class="a"></span></div>`);
@@ -75,23 +75,50 @@ describe("obfuscateHtmlClassNames", () => {
     const keyClass = "key";
 
     // Act
-    const result = obfuscateHtmlClassNames(html, selectorConversion, keyClass);
+    const result = obfuscateHtmlClassNames({ html, selectorConversion, obfuscateMarkerClass: keyClass });
 
     // Assert
     expect(result.obfuscatedContent).toEqual(`<div class="foo"><span class="bar"></span></div>`);
     expect(result.usedKeys).to.deep.equal([]);
   });
 
-  it("should handle self-closing tags", () => {
+  it("should handle script tags", () => {
+    // Arrange
+    const html = `<script>self.__next_f.push({\\"className\\":\\"fol foo\\",})</script>`;
+    const selectorConversion: SelectorConversion = { ".fol": ".a", ".foo": ".b" };
+
+    // Act
+    const result = obfuscateHtmlClassNames({ html, selectorConversion, obfuscateMarkerClass: "" });
+
+    // Assert
+    expect(result.obfuscatedContent).toEqual(`<script>self.__next_f.push({\\"className\\":\\"a b\\",})</script>`);
+    expect(result.usedKeys).to.deep.equal([".fol", ".foo"]);
+  });
+
+  it("should handle void tags", () => {
     // Arrange
     const html = `<img class="foo" />`;
     const selectorConversion: SelectorConversion = { ".foo": ".a" };
 
     // Act
-    const result = obfuscateHtmlClassNames(html, selectorConversion);
+    const result = obfuscateHtmlClassNames({ html, selectorConversion });
 
     // Assert
-    expect(result.obfuscatedContent).toEqual(`<img class="a"></img>`);
+    expect(result.obfuscatedContent).toEqual(`<img class="a" />`);
+    expect(result.usedKeys).to.deep.equal([".foo"]);
+  });
+
+
+  it("should handle comments", () => {
+    // Arrange
+    const html = `<!-- This is a comment --><div class="foo"></div>`;
+    const selectorConversion: SelectorConversion = { ".foo": ".a" };
+
+    // Act
+    const result = obfuscateHtmlClassNames({ html, selectorConversion });
+
+    // Assert
+    expect(result.obfuscatedContent).toEqual(`<!-- This is a comment --><div class="a"></div>`);
     expect(result.usedKeys).to.deep.equal([".foo"]);
   });
 
@@ -101,7 +128,7 @@ describe("obfuscateHtmlClassNames", () => {
     const selectorConversion: SelectorConversion = {};
 
     // Act
-    const result = obfuscateHtmlClassNames(html, selectorConversion);
+    const result = obfuscateHtmlClassNames({ html, selectorConversion });
 
     // Assert
     expect(result.obfuscatedContent).toEqual("<div></div>");
@@ -114,7 +141,7 @@ describe("obfuscateHtmlClassNames", () => {
     const selectorConversion: SelectorConversion = { ".foo": ".a" };
 
     // Act
-    const result = obfuscateHtmlClassNames(html, selectorConversion);
+    const result = obfuscateHtmlClassNames({ html, selectorConversion });
 
     // Assert
     expect(result.obfuscatedContent).toEqual("");
@@ -127,7 +154,7 @@ describe("obfuscateHtmlClassNames", () => {
     const selectorConversion: SelectorConversion = { ".foo": ".a", ".bar": ".b", ".baz": ".c" };
 
     // Act
-    const result = obfuscateHtmlClassNames(html, selectorConversion);
+    const result = obfuscateHtmlClassNames({ html, selectorConversion });
 
     // Assert
     expect(result.obfuscatedContent).toEqual(`<div class="a b c"></div>`);
@@ -135,16 +162,16 @@ describe("obfuscateHtmlClassNames", () => {
   });
 
   it("should handle HTML with nested structures and multiple classes", () => {
-      // Arrange
-      const html = `<div class="foo"><span class="bar"><i class="baz"></i></span></div>`;
-      const selectorConversion: SelectorConversion = { ".foo": ".a", ".bar": ".b", ".baz": ".c" };
+    // Arrange
+    const html = `<div class="foo"><span class="bar"><i class="baz"></i></span></div>`;
+    const selectorConversion: SelectorConversion = { ".foo": ".a", ".bar": ".b", ".baz": ".c" };
 
-      // Act
-      const result = obfuscateHtmlClassNames(html, selectorConversion);
+    // Act
+    const result = obfuscateHtmlClassNames({ html, selectorConversion });
 
-      // Assert
-      expect(result.obfuscatedContent).toEqual(`<div class="a"><span class="b"><i class="c"></i></span></div>`);
-      expect(result.usedKeys).to.deep.equal([".foo", ".bar", ".baz"]);
+    // Assert
+    expect(result.obfuscatedContent).toEqual(`<div class="a"><span class="b"><i class="c"></i></span></div>`);
+    expect(result.usedKeys).to.deep.equal([".foo", ".bar", ".baz"]);
   });
 
   it("should handle HTML with obfuscate marker class", () => {
@@ -154,7 +181,7 @@ describe("obfuscateHtmlClassNames", () => {
     const obfuscateMarkerClass = "key";
 
     // Act
-    const result = obfuscateHtmlClassNames(html, selectorConversion, obfuscateMarkerClass);
+    const result = obfuscateHtmlClassNames({ html, selectorConversion, obfuscateMarkerClass });
 
     // Assert
     expect(result.obfuscatedContent).toEqual(`<div class="key"><span class="a"></span><span class="a"></span></div>`);
@@ -168,7 +195,7 @@ describe("obfuscateHtmlClassNames", () => {
     const obfuscateMarkerClass = "key";
 
     // Act
-    const result = obfuscateHtmlClassNames(html, selectorConversion, obfuscateMarkerClass);
+    const result = obfuscateHtmlClassNames({ html, selectorConversion, obfuscateMarkerClass });
 
     // Assert
     expect(result.obfuscatedContent).toEqual(`<div class="key a b c"></div>`);

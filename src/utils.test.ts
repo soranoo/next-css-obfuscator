@@ -275,7 +275,6 @@ describe("seedableSimplifyString", () => {
 
     // Act
     const result = seedableSimplifyString(input, "seed");
-    console.log(result);
 
     // Assert
     expect(result.randomString).toHaveLength(1); // Should contain one random character

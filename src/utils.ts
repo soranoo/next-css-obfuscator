@@ -56,16 +56,17 @@ function setLogLevel(level: LogLevel) {
 //! ====================
 //! Constants
 //! ====================
-const HTML_CHARACTER_ENTITY_CONVERSION: HtmlCharacterEntityConversion = {
-  "\\&": "&amp;",
-  "&": "&amp;", //? must later than "\\&"
-  "\\<": "&lt;",
-  "\\>": "&gt;",
-  '\\"': "&quot;",
-  "\\'": "&#39;",
 
-  "\\2c": ",", //! not working
-};
+//! deprecated
+// const HTML_CHARACTER_ENTITY_CONVERSION: HtmlCharacterEntityConversion = {
+//   "\\&": "&amp;",
+//   "\\<": "&lt;",
+//   "\\>": "&gt;",
+//   '\\"': "&quot;",
+//   "\\'": "&#39;",
+
+//   "\\2c": ",", //! not working
+// };
 
 //! ====================
 //! 
@@ -170,52 +171,53 @@ function replaceJsonKeysInFiles(
             const htmlRegex = new RegExp(`(<(.*)>(.*)<\/([^br][A-Za-z0-9]+)>)`, 'g');
             const htmlMatch = fileContent.match(htmlRegex);
             if (htmlMatch) {
-              let html = htmlMatch[0];
-              const htmlOriginal = html;
+              const htmlOriginal = htmlMatch[0];
+              // let html = htmlOriginal;
 
               //! rollback
-              const tagContents = findHtmlTagContentsByClass(html, obfuscateMarkerClass);
-              tagContents.forEach(tagContent => {
-                const { obfuscatedContent, usedKeys } = obfuscateKeys(classConversion, tagContent, contentIgnoreRegexes);
-                addKeysToRegistery(usedKeys);
-                if (tagContent !== obfuscatedContent) {
-                  html = html.replace(tagContent, obfuscatedContent);
-                  log("debug", `Obscured keys under HTML tag in file:`, normalizePath(filePath));
-                }
-              });
+              // const tagContents = findHtmlTagContentsByClass(html, obfuscateMarkerClass);
+              // tagContents.forEach(tagContent => {
+              //   const { obfuscatedContent, usedKeys } = obfuscateKeys(classConversion, tagContent, contentIgnoreRegexes);
+              //   addKeysToRegistery(usedKeys);
+              //   if (tagContent !== obfuscatedContent) {
+              //     html = html.replace(tagContent, obfuscatedContent);
+              //     log("debug", `Obscured keys under HTML tag in file:`, normalizePath(filePath));
+              //   }
+              // });
 
               //! rollback
-              const scriptTagContents = findHtmlTagContents(html, "script");
-              scriptTagContents.forEach(scriptTagContent => {
-                const obfuscateScriptContent = obfuscateJs(
-                  scriptTagContent,
-                  obfuscateMarkerClass,
-                  classConversion,
-                  filePath,
-                  contentIgnoreRegexes,
-                  enableJsAst
-                );
-                if (scriptTagContent !== obfuscateScriptContent) {
-                  html = html.replace(scriptTagContent, obfuscateScriptContent);
-                  log("debug", `Obscured keys under HTML script tag in file:`, normalizePath(filePath));
-                }
-              });
+              // const scriptTagContents = findHtmlTagContents(html, "script");
+              // scriptTagContents.forEach(scriptTagContent => {
+              //   const obfuscateScriptContent = obfuscateJs(
+              //     scriptTagContent,
+              //     obfuscateMarkerClass,
+              //     classConversion,
+              //     filePath,
+              //     contentIgnoreRegexes,
+              //     enableJsAst
+              //   );
+              //   if (scriptTagContent !== obfuscateScriptContent) {
+              //     html = html.replace(scriptTagContent, obfuscateScriptContent);
+              //     log("debug", `Obscured keys under HTML script tag in file:`, normalizePath(filePath));
+              //   }
+              // });
 
               //! rollback
-              if (htmlOriginal !== html) {
-                const { obfuscatedContent, usedKeys } = obfuscateHtmlClassNames(fileContent, classConversion, obfuscateMarkerClass);
-                addKeysToRegistery(usedKeys);
-                if (htmlOriginal !== obfuscatedContent) {
-                  fileContent = fileContent.replace(htmlOriginal, html);
-                }
-              }
-
-
-              // const { obfuscatedContent, usedKeys } = obfuscateHtmlClassNames(fileContent, classConversion, obfuscateMarkerClass);
-              // addKeysToRegistery(usedKeys);
-              // if (htmlOriginal !== obfuscatedContent) {
+              // if (htmlOriginal !== html) {
               //   fileContent = fileContent.replace(htmlOriginal, html);
               // }
+
+              //! NEW
+              const { obfuscatedContent, usedKeys } = obfuscateHtmlClassNames({
+                html: htmlOriginal,
+                selectorConversion: classConversion,
+                obfuscateMarkerClass: obfuscateMarkerClass,
+                contentIgnoreRegexes: contentIgnoreRegexes,
+              });
+              addKeysToRegistery(usedKeys);
+              if (htmlOriginal !== obfuscatedContent) {
+                fileContent = fileContent.replace(htmlOriginal, obfuscatedContent);
+              }
             }
           } else {
             const obfuscateScriptContent = obfuscateJs(fileContent,
@@ -248,17 +250,24 @@ function replaceJsonKeysInFiles(
             fileContent = obfuscateScriptContent;
             log("debug", `Obscured keys in JSX related file:`, normalizePath(filePath));
           }
+        } else if ([".html"].includes(fileExt)) {
+          //! NEW
+          const { obfuscatedContent, usedKeys } = obfuscateHtmlClassNames({
+            html: fileContent,
+            selectorConversion: classConversion,
+            contentIgnoreRegexes: contentIgnoreRegexes,
+          });
+
+          fileContent = obfuscatedContent;
+          addKeysToRegistery(usedKeys);
         } else {
-          //! rollback
           const { obfuscatedContent, usedKeys } = obfuscateKeys(
             classConversion,
             fileContent,
-            contentIgnoreRegexes,
-            [".html"].includes(fileExt)
+            contentIgnoreRegexes
           );
 
-          // const { obfuscatedContent, usedKeys } = obfuscateHtmlClassNames(fileContent, classConversion);
-          
+
           fileContent = obfuscatedContent;
           addKeysToRegistery(usedKeys);
         }
@@ -298,15 +307,17 @@ function obfuscateKeys(
     // let keyUse = escapeRegExp(key.slice(1).replace(/\\/g, ""));
     let keyUse = key.slice(1);
 
-    if (useHtmlEntity) {
-      for (const [key, value] of Object.entries(HTML_CHARACTER_ENTITY_CONVERSION)) {
-        keyUse = keyUse.replace(new RegExp(value, "g"), key);
-      }
-    }
+    //! deprecated
+    // if (useHtmlEntity) {
+    //   const regex = new RegExp(`(${Object.keys(HTML_CHARACTER_ENTITY_CONVERSION).join("|")})`, "g");
+    //   keyUse = keyUse.replace(regex, (m: string) => {
+    //     return HTML_CHARACTER_ENTITY_CONVERSION[m]
+    //   });
+    // }
     keyUse = escapeRegExp(keyUse.replace(/\\/g, ""));
 
     //? sample: "text-sm w-full\n      text-right\n p-2 flex gap-2 hover:bg-gray-100 dark:hover:bg-red-700 text-right"
-    let exactMatchRegex = new RegExp(`([\\s"'\\\`]|^)(${keyUse})(?=$|[\\s"'\\\`]|\\\\n)`, 'g'); // match exact wording & avoid ` ' ""
+    let exactMatchRegex = new RegExp(`([\\s"'\\\`]|^)(${keyUse})(?=$|[\\s"'\\\`]|\\\\n|\\\\",|\\\\"})`, 'g'); // match exact wording & avoid ` ' ""
     // exactMatchRegex = new RegExp(`([\\s"'\\\`]|^)(${keyUse})(?=$|[\\s"'\\\`])`, 'g'); // match exact wording & avoid ` ' ""
 
     const replacement = `$1` + selectorConversion[key].slice(1).replace(/\\/g, "");
@@ -438,8 +449,8 @@ function findContentBetweenMarker(content: string, targetStr: string, openMarker
   let targetStrPosition = content.indexOf(targetStr);
   const truncatedContents: string[] = [];
   while (targetStrPosition !== -1 && targetStrPosition < content.length) {
-    const openPos = findClosestSymbolPosition(content, "{", "}", targetStrPosition, "backward");
-    const closePos = findClosestSymbolPosition(content, "{", "}", targetStrPosition, "forward");
+    const openPos = findClosestSymbolPosition(content, openMarker, closeMarker, targetStrPosition, "backward");
+    const closePos = findClosestSymbolPosition(content, openMarker, closeMarker, targetStrPosition, "forward");
 
     if (openPos === -1 && closePos === -1) {
       break;
