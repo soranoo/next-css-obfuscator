@@ -132,6 +132,9 @@ function obfuscateHtmlClassNames({
   const usedKeys: string[] = [];
 
   const parser = new htmlparser2.Parser({
+    onprocessinginstruction(name, data) {
+      modifiedHtml += `<${data}>`;
+    },
     onopentag(tagName, attribs) {
       if (tagName === "script") {
         isScriptTag = true;

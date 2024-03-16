@@ -201,4 +201,17 @@ describe("obfuscateHtmlClassNames", () => {
     expect(result.obfuscatedContent).toEqual(`<div class="key a b c"></div>`);
     expect(result.usedKeys).to.deep.equal([".foo", ".bar", ".baz"]);
   });
+
+  it("should handle HTML instruction", () => {
+    // Arrange
+    const html = `<!DOCTYPE html><div class="foo"></div>`;
+    const selectorConversion: SelectorConversion = { ".foo": ".a" };
+
+    // Act
+    const result = obfuscateHtmlClassNames({ html, selectorConversion });
+
+    // Assert
+    expect(result.obfuscatedContent).toEqual(`<!DOCTYPE html><div class="a"></div>`);
+    expect(result.usedKeys).to.deep.equal([".foo"]);
+  });
 });
