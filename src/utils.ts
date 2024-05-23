@@ -455,8 +455,14 @@ function findContentBetweenMarker(content: string, targetStr: string, openMarker
     if (openPos === -1 && closePos === -1) {
       break;
     }
-    truncatedContents.push(content.slice(openPos, closePos));
-    targetStrPosition = content.indexOf(targetStr, closePos + 1);
+
+    if (openPos > -1 && closePos > -1) {
+      truncatedContents.push(content.slice(openPos, closePos));
+      targetStrPosition = content.indexOf(targetStr, closePos + 1);
+    } else {
+      // If there is only one of the markers found, move to the next targetStr
+      targetStrPosition = content.indexOf(targetStr, targetStrPosition + 1);
+    }
   }
 
   return truncatedContents;
