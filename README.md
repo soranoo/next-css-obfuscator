@@ -499,6 +499,10 @@ Are you using this package within your organization and generating revenue from 
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
 
+## ⭐ Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=soranoo/next-css-obfuscator&type=Timeline)](https://star-history.com/#soranoo/next-css-obfuscator&Timeline)
+
 ## ☕ Donation
 
 Love it? Consider a donation to support my work.
