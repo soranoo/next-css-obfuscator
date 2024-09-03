@@ -501,7 +501,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## ⭐ Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=soranoo/next-css-obfuscator&type=Timeline)](https://star-history.com/#soranoo/next-css-obfuscator&Timeline)
+[![Star History Chart](https://api.star-history.com/svg?repos=soranoo/next-css-obfuscator&type=Date)](https://star-history.com/#soranoo/next-css-obfuscator&Date)
 
 ## ☕ Donation
 
