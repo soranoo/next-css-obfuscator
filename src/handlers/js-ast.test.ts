@@ -1358,6 +1358,35 @@ describe("searchStringLiterals", () => {
     expect(stripCode(generator(ast, {}, code).code)).toEqual(stripCode(expectedCode));
   });
 
+  //? *******************************
+  //? Template Literals & Template Elements
+  //? *******************************
+
+  it("should handle template literals correctly", () => {
+    const code = `
+    function startPoint() {
+      const value = "value";
+      return \`hello \${value}\`;
+    }
+    `
+    const expectedCode = `
+    function startPoint() {
+      const value = "{{found}}";
+      return \`{{found}} \${value}\`;
+    }
+    `
+
+    const ast = parser.parse(code);
+    let result: string[] = [];
+    searchStringLiterals(findStartPointNode(ast)!, (str) => {
+      result.push(str);
+      return "{{found}}"
+    })
+
+    expect(result).toEqual(["hello "/* Raw */, "hello " /* Cooked */, "value"]);
+    expect(stripCode(generator(ast, {}, code).code)).toEqual(stripCode(expectedCode));
+  });
+
 });
 
 //! ================================

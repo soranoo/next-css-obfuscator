@@ -37,8 +37,9 @@ function obfuscateJsWithAst(
             return "{{obfuscated}}";
           }
 
-          // strip unnecessary space, e.g. "  a  b  c  " => "a b c"
-          str = stripUnnecessarySpace ? str.replace(/\s+/g, " ").trim() : str;
+          // strip unnecessary space, e.g. "  a  b  c  " => "a b c "
+          str = stripUnnecessarySpace ? str.replace(/\s+/g, " ").trimStart() //? avoid trimming the end to keep the space between classes
+            : str;
 
           const { obfuscatedContent, usedKeys: obfuscateUsedKeys } = obfuscateKeys(selectorConversion, str);
           if (obfuscatedContent !== str) {
@@ -118,7 +119,7 @@ function searchStringLiterals(path: NodePath<t.Node>,
           searchStringLiterals(arg, callback, scannedNodes);
         });
       }
-    } 
+    }
   }
   /* binary expression (e.g. const a = "hello" + "world") */
   else if (t.isBinaryExpression(path.node)) {
@@ -294,7 +295,7 @@ function searchStringLiterals(path: NodePath<t.Node>,
         searchStringLiterals(handlerBody, callback, scannedNodes);
       }
     }
-  } 
+  }
   /* member expression (e.g. "scroll-top".replace("-", "_")); "scroll-top ".concat("visible"); */
   else if (t.isMemberExpression(path.node)) {
     const object = path.get("object");
@@ -313,7 +314,47 @@ function searchStringLiterals(path: NodePath<t.Node>,
         searchStringLiterals(arg, callback, scannedNodes);
       });
     }
-  } else {
+  }
+  /* template literal (e.g. `hello ${name}`) */
+  else if (t.isTemplateLiteral(path.node)) {
+    const quasis = path.get("quasis");
+    const expressions = path.get("expressions");
+    if (Array.isArray(quasis)) {
+      quasis.forEach(quasi => {
+        searchStringLiterals(quasi, callback, scannedNodes);
+      });
+    }
+    if (Array.isArray(expressions)) {
+      expressions.forEach(expression => {
+        searchStringLiterals(expression, callback, scannedNodes);
+      });
+    }
+  }
+  /* template element (e.g. `hello ${name}`) */
+  else if (t.isTemplateElement(path.node)) {
+    const node = path.node as t.TemplateElement;
+
+    if (node.value) {
+      const { raw, cooked } = node.value;
+
+      // Replace the "raw" and "cooked" values of the template element
+      if (raw) {
+        // If the raw is not empty
+        const rawReplacement = callback(raw);
+        if (rawReplacement !== undefined) {
+          node.value.raw = rawReplacement;
+        }
+      }
+      if (cooked) {
+        // If the cooked is not empty and undefined
+        const cookedReplacement = callback(cooked);
+        if (cookedReplacement !== undefined) {
+          node.value.cooked = cookedReplacement;
+        }
+      }
+    }
+  }
+  else {
     path.traverse({
       Identifier(innerPath) {
         searchStringLiterals(innerPath, callback, scannedNodes);
