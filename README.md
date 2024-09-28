@@ -273,7 +273,7 @@ module.exports = {
     /\.next\/server\/pages\/api/,
     /_document..*js/,
     /_app-.*/,
-    /__.*/, // <= maybe helpful if you are using Next.js Lcal Fonts [1*]
+    /__.*/, // <= maybe helpful if you are using Next.js Local Fonts [1*]
   ],
 };
 ```

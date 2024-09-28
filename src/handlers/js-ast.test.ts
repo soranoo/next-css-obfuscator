@@ -1331,7 +1331,32 @@ describe("searchStringLiterals", () => {
     expect(stripCode(generator(ast, {}, code).code)).toEqual(stripCode(expectedCode));
   });
 
+  //? *******************************
+  //? Member Expressions
+  //? *******************************
 
+  it("should handle member expressions correctly", () => {
+    const code = `
+    function startPoint() {
+      "className_A".replace("className_A", "className_B");
+    }
+    `
+    const expectedCode = `
+    function startPoint() {
+      "{{found}}".replace("{{found}}", "{{found}}");
+    }
+    `
+
+    const ast = parser.parse(code);
+    let result: string[] = [];
+    searchStringLiterals(findStartPointNode(ast)!, (str) => {
+      result.push(str);
+      return "{{found}}"
+    });
+
+    expect(result).toEqual(["className_A", "className_A", "className_B"]);
+    expect(stripCode(generator(ast, {}, code).code)).toEqual(stripCode(expectedCode));
+  });
 
 });
 

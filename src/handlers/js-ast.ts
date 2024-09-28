@@ -110,13 +110,15 @@ function searchStringLiterals(path: NodePath<t.Node>,
   /* function return statement */
   else if (t.isReturnStatement(path.node)) {
     const argument = path.get("argument");
-    if (argument && !Array.isArray(argument)) {
-      searchStringLiterals(argument, callback);
-    } else if (Array.isArray(argument)) {
-      argument.forEach(arg => {
-        searchStringLiterals(arg, callback, scannedNodes);
-      });
-    }
+    if (argument) {
+      if (!Array.isArray(argument)) {
+        searchStringLiterals(argument, callback, scannedNodes);
+      } else {
+        argument.forEach(arg => {
+          searchStringLiterals(arg, callback, scannedNodes);
+        });
+      }
+    } 
   }
   /* binary expression (e.g. const a = "hello" + "world") */
   else if (t.isBinaryExpression(path.node)) {
@@ -291,6 +293,25 @@ function searchStringLiterals(path: NodePath<t.Node>,
       if (handlerBody && !Array.isArray(handlerBody)) {
         searchStringLiterals(handlerBody, callback, scannedNodes);
       }
+    }
+  } 
+  /* member expression (e.g. "scroll-top".replace("-", "_")); "scroll-top ".concat("visible"); */
+  else if (t.isMemberExpression(path.node)) {
+    const object = path.get("object");
+    const property = path.get("property");
+    const argument = path.get("argument");
+    if (object && !Array.isArray(object)) {
+      searchStringLiterals(object, callback, scannedNodes);
+    }
+    if (property && !Array.isArray(property)) {
+      searchStringLiterals(property, callback, scannedNodes);
+    }
+    if (argument && !Array.isArray(argument)) {
+      searchStringLiterals(argument, callback, scannedNodes);
+    } else if (Array.isArray(argument)) {
+      argument.forEach(arg => {
+        searchStringLiterals(arg, callback, scannedNodes);
+      });
     }
   } else {
     path.traverse({

@@ -18,8 +18,14 @@ type Options = {
 
     whiteListedFolderPaths: (string | RegExp)[];
     blackListedFolderPaths: (string | RegExp)[];
-    includeAnyMatchRegexes?: RegExp[]; //! @deprecated
-    excludeAnyMatchRegexes?: RegExp[]; //! @deprecated
+    /**
+     * @deprecated
+     */
+    includeAnyMatchRegexes?: RegExp[];
+    /**
+     * @deprecated
+     */
+    excludeAnyMatchRegexes?: RegExp[];
     enableMarkers: boolean;
     markers: string[];
     removeMarkersAfterObfuscated: boolean;
@@ -46,8 +52,14 @@ type OptionalOptions = {
 
     whiteListedFolderPaths?: (string | RegExp)[];
     blackListedFolderPaths?: (string | RegExp)[];
-    includeAnyMatchRegexes?: RegExp[]; //! @deprecated
-    excludeAnyMatchRegexes?: RegExp[]; //! @deprecated
+    /**
+     * @deprecated
+     */
+    includeAnyMatchRegexes?: RegExp[];
+    /**
+     * @deprecated
+     */
+    excludeAnyMatchRegexes?: RegExp[];
     enableMarkers?: boolean;
     markers?: string[];
     removeMarkersAfterObfuscated?: boolean;
