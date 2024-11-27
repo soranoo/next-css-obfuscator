@@ -457,6 +457,8 @@ If you are going to obfuscate the whole site, you will get a way more accurate o
 
 ## 💖 Sponsors
 
+Thank you to all the sponsors who support this project.
+
 #### Organizations (1)
 <table>
   <tr>
@@ -469,7 +471,17 @@ If you are going to obfuscate the whole site, you will get a way more accurate o
   </tr>
 </table>
 
-#### Individuals (0)
+#### Individuals (1)
+<table>
+  <tr>
+  <td align="center">
+    <a href="https://github.com/nhannt201">
+      <img src="https://avatars.githubusercontent.com/u/12721256?v=4" width="100" alt=""/>
+      <br><sub><b>nhannt201</b></sub>
+    </a>
+  </td>
+  </tr>
+</table>
 
 ## 🦾 Special Thanks
 <table>
