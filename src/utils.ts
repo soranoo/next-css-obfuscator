@@ -1,14 +1,14 @@
-import fs from "fs";
-import path from "path";
+import fs from "node:fs";
+import path from "node:path";
 import NumberGenerator from "recoverable-random";
-import {
-  type LogLevel,
-  type SelectorConversion,
-  type HtmlCharacterEntityConversion
+import type {
+  LogLevel,
+  SelectorConversion,
+  HtmlCharacterEntityConversion
 } from "./types";
 
 import { obfuscateCss } from "./handlers/css";
-import { obfuscateHtmlClassNames, findHtmlTagContentsByClass, findHtmlTagContents } from "./handlers/html";
+import { obfuscateHtmlClassNames } from "./handlers/html";
 import { obfuscateJs } from "./handlers/js";
 
 //! ====================
@@ -528,7 +528,7 @@ function getRandomString(length: number, seed?: string, rngStateCode?: string, s
   let rn = rng.random(0, 1, true);
   if (str && seed) {
     // can create a more collision resistant "random number" but in fact it's not random number
-    rn = parseFloat(`0.${NumberGenerator.stringToSeed(str) + NumberGenerator.stringToSeed(seed)}`);
+    rn = Number.parseFloat(`0.${NumberGenerator.stringToSeed(str) + NumberGenerator.stringToSeed(seed)}`);
   }
 
   //ref: https://github.com/n4j1Br4ch1D/postcss-obfuscator/blob/main/utils.js

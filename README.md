@@ -185,7 +185,7 @@ Visit the [npm](https://www.npmjs.com/package/next-css-obfuscator) page.
 
     Feel free to checkout [📖 Config Options Reference](#-config-options-reference) for more options and details.
 
-    > [!NOTE]
+    > [!NOTE]\
     > The obfuscation will never work as expected, tweak the options with your own needs.
 
 2. Add the following code to `package.json`:

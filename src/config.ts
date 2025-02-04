@@ -1,4 +1,4 @@
-import { type Options, type OptionalOptions } from "./types";
+import type { Options, OptionalOptions } from "./types";
 
 const defaultOptions: Options = {
     enable: true, // Enable or disable the plugin.
@@ -24,7 +24,9 @@ const defaultOptions: Options = {
     removeOriginalCss: false, // Delete original CSS from CSS files if it has a obfuscated version.
     generatorSeed: "-1", // The seed for the random generator. "-1" means use random seed.
     
-    //! Experimental feature
+    /**
+     * Experimental feature
+     */
     enableJsAst: false, // Whether to obfuscate JS files using abstract syntax tree parser. (Experimental feature)
     
     logLevel: "info", // Log level

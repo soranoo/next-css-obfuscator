@@ -1,6 +1,6 @@
-import { describe, it, expect } from "vitest";
+import type { SelectorConversion } from '../types';
 
-import { SelectorConversion } from '../types';
+import { describe, it, expect } from "vitest";
 
 import {
   findHtmlTagContentsByClass,
@@ -12,7 +12,9 @@ import {
 //! findHtmlTagContentsByClass
 //! ================================
 
-//! deprecated
+/**
+ * @deprecated
+ */
 describe("findHtmlTagContentsByClass", () => {
   const content = `<body><div class="test1 test2">12345678<div class="test1">901234</div>56789</div><div class="test1 test3">0123456</div></body>`;
 
@@ -28,7 +30,7 @@ describe("findHtmlTagContentsByClass", () => {
   it("should return empty array if no content found", () => {
     const targetClass = "test5";
 
-    const expectedOutput: any[] = [];
+    const expectedOutput: unknown[] = [];
 
     const result = findHtmlTagContentsByClass(content, targetClass);
     expect(result).toEqual(expectedOutput);
@@ -212,6 +214,22 @@ describe("obfuscateHtmlClassNames", () => {
 
     // Assert
     expect(result.obfuscatedContent).toEqual(`<!DOCTYPE html><div class="a"></div>`);
+    expect(result.usedKeys).to.deep.equal([".foo"]);
+  });
+
+  /**
+   * @see https://github.com/soranoo/next-css-obfuscator/issues/57
+   */
+  it("should handle double quot inside double quot", () => {
+    // Arrange
+    const html = `<div data-opts="{&quot;name&quot;:&quot;MyReactComponent&quot;,&quot;value&quot;:true}" class="foo"></div>`;
+    const selectorConversion: SelectorConversion = { ".foo": ".a" };
+
+    // Act
+    const result = obfuscateHtmlClassNames({ html, selectorConversion });
+
+    // Assert
+    expect(result.obfuscatedContent).toEqual(`<div data-opts="{&quot;name&quot;:&quot;MyReactComponent&quot;,&quot;value&quot;:true}" class="a"></div>`);
     expect(result.usedKeys).to.deep.equal([".foo"]);
   });
 });
