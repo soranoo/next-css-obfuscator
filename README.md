@@ -8,6 +8,9 @@ Project starts on 30-10-2023
 
 [![npm version](https://img.shields.io/npm/v/next-css-obfuscator?color=red&style=flat)](https://www.npmjs.com/package/next-css-obfuscator) [![npm downloads](https://img.shields.io/npm/dt/next-css-obfuscator?color=blue&style=flat)](https://www.npmjs.com/package/next-css-obfuscator)
 
+> [!CAUTION]\
+> This package has no support for TailwindCSS 4 yet, but is under development, and hopefully will be able to release within 1-2 months.
+
 ---
 
 Visit the [GitHub Page](https://github.com/soranoo/next-css-obfuscator/) for better reading experience and latest docs. 😎
