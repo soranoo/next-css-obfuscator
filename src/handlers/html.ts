@@ -4,6 +4,7 @@ import * as htmlparser2 from "htmlparser2";
 import { escape as htmlEscape } from "html-escaper";
 import { log, obfuscateKeys } from "../utils";
 import { obfuscateJs } from "./js";
+import { cssUnescape } from "css-seasoning";
 
 /**
  * @deprecated
@@ -257,7 +258,7 @@ function obfuscateHtmlClassNames({
 					isScriptTag = false;
 					let obfuscatedScriptContent = scriptContent;
 					Object.keys(selectorConversion).forEach((key) => {
-						const className = key.slice(1);
+						const className = cssUnescape(key).slice(1);
 						const obfuscatedJs = obfuscateJs(
 							obfuscatedScriptContent,
 							className,

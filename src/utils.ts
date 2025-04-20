@@ -5,7 +5,7 @@ import type {
   LogLevel,
   SelectorConversion,
 } from "./types";
-import { cssEscape, type ConversionTables } from "css-seasoning";
+import { cssEscape, cssUnescape, type ConversionTables } from "css-seasoning";
 
 import { obfuscateHtmlClassNames } from "./handlers/html";
 import { obfuscateJs } from "./handlers/js";
@@ -279,7 +279,7 @@ function obfuscateKeys(
   Object.keys(selectorConversion).forEach((key) => {
     const fileContentOriginal = fileContent;
     // let keyUse = escapeRegExp(key.slice(1).replace(/\\/g, ""));
-    let keyUse = key.slice(1);
+    let keyUse = cssUnescape(key).slice(1);
 
     //! deprecated
     // if (useHtmlEntity) {
