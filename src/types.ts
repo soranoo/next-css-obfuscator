@@ -1,6 +1,8 @@
+import type { ConversionTables } from "css-seasoning";
+
 type LogLevel = "debug" | "info" | "warn" | "error" | "success";
-type obfuscateMode = "random" | "simplify" | "simplify-seedable";
-type SelectorConversion = { [key: string]: string };
+type obfuscateMode = "random" | "simplify";
+type SelectorConversion = ConversionTables["selector"];
 
 type Options = {
     enable: boolean;
@@ -73,7 +75,7 @@ type OptionalOptions = {
 
 interface HtmlCharacterEntityConversion {
     [key: string]: string;
-  }
+}
 
 export {
     type LogLevel,

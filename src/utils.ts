@@ -6,6 +6,7 @@ import type {
   SelectorConversion,
   HtmlCharacterEntityConversion
 } from "./types";
+import { cssEscape, type ConversionTables } from "css-seasoning";
 
 import { obfuscateCss } from "./handlers/css";
 import { obfuscateHtmlClassNames } from "./handlers/html";
@@ -75,12 +76,11 @@ function setLogLevel(level: LogLevel) {
 const usedKeyRegistery = new Set<string>();
 
 
-
-function replaceJsonKeysInFiles(
+const replaceJsonKeysInFiles = (
   {
+    conversionTables,
     targetFolder,
     allowExtensions,
-    selectorConversionJsonFolderPath,
 
     contentIgnoreRegexes,
 
@@ -89,13 +89,12 @@ function replaceJsonKeysInFiles(
     enableObfuscateMarkerClasses,
     obfuscateMarkerClasses,
     removeObfuscateMarkerClassesAfterObfuscated,
-    removeOriginalCss,
 
     enableJsAst,
   }: {
+    conversionTables: ConversionTables,
     targetFolder: string,
     allowExtensions: string[],
-    selectorConversionJsonFolderPath: string,
 
     contentIgnoreRegexes: RegExp[],
 
@@ -104,17 +103,14 @@ function replaceJsonKeysInFiles(
     enableObfuscateMarkerClasses: boolean,
     obfuscateMarkerClasses: string[],
     removeObfuscateMarkerClassesAfterObfuscated: boolean,
-    removeOriginalCss: boolean,
 
     enableJsAst: boolean,
-  }) {
+  }) => {
   //ref: https://github.com/n4j1Br4ch1D/postcss-obfuscator/blob/main/utils.js
-
-  const classConversion: SelectorConversion = loadAndMergeJsonFiles(selectorConversionJsonFolderPath);
 
   if (removeObfuscateMarkerClassesAfterObfuscated) {
     obfuscateMarkerClasses.forEach(obfuscateMarkerClass => {
-      classConversion[`.${obfuscateMarkerClass}`] = "";
+      conversionTables.selector[cssEscape(`.${obfuscateMarkerClass}`)] = "";
     });
   }
 
@@ -131,7 +127,6 @@ function replaceJsonKeysInFiles(
     } else if (
       allowExtensions.includes(fileExt)
     ) {
-
       let isTargetFile = true;
       if (whiteListedFolderPaths.length > 0) {
         isTargetFile = whiteListedFolderPaths.some((incloudPath) => {
@@ -172,45 +167,9 @@ function replaceJsonKeysInFiles(
             const htmlMatch = fileContent.match(htmlRegex);
             if (htmlMatch) {
               const htmlOriginal = htmlMatch[0];
-              // let html = htmlOriginal;
-
-              //! rollback
-              // const tagContents = findHtmlTagContentsByClass(html, obfuscateMarkerClass);
-              // tagContents.forEach(tagContent => {
-              //   const { obfuscatedContent, usedKeys } = obfuscateKeys(classConversion, tagContent, contentIgnoreRegexes);
-              //   addKeysToRegistery(usedKeys);
-              //   if (tagContent !== obfuscatedContent) {
-              //     html = html.replace(tagContent, obfuscatedContent);
-              //     log("debug", `Obscured keys under HTML tag in file:`, normalizePath(filePath));
-              //   }
-              // });
-
-              //! rollback
-              // const scriptTagContents = findHtmlTagContents(html, "script");
-              // scriptTagContents.forEach(scriptTagContent => {
-              //   const obfuscateScriptContent = obfuscateJs(
-              //     scriptTagContent,
-              //     obfuscateMarkerClass,
-              //     classConversion,
-              //     filePath,
-              //     contentIgnoreRegexes,
-              //     enableJsAst
-              //   );
-              //   if (scriptTagContent !== obfuscateScriptContent) {
-              //     html = html.replace(scriptTagContent, obfuscateScriptContent);
-              //     log("debug", `Obscured keys under HTML script tag in file:`, normalizePath(filePath));
-              //   }
-              // });
-
-              //! rollback
-              // if (htmlOriginal !== html) {
-              //   fileContent = fileContent.replace(htmlOriginal, html);
-              // }
-
-              //! NEW
               const { obfuscatedContent, usedKeys } = obfuscateHtmlClassNames({
                 html: htmlOriginal,
-                selectorConversion: classConversion,
+                selectorConversion: conversionTables.selector,
                 obfuscateMarkerClass: obfuscateMarkerClass,
                 contentIgnoreRegexes: contentIgnoreRegexes,
               });
@@ -222,7 +181,7 @@ function replaceJsonKeysInFiles(
           } else {
             const obfuscateScriptContent = obfuscateJs(fileContent,
               obfuscateMarkerClass,
-              classConversion,
+              conversionTables.selector,
               filePath,
               contentIgnoreRegexes,
               enableJsAst
@@ -241,7 +200,7 @@ function replaceJsonKeysInFiles(
           const obfuscateScriptContent = obfuscateJs(
             fileContent,
             enableJsAst ? "" : "jsx",
-            classConversion,
+            conversionTables.selector,
             filePath,
             contentIgnoreRegexes,
             enableJsAst
@@ -254,7 +213,7 @@ function replaceJsonKeysInFiles(
           //! NEW
           const { obfuscatedContent, usedKeys } = obfuscateHtmlClassNames({
             html: fileContent,
-            selectorConversion: classConversion,
+            selectorConversion: conversionTables.selector,
             contentIgnoreRegexes: contentIgnoreRegexes,
           });
 
@@ -262,7 +221,7 @@ function replaceJsonKeysInFiles(
           addKeysToRegistery(usedKeys);
         } else {
           const { obfuscatedContent, usedKeys } = obfuscateKeys(
-            classConversion,
+            conversionTables.selector,
             fileContent,
             contentIgnoreRegexes
           );
@@ -287,10 +246,9 @@ function replaceJsonKeysInFiles(
   replaceJsonKeysInFile(targetFolder);
 
   // Obfuscate CSS files
-  cssPaths.forEach((cssPath) => {
-    obfuscateCss(classConversion, cssPath, removeOriginalCss, !enableObfuscateMarkerClasses);
-  });
-
+  // cssPaths.forEach(async (cssPath) => {
+  //   await obfuscateCss(classConversion, cssPath, removeOriginalCss, !enableObfuscateMarkerClasses);
+  // });
 }
 
 function obfuscateKeys(
@@ -468,34 +426,70 @@ function findContentBetweenMarker(content: string, targetStr: string, openMarker
   return truncatedContents;
 }
 
-function addKeysToRegistery(usedKeys: Set<string> | string[]) {
+export function addKeysToRegistery(usedKeys: Set<string> | string[]) {
   usedKeys.forEach((key) => {
     usedKeyRegistery.add(key);
   });
 }
 
 /**
- * Find all files with the specified extension in the build folder
- * @param ext - the extension of the files to find (e.g. .css) "." is required
- * @param targetFolderPath - the path to the folder to start searching from
- * @returns - an array of file relative paths
+ * Find all files with the specified extension in the build folder.
+ * 
+ * @param ext - the extension of the files to find (e.g. .css) "." is required.
+ * @param targetFolderPath - the path to the folder to start searching from.
+ * @param options - optional parameters.
+ * @param options.whiteListedFolderPaths - an array of folder paths to include in the search.
+ * @param options.blackListedFolderPaths - an array of folder paths to exclude from the search. Higher priority than whiteListedFolderPaths.
+ * @returns - an array of file relative paths.
  */
-function findAllFilesWithExt(ext: string, targetFolderPath: string): string[] {
+const findAllFilesWithExt = (
+  ext: string, targetFolderPath: string,
+  options?: {
+    whiteListedFolderPaths?: (string | RegExp)[],
+    blackListedFolderPaths?: (string | RegExp)[],
+  }
+): string[] => {
   if (!fs.existsSync(targetFolderPath)) {
     return [];
   }
 
   const targetExtFiles: string[] = [];
+  const whiteList = options?.whiteListedFolderPaths || [];
+  const blackList = options?.blackListedFolderPaths || [];
 
-  function findCssFiles(dir: string) {
+  const findFiles = (dir: string) => {
     const files = fs.readdirSync(dir);
 
     files.forEach((file) => {
       const filePath = normalizePath(path.join(dir, file));
 
+      // Check if the path is blacklisted (higher priority)
+      const isBlacklisted = blackList.some((excludePath) => {
+        if (typeof excludePath === "string") {
+          return filePath.includes(excludePath);
+        }
+        return excludePath.test(filePath);
+      });
+
+      if (isBlacklisted) {
+        return; // Skip this file/directory
+      }
+
+      // Check if the path is whitelisted (if whitelist is not empty)
+      const isWhitelisted = whiteList.length === 0 || whiteList.some((includePath) => {
+        if (typeof includePath === "string") {
+          return filePath.includes(includePath);
+        }
+        return includePath.test(filePath);
+      });
+
+      if (!isWhitelisted) {
+        return; // Skip this file/directory
+      }
+
       if (fs.statSync(filePath).isDirectory()) {
-        // if it's a directory, recursively search for CSS files
-        findCssFiles(filePath);
+        // if it's a directory, recursively search for files
+        findFiles(filePath);
       } else {
         // check if the file has the specified extension
         if (file.endsWith(ext)) {
@@ -505,8 +499,8 @@ function findAllFilesWithExt(ext: string, targetFolderPath: string): string[] {
     });
   }
 
-  // start searching for CSS files from the specified directory
-  findCssFiles(targetFolderPath);
+  // start searching for files from the specified directory
+  findFiles(targetFolderPath);
 
   return targetExtFiles;
 }
@@ -637,10 +631,57 @@ function decodeKey(str: string) {
   return str;
 }
 
+/**
+ * Convert a string to a number by summing the char codes of each character
+ * 
+ * @param str - The string to convert
+ * @returns The sum of the char codes of each character in the string
+ * 
+ * @example
+ * stringToNumber("abc") // returns 294 (97 + 98 + 99)
+ * stringToNumber("hello") // returns 532 (104 + 101 + 108 + 108 + 111)
+ */
+export const stringToNumber = (str: string) => {
+  return str.split("").reduce((acc, char) => {
+    return acc + char.charCodeAt(0);
+  }, 0);
+}
+
+
+/**
+ * Loads and merges all JSON files (Conversion Tables) in the specified folder.
+ * 
+ * @param folderPath - The folder path to load the conversion tables from.
+ * @returns ConversionTables - The merged conversion tables.
+ */
+export const loadConversionTables = (folderPath: string): ConversionTables => {
+  const tables: ConversionTables = {
+    ident: {},
+    selector: {},
+  };
+
+  fs.readdirSync(folderPath).forEach((file: string) => {
+    const filePath = path.join(folderPath, file);
+    const fileData = JSON.parse(fs.readFileSync(filePath, "utf-8"));
+
+    if (Object.keys(fileData).includes("ident") && Object.keys(fileData).includes("selector")) {
+      Object.assign(tables.ident, fileData.ident);
+      Object.assign(tables.selector, fileData.selector);
+    } else {
+      // if the file doesn't have ident, it should be selector
+      //? For backward compatibility
+      Object.assign(tables.selector, fileData);
+    }
+  });
+
+  return tables;
+}
+
+
 export {
   getFilenameFromPath, log, normalizePath, loadAndMergeJsonFiles
   , replaceJsonKeysInFiles, setLogLevel, findContentBetweenMarker, replaceFirstMatch
   , findAllFilesWithExt, getRandomString, seedableSimplifyString, usedKeyRegistery
-  , obfuscateKeys, findClosestSymbolPosition, addKeysToRegistery, duplicationCheck
+  , obfuscateKeys, findClosestSymbolPosition, duplicationCheck
   , createKey, decodeKey, simplifyString
 };
