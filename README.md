@@ -1,3 +1,6 @@
+<!-- add .dark to table if using tailwind -->
+<!-- remove simplify-seedable -->
+
 # NEXT-CSS-OBFUSCATOR
 
 Project starts on 30-10-2023

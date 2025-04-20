@@ -7,7 +7,11 @@ const defaultOptions: Options = {
     classConversionJsonFolderPath: "./css-obfuscator", // The folder path to store the before obfuscate and after obfuscated classes conversion table.
     refreshClassConversionJson: false, // Refresh the class conversion JSON file.
 
+    /**
+     * @deprecated Not longer used from v3.0.0
+     */
     classLength: 5, // Length of the obfuscated class name.
+    
     classPrefix: "", // Prefix of the obfuscated class name.
     classSuffix: "", // Suffix of the obfuscated class name.
     classIgnore: [], // The class names to be ignored during obfuscation.
