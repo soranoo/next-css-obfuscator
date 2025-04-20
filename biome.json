@@ -1,0 +1,69 @@
+{
+  "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+  "vcs": {
+    "enabled": false,
+    "clientKind": "git",
+    "useIgnoreFile": false
+  },
+  "files": {
+    "ignoreUnknown": false,
+    "ignore": []
+  },
+  "formatter": {
+    "ignore": ["node_modules", ".next"],
+    "enabled": true,
+    "indentStyle": "space",
+    "lineWidth": 80,
+    "indentWidth": 2,
+    "lineEnding": "lf"
+  },
+  "organizeImports": {
+    "enabled": true
+  },
+  "linter": {
+    "ignore": ["node_modules", ".next", "packages/tsconfig"],
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+
+      "complexity": {
+        "noUselessTypeConstraint": "error",
+        "useLiteralKeys": "error",
+        "useOptionalChain": "error",
+        "noForEach": "off",
+      },
+      "correctness": {
+        "noUnusedVariables": "info",
+        "useArrayLiterals": "error"
+      },
+      "style": {
+        "noInferrableTypes": "error",
+        "noNamespace": "error",
+        "useAsConstAssertion": "error",
+        "useBlockStatements": "error",
+        "useConsistentArrayType": "error",
+        "useForOf": "error",
+        "useShorthandFunctionType": "error",
+        "useImportType": "error"
+      },
+      "suspicious": {
+        "noDebugger": "info",
+        "noConsoleLog": "info",
+        "noEmptyBlockStatements": "error",
+        "noExplicitAny": "error",
+        "noExtraNonNullAssertion": "error",
+        "noMisleadingInstantiator": "error",
+        "noUnsafeDeclarationMerging": "error",
+        "useAwait": "warn",
+        "useNamespaceKeyword": "error"
+      }
+    }
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "double",
+      "semicolons": "always",
+      "trailingCommas": "all"
+    }
+  }
+}
