@@ -4,13 +4,50 @@ import NumberGenerator from "recoverable-random";
 import type {
   LogLevel,
   SelectorConversion,
-  HtmlCharacterEntityConversion
 } from "./types";
 import { cssEscape, type ConversionTables } from "css-seasoning";
 
-import { obfuscateCss } from "./handlers/css";
 import { obfuscateHtmlClassNames } from "./handlers/html";
 import { obfuscateJs } from "./handlers/js";
+
+// Add a new function for path filtering
+/**
+ * Checks if a path should be included based on whitelist and blacklist rules
+ * 
+ * @param filePath - The file path to check
+ * @param whiteListedFolderPaths - Paths to include
+ * @param blackListedFolderPaths - Paths to exclude (higher priority than whitelist)
+ * @returns - True if the path should be included, false otherwise
+ */
+function shouldIncludePath(
+  filePath: string,
+  whiteListedFolderPaths: (string | RegExp)[] = [],
+  blackListedFolderPaths: (string | RegExp)[] = []
+): boolean {
+  const normalizedPath = normalizePath(filePath);
+
+  // Check if the path is blacklisted (higher priority)
+  const isBlacklisted = blackListedFolderPaths.some((excludePath) => {
+    if (typeof excludePath === "string") {
+      return normalizedPath.includes(excludePath);
+    }
+    return excludePath.test(normalizedPath);
+  });
+
+  if (isBlacklisted) {
+    return false; // Skip this file/directory
+  }
+
+  // Check if the path is whitelisted (if whitelist is not empty)
+  const isWhitelisted = whiteListedFolderPaths.length === 0 || whiteListedFolderPaths.some((includePath) => {
+    if (typeof includePath === "string") {
+      return normalizedPath.includes(includePath);
+    }
+    return includePath.test(normalizedPath);
+  });
+
+  return isWhitelisted;
+}
 
 //! ====================
 //! Log
@@ -127,29 +164,8 @@ const replaceJsonKeysInFiles = (
     } else if (
       allowExtensions.includes(fileExt)
     ) {
-      let isTargetFile = true;
-      if (whiteListedFolderPaths.length > 0) {
-        isTargetFile = whiteListedFolderPaths.some((incloudPath) => {
-          if (typeof incloudPath === "string") {
-            return normalizePath(filePath).includes(incloudPath);
-          }
-          const regex = new RegExp(incloudPath);
-          return regex.test(normalizePath(filePath));
-        });
-      }
-      if (blackListedFolderPaths.length > 0) {
-        const res = !blackListedFolderPaths.some((incloudPath) => {
-          if (typeof incloudPath === "string") {
-            return normalizePath(filePath).includes(incloudPath);
-          }
-          const regex = new RegExp(incloudPath);
-          return regex.test(normalizePath(filePath));
-        });
-        if (!res) {
-          isTargetFile = false;
-        }
-      }
-      if (!isTargetFile) {
+      // Use the unified path filtering function
+      if (!shouldIncludePath(filePath, whiteListedFolderPaths, blackListedFolderPaths)) {
         return;
       }
 
@@ -461,29 +477,9 @@ const findAllFilesWithExt = (
     const files = fs.readdirSync(dir);
 
     files.forEach((file) => {
-      const filePath = normalizePath(path.join(dir, file));
+      const filePath = path.join(dir, file);
 
-      // Check if the path is blacklisted (higher priority)
-      const isBlacklisted = blackList.some((excludePath) => {
-        if (typeof excludePath === "string") {
-          return filePath.includes(excludePath);
-        }
-        return excludePath.test(filePath);
-      });
-
-      if (isBlacklisted) {
-        return; // Skip this file/directory
-      }
-
-      // Check if the path is whitelisted (if whitelist is not empty)
-      const isWhitelisted = whiteList.length === 0 || whiteList.some((includePath) => {
-        if (typeof includePath === "string") {
-          return filePath.includes(includePath);
-        }
-        return includePath.test(filePath);
-      });
-
-      if (!isWhitelisted) {
+      if (!shouldIncludePath(filePath, whiteList, blackList)) {
         return; // Skip this file/directory
       }
 
@@ -685,3 +681,4 @@ export {
   , obfuscateKeys, findClosestSymbolPosition, duplicationCheck
   , createKey, decodeKey, simplifyString
 };
+

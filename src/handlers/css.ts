@@ -157,143 +157,6 @@ function getAllSelector(cssObj: any): any[] {
     return selectors;
 }
 
-/**
- * 
- * @deprecated will be replaced by new css transformer
- */
-export function createSelectorConversionJson(
-    {
-        selectorConversionJsonFolderPath,
-        buildFolderPath,
-
-        mode = "random",
-        classNameLength = 5,
-        classPrefix = "",
-        classSuffix = "",
-        classIgnore = [],
-
-        enableObfuscateMarkerClasses = false,
-        generatorSeed = Math.random().toString().slice(2, 10), // take 8 digits from the random number
-    }: {
-        selectorConversionJsonFolderPath: string,
-        buildFolderPath: string,
-
-        mode?: obfuscateMode,
-        classNameLength?: number,
-        classPrefix?: string,
-        classSuffix?: string,
-        classIgnore?: (string | RegExp)[],
-
-        enableObfuscateMarkerClasses?: boolean,
-        generatorSeed?: string,
-    }) {
-    // if (!fs.existsSync(selectorConversionJsonFolderPath)) {
-    //     fs.mkdirSync(selectorConversionJsonFolderPath);
-    // }
-
-    // const selectorConversion = loadConversionTables(selectorConversionJsonFolderPath);
-
-    // // pre-defined ".dark", mainly for tailwindcss dark mode
-    // if (enableObfuscateMarkerClasses) {
-    //     selectorConversion[".dark"] = ".dark";
-    // }
-
-    // // get all css selectors
-    // const cssPaths = findAllFilesWithExt(".css", buildFolderPath);
-    // const selectors: string[] = [];
-    // cssPaths.forEach((cssPath) => {
-    //     const cssContent = fs.readFileSync(cssPath, "utf-8");
-    //     const cssObj = css.parse(cssContent);
-    //     selectors.push(...getAllSelector(cssObj));
-    // });
-
-    // // remove duplicated selectors
-    // const uniqueSelectors = [...new Set(selectors)];
-
-    // const allowClassStartWith = [".", "#", ":is(", ":where(", ":not("
-    //     , ":matches(", ":nth-child(", ":nth-last-child("
-    //     , ":nth-of-type(", ":nth-last-of-type(", ":first-child("
-    //     , ":last-child(", ":first-of-type(", ":last-of-type("
-    //     , ":only-child(", ":only-of-type(", ":empty(", ":link("
-    //     , ":visited(", ":active(", ":hover(", ":focus(", ":target("
-    //     , ":lang(", ":enabled(", ":disabled(", ":checked(", ":default("
-    //     , ":indeterminate(", ":root(", ":before("
-    //     , ":after(", ":first-letter(", ":first-line(", ":selection("
-    //     , ":read-only(", ":read-write(", ":fullscreen(", ":optional("
-    //     , ":required(", ":valid(", ":invalid(", ":in-range(", ":out-of-range("
-    //     , ":placeholder-shown("
-    // ];
-
-    // const selectorClassPair: { [key: string]: string[] } = {};
-
-    // for (let i = 0; i < uniqueSelectors.length; i++) {
-    //     const originalSelector = uniqueSelectors[i];
-    //     const { extractedClasses } = extractClassFromSelector(originalSelector) || [];
-    //     selectorClassPair[originalSelector] = extractedClasses;
-    // }
-
-    // //? since a multi part selector normally grouped by multiple basic selectors
-    // //? so we need to obfuscate the basic selector first
-    // //? eg. ":is(.class1 .class2)" grouped by ".class1" and ".class2"
-    // // sort the selectorClassPair by the number of classes in the selector (from least to most)
-    // // and remove the selector with no class
-    // const sortedSelectorClassPair = Object.entries(selectorClassPair)
-    //     .sort((a, b) => a[1].length - b[1].length)
-    //     .filter((pair) => pair[1].length > 0);
-
-    // for (let i = 0; i < sortedSelectorClassPair.length; i++) {
-    //     const [originalSelector, selectorClasses] = sortedSelectorClassPair[i];
-    //     if (selectorClasses.length == 0) {
-    //         continue;
-    //     }
-
-    //     let selector = originalSelector;
-    //     let classes = selectorClasses;
-
-    //     if (classes && allowClassStartWith.some((start) => selector.startsWith(start))) {
-    //         classes = classes.map((className) => {
-
-    //             // apply ignore list
-    //             if (classIgnore.some(regex => {
-    //                 if (typeof regex === "string") {
-    //                     return className === regex;
-    //                 }
-    //                 return new RegExp(regex).test(className)
-    //             })) {
-    //                 return className;
-    //             }
-
-    //             // try to get the obfuscated selector from the selectorConversion
-    //             // if not found, create a new one
-    //             let obfuscatedSelector = selectorConversion[`.${className}`];
-    //             if (!obfuscatedSelector) {
-    //                 const obfuscatedClass = createNewClassName(mode, className, classPrefix, classSuffix, classNameLength, generatorSeed);
-    //                 obfuscatedSelector = `.${obfuscatedClass}`;
-    //                 selectorConversion[`.${className}`] = obfuscatedSelector;
-    //             }
-
-    //             // return the obfuscated class
-    //             return obfuscatedSelector.slice(1)
-    //         });
-
-    //         // obfuscate the selector
-    //         const { selector: obfuscatedSelector } = extractClassFromSelector(originalSelector, classes);
-
-    //         selectorConversion[originalSelector] = obfuscatedSelector;
-    //     }
-    // }
-
-    // const jsonPath = path.join(process.cwd(), selectorConversionJsonFolderPath, "conversion.json");
-    // fs.writeFileSync(jsonPath, JSON.stringify(selectorConversion, null, 2));
-    // if (duplicationCheck(Object.keys(selectorConversion))) {
-    //     if (mode == "random") {
-    //         log("error", "Obfuscation", "Duplicated class names found in the conversion JSON, try to increase the class name length / open an issue on GitHub https://github.com/soranoo/next-css-obfuscator/issues");
-    //     } else {
-    //         log("error", "Obfuscation", "Duplicated class names found in the conversion JSON, please open an issue on GitHub https://github.com/soranoo/next-css-obfuscator/issues");
-    //     }
-    // }
-}
-
 export function copyCssData(targetSelector: string, newSelectorName: string, cssObj: any) {
     function recursive(rules: any[]): any[] {
         return rules.map((item: any) => {
@@ -349,11 +212,8 @@ export function renameCssSelector(oldSelector: string, newSelector: string, cssO
     return cssObj;
 }
 
-/**
- * 
- * @deprecated WIP
- */
-export const obfuscateCss = async ({
+
+const obfuscateCss = async ({
     cssPath,
     removeOriginalCss,
     isFullObfuscation,
@@ -451,86 +311,6 @@ export const obfuscateCss = async ({
     }
 }
 
-// export const obfuscateCss = async (
-//     selectorConversion: ConversionTable,
-//     cssPath: string,
-//     replaceOriginalSelector = false,
-//     isFullObfuscation = false,
-//     outCssPath?: string,
-// ) => {
-//     if (!outCssPath) {
-//         outCssPath = cssPath;
-//     } else if (!fs.existsSync(path.dirname(outCssPath))) {
-//         fs.mkdirSync(path.dirname(outCssPath));
-//     }
-
-//     const cssContent = fs.readFileSync(cssPath, "utf-8");
-
-//     let cssObj = css.parse(cssContent);
-//     const cssRulesCount = cssObj.stylesheet.rules.length;
-
-//     if (isFullObfuscation) {
-//         Object.keys(selectorConversion).forEach((key) => {
-//             usedKeyRegistery.add(key);
-//         });
-//     } else {
-//         // join all selectors start with ":" (eg. ":is")
-//         Object.keys(selectorConversion).forEach((key) => {
-//             if (key.startsWith(":")) {
-//                 usedKeyRegistery.add(key);
-//             }
-//         });
-
-//         // join all selectors with action selectors
-//         const actionSelectors = getAllSelector(cssObj).filter((selector) => selector.match(findActionSelectorsRegex));
-//         actionSelectors.forEach((actionSelector) => {
-//             usedKeyRegistery.add(actionSelector);
-//         });
-
-//         // join all Tailwind CSS [child] selectors (eg. ".\[\&_\.side-box\]\:absolute .side-box")
-//         const tailwindCssChildSelectors = getAllSelector(cssObj).filter((selector) => selector.startsWith(".\\["));
-//         tailwindCssChildSelectors.forEach((tailwindCssChildSelector) => {
-//             usedKeyRegistery.add(tailwindCssChildSelector);
-//         });
-
-//         // join all child selectors (eg. ">*")
-//         const universalSelectors = getAllSelector(cssObj).filter((selector) => selector.includes(">"));
-//         universalSelectors.forEach((universalSelector) => {
-//             usedKeyRegistery.add(universalSelector);
-//         });
-//     }
-
-//     // modify css rules
-//     usedKeyRegistery.forEach((key) => {
-//         const originalSelectorName = key;
-//         const obfuscatedSelectorName = selectorConversion[key];
-//         if (obfuscatedSelectorName) {
-//             if (replaceOriginalSelector) {
-//                 cssObj = renameCssSelector(originalSelectorName, selectorConversion[key], cssObj);
-//             } else {
-//                 cssObj = copyCssData(originalSelectorName, selectorConversion[key], cssObj);
-//             }
-//         }
-//     });
-
-//     if (replaceOriginalSelector) {
-//         log("info", "CSS rules:", `Modified ${usedKeyRegistery.size} CSS rules to ${getFilenameFromPath(cssPath)}`);
-//     } else {
-//         log("info", "CSS rules:", `Added ${cssObj.stylesheet.rules.length - cssRulesCount} new CSS rules to ${getFilenameFromPath(cssPath)}`);
-//     }
-
-//     const cssOptions = {
-//         compress: true,
-//     };
-//     const cssObfuscatedContent = css.stringify(cssObj, cssOptions);
-
-//     const sizeBefore = Buffer.byteLength(cssContent, "utf8");
-//     fs.writeFileSync(outCssPath, cssObfuscatedContent);
-//     const sizeAfter = Buffer.byteLength(cssObfuscatedContent, "utf8");
-//     const percentChange = Math.round(((sizeAfter) / sizeBefore) * 100);
-//     log("success", "CSS obfuscated:", `Size from ${sizeBefore} to ${sizeAfter} bytes (${percentChange}%) in ${getFilenameFromPath(cssPath)}`);
-// }
-
 /**
  * 
  */
@@ -571,15 +351,17 @@ export const obfuscateCssFiles = async ({
     // Load and merge all JSON files in the selector conversion folder
     const conversionTables = loadConversionTables(selectorConversionJsonFolderPath);
 
-    // get all css selectors
+    // Get all CSS files using the unified path filtering function
     const cssPaths = findAllFilesWithExt(".css", buildFolderPath, {
-        blackListedFolderPaths: blackListedFolderPaths,
-        whiteListedFolderPaths: whiteListedFolderPaths,
+        whiteListedFolderPaths,
+        blackListedFolderPaths,
     });
+    
     const tables: ConversionTables = {
         selector: {},
         ident: {},
     };
+    
     cssPaths.forEach(async (cssPath) => {
         const { conversionTables: newConversionTables } = await obfuscateCss({
             cssPath: cssPath,

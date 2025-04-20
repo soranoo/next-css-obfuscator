@@ -10,7 +10,7 @@ import {
   findAllFilesWithExt,
   getFilenameFromPath,
 } from "./utils";
-import { createSelectorConversionJson, obfuscateCss, obfuscateCssFiles } from "./handlers/css";
+import { obfuscateCssFiles } from "./handlers/css";
 import Config from "./config";
 
 const obfuscate = async (options: Options) => {
@@ -36,8 +36,8 @@ const obfuscate = async (options: Options) => {
   const { conversionTables } = await obfuscateCssFiles({
     selectorConversionJsonFolderPath: options.classConversionJsonFolderPath,
     buildFolderPath: options.buildFolderPath,
-    whiteListedFolderPaths: [...options.whiteListedFolderPaths, ...(options.includeAnyMatchRegexes || [])],
-    blackListedFolderPaths: [...options.blackListedFolderPaths, ...(options.excludeAnyMatchRegexes || [])],
+    whiteListedFolderPaths: options.whiteListedFolderPaths,
+    blackListedFolderPaths: options.blackListedFolderPaths,
 
     mode: options.mode,
     prefix: options.classPrefix,
@@ -54,26 +54,7 @@ const obfuscate = async (options: Options) => {
   fs.writeFileSync(jsonPath, JSON.stringify(conversionTables, null, 2));
   log("success", "CSS obfuscation:", `Saved conversion table to ${getFilenameFromPath(jsonPath)}`);
 
-  // createSelectorConversionJson({
-  //   selectorConversionJsonFolderPath: options.classConversionJsonFolderPath,
-  //   buildFolderPath: options.buildFolderPath,
-
-  //   mode: options.mode,
-  //   classNameLength: options.classLength,
-  //   classPrefix: options.classPrefix,
-  //   classSuffix: options.classSuffix,
-  //   classIgnore: options.classIgnore,
-
-  //   enableObfuscateMarkerClasses: options.enableMarkers,
-  //   generatorSeed: options.generatorSeed === "-1" ? undefined : options.generatorSeed,
-  // });
-  log("success", "Obfuscation", "Class conversion JSON created/updated");
-
-  if ((options.includeAnyMatchRegexes && options.includeAnyMatchRegexes.length > 0)
-    || (options.excludeAnyMatchRegexes && options.excludeAnyMatchRegexes.length > 0)) {
-    log("warn", "Obfuscation", "'includeAnyMatchRegexes' and 'excludeAnyMatchRegexes' are deprecated, please use whiteListedFolderPaths and blackListedFolderPaths instead");
-  }
-
+  // Use the same unified paths for replacing JSON keys in files
   replaceJsonKeysInFiles({
     conversionTables: conversionTables,
     targetFolder: options.buildFolderPath,
@@ -81,8 +62,8 @@ const obfuscate = async (options: Options) => {
 
     contentIgnoreRegexes: options.contentIgnoreRegexes,
 
-    whiteListedFolderPaths: [...options.whiteListedFolderPaths, ...(options.includeAnyMatchRegexes || [])],
-    blackListedFolderPaths: [...options.blackListedFolderPaths, ...(options.excludeAnyMatchRegexes || [])],
+    whiteListedFolderPaths: options.whiteListedFolderPaths,
+    blackListedFolderPaths: options.blackListedFolderPaths,
     enableObfuscateMarkerClasses: options.enableMarkers,
     obfuscateMarkerClasses: options.markers,
     removeObfuscateMarkerClassesAfterObfuscated: options.removeMarkersAfterObfuscated,
