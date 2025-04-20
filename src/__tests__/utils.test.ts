@@ -6,7 +6,7 @@ import {
   seedableSimplifyString,
   duplicationCheck,
   simplifyString,
-} from "./utils";
+} from "../utils";
 import NumberGenerator from "recoverable-random";
 
 
