@@ -5,7 +5,7 @@ import { describe, it, expect } from "vitest";
 import {
   findHtmlTagContentsByClass,
   obfuscateHtmlClassNames,
-} from "./html";
+} from "../handlers/html";
 
 
 //! ================================

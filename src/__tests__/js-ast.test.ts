@@ -3,7 +3,7 @@ import traverse, { NodePath } from "@babel/traverse";
 import * as t from "@babel/types";
 import * as parser from "@babel/parser";
 import generator from "@babel/generator";
-import { searchStringLiterals, obfuscateJsWithAst } from "./js-ast";
+import { searchStringLiterals, obfuscateJsWithAst } from "../handlers/js-ast";
 
 function stripCode(code: string) {
   return code.replace(/\s/g, "");

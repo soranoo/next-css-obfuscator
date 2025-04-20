@@ -7,7 +7,7 @@ import {
     copyCssData,
     renameCssSelector,
     extractClassFromSelector,
-} from "./css";
+} from "../handlers/css";
 
 const testCss = `
 .s0-1 {
