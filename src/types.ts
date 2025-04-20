@@ -1,10 +1,10 @@
 import type { ConversionTables } from "css-seasoning";
 
-type LogLevel = "debug" | "info" | "warn" | "error" | "success";
-type obfuscateMode = "random" | "simplify";
-type SelectorConversion = ConversionTables["selector"];
+export type LogLevel = "debug" | "info" | "warn" | "error" | "success";
+export type obfuscateMode = "random" | "simplify";
+export type SelectorConversion = ConversionTables["selector"];
 
-type Options = {
+export type Options = {
     enable: boolean;
     mode: obfuscateMode;
     buildFolderPath: string;
@@ -20,14 +20,6 @@ type Options = {
 
     whiteListedFolderPaths: (string | RegExp)[];
     blackListedFolderPaths: (string | RegExp)[];
-    /**
-     * @deprecated
-     */
-    includeAnyMatchRegexes?: RegExp[];
-    /**
-     * @deprecated
-     */
-    excludeAnyMatchRegexes?: RegExp[];
     enableMarkers: boolean;
     markers: string[];
     removeMarkersAfterObfuscated: boolean;
@@ -38,7 +30,8 @@ type Options = {
 
     logLevel: LogLevel;
 }
-type OptionalOptions = {
+
+export type OptionalOptions = {
     enable?: boolean;
     mode?: obfuscateMode;
     buildFolderPath?: string;
@@ -54,14 +47,6 @@ type OptionalOptions = {
 
     whiteListedFolderPaths?: (string | RegExp)[];
     blackListedFolderPaths?: (string | RegExp)[];
-    /**
-     * @deprecated
-     */
-    includeAnyMatchRegexes?: RegExp[];
-    /**
-     * @deprecated
-     */
-    excludeAnyMatchRegexes?: RegExp[];
     enableMarkers?: boolean;
     markers?: string[];
     removeMarkersAfterObfuscated?: boolean;
@@ -73,15 +58,6 @@ type OptionalOptions = {
     logLevel?: LogLevel;
 }
 
-interface HtmlCharacterEntityConversion {
+export interface HtmlCharacterEntityConversion {
     [key: string]: string;
-}
-
-export {
-    type LogLevel,
-    type obfuscateMode,
-    type SelectorConversion,
-    type Options,
-    type OptionalOptions,
-    type HtmlCharacterEntityConversion
 }
