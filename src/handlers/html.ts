@@ -89,7 +89,7 @@ export const obfuscateHtmlClassNames = ({
 				modifiedHtml += `<${tagName}`;
 				for (const key in attribs) {
 					// modifiedHtml += ` ${key}="${attribs[key]}"`;
-          modifiedHtml += ` ${key}="${htmlEscape(attribs[key])}"`;
+					modifiedHtml += ` ${key}="${htmlEscape(attribs[key])}"`;
 				}
 				if (voidTags.includes(tagName)) {
 					modifiedHtml += " />";
