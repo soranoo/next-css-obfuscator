@@ -16,7 +16,7 @@ import {
 } from "../utils";
 
 
-const obfuscateCss = async ({
+const obfuscateCss = ({
   cssPath,
   removeOriginalCss,
   isFullObfuscation,

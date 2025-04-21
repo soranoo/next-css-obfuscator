@@ -47,7 +47,7 @@ export type Options = {
   enableJsAst: boolean;
 
   logLevel: LogLevel;
-}
+};
 
 export type OptionalOptions = {
   enable?: boolean;
@@ -74,7 +74,7 @@ export type OptionalOptions = {
   enableJsAst?: boolean;
 
   logLevel?: LogLevel;
-}
+};
 
 export interface HtmlCharacterEntityConversion {
   [key: string]: string;

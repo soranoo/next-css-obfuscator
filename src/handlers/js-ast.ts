@@ -1,10 +1,10 @@
+import type { SelectorConversion } from "../types";
 import * as parser from "@babel/parser";
-import traverse, { NodePath } from "@babel/traverse";
+import traverse, { type NodePath } from "@babel/traverse";
 import * as t from "@babel/types";
 import generator from "@babel/generator";
 
 import { obfuscateKeys } from "../utils";
-import { type SelectorConversion } from "../types";
 
 /**
  * Obfuscate the JavaScript code using AST(Abstract Syntax Tree)
@@ -18,7 +18,7 @@ export const obfuscateJsWithAst = (
   code: string,
   selectorConversion: SelectorConversion | undefined,
   startingKeys: string[] = [],
-  stripUnnecessarySpace: boolean = true
+  stripUnnecessarySpace = true
 ) => {
   const ast = parser.parse(code, { sourceType: "module", plugins: ["jsx"] });
   const usedKeys: Set<string> = new Set();
