@@ -11,8 +11,7 @@ import {
 import { SelectorConversion } from "../types";
 import { obfuscateJsWithAst } from "./js-ast";
 
-
-function searchForwardComponent(content: string) {
+export const searchForwardComponent = (content: string) => {
   const componentSearchRegex = /(?<=\.jsx\()[^,|"|']+/g;
   //eg. o.jsx(yt,{data:yc,index:"date
   //    then return yt
@@ -24,9 +23,9 @@ function searchForwardComponent(content: string) {
     return match;
   }
   return [];
-}
+};
 
-function searchComponent(content: string, componentName: string) {
+const searchComponent = (content: string, componentName: string) => {
   const componentSearchRegex = new RegExp(`\\b(?:const|let|var)\\s+(${componentName})\\s*=\\s*.*?(\\{)`, "g");
   // eg, let yt=l().forwardRef((e,t)=>{let
   const match = content.match(componentSearchRegex);
@@ -39,9 +38,9 @@ function searchComponent(content: string, componentName: string) {
   const componentContent = content.slice(openSymbolPos, closeMarkerPos);
 
   return componentContent;
-}
+};
 
-function obfuscateForwardComponentJs(searchContent: string, wholeContent: string, selectorConversion: SelectorConversion) {
+export const obfuscateForwardComponentJs = (searchContent: string, wholeContent: string, selectorConversion: SelectorConversion) => {
   const componentNames = searchForwardComponent(searchContent).filter((componentName) => {
     return !componentName.includes(".");
   });
@@ -93,10 +92,10 @@ function obfuscateForwardComponentJs(searchContent: string, wholeContent: string
   }
 
   return componentObfuscatedcomponentCodePairs;
-}
+};
 
-function obfuscateJs(content: string, key: string, selectorCoversion: SelectorConversion
-  , filePath: string, contentIgnoreRegexes: RegExp[] = [], useAst: boolean = false) {
+export const obfuscateJs = (content: string, key: string, selectorCoversion: SelectorConversion
+  , filePath: string, contentIgnoreRegexes: RegExp[] = [], useAst: boolean = false) => {
 
   if (useAst) {
     try {
@@ -126,10 +125,4 @@ function obfuscateJs(content: string, key: string, selectorCoversion: SelectorCo
     }
   });
   return content;
-}
-
-export {
-  obfuscateForwardComponentJs,
-  obfuscateJs,
-  searchForwardComponent,
-}
+};

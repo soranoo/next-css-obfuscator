@@ -19,11 +19,11 @@ import { obfuscateJs } from "./handlers/js";
  * @param blackListedFolderPaths - Paths to exclude (higher priority than whitelist)
  * @returns - True if the path should be included, false otherwise
  */
-function shouldIncludePath(
+const shouldIncludePath = (
   filePath: string,
   whiteListedFolderPaths: (string | RegExp)[] = [],
   blackListedFolderPaths: (string | RegExp)[] = []
-): boolean {
+): boolean => {
   const normalizedPath = normalizePath(filePath);
 
   // Check if the path is blacklisted (higher priority)
@@ -57,7 +57,7 @@ const issuer = "[next-css-obfuscator]";
 let logLevel: LogLevel = "info";
 const levels: LogLevel[] = ["debug", "info", "warn", "error", "success"];
 
-function log(type: LogLevel, task: string, data: any) {
+export const log = (type: LogLevel, task: string, data: any) => {
   //ref: https://github.com/n4j1Br4ch1D/postcss-obfuscator/blob/main/utils.js
   if (levels.indexOf(type) < levels.indexOf(logLevel)) {
     return;
@@ -85,9 +85,9 @@ function log(type: LogLevel, task: string, data: any) {
       console.log("'\x1b[0m'", issuer, task, data, "\x1b[0m");
       break;
   }
-}
+};
 
-function setLogLevel(level: LogLevel) {
+export const setLogLevel = (level: LogLevel) => {
   logLevel = level;
 }
 
@@ -110,10 +110,10 @@ function setLogLevel(level: LogLevel) {
 //! 
 //! ====================
 
-const usedKeyRegistery = new Set<string>();
+export const usedKeyRegistery = new Set<string>();
 
 
-const replaceJsonKeysInFiles = (
+export const replaceJsonKeysInFiles = (
   {
     conversionTables,
     targetFolder,
@@ -267,7 +267,7 @@ const replaceJsonKeysInFiles = (
   // });
 }
 
-const obfuscateKeys = (
+export const obfuscateKeys = (
   selectorConversion: SelectorConversion,
   fileContent: string,
   contentIgnoreRegexes: RegExp[] = [],
@@ -318,20 +318,20 @@ const obfuscateKeys = (
   return { obfuscatedContent: fileContent, usedKeys: usedKeys };
 }
 
-function escapeRegExp(str: string) {
+const escapeRegExp = (str: string) => {
   //ref: https://github.com/n4j1Br4ch1D/postcss-obfuscator/blob/main/utils.js
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
-}
+};
 
 /**
  * Get the filename from a file path
  * @param filePath - The path to the file
  * @returns The filename of the file
  */
-function getFilenameFromPath(filePath: string) {
+export const getFilenameFromPath = (filePath: string) => {
   //ref: https://github.com/n4j1Br4ch1D/postcss-obfuscator/blob/main/utils.js
   return filePath.replace(/^.*[\\/]/, '');
-}
+};
 
 /**
  * Normalizes a file path by replacing backslashes with forward slashes.
@@ -347,22 +347,9 @@ function getFilenameFromPath(filePath: string) {
  * // Returns: 'path/to/file'
  * normalizePath('path\\to\\file');
  */
-function normalizePath(filePath: string) {
+export const normalizePath = (filePath: string) => {
   return filePath.replace(/\\/g, "/");
-}
-
-function loadAndMergeJsonFiles(jsonFolderPath: string) {
-  //ref: https://github.com/n4j1Br4ch1D/postcss-obfuscator/blob/main/utils.js
-  const jsonFiles: { [key: string]: any } = {};
-
-  fs.readdirSync(jsonFolderPath).forEach((file: string) => {
-    const filePath = path.join(jsonFolderPath, file);
-    const fileData = JSON.parse(fs.readFileSync(filePath, "utf-8"));
-    Object.assign(jsonFiles, fileData);
-  });
-
-  return jsonFiles;
-}
+};
 
 /**
  * 
@@ -373,7 +360,7 @@ function loadAndMergeJsonFiles(jsonFolderPath: string) {
  * @param direction - if "forward", the function will search the closest closeMarker after the startPosition, if "backward", the function will search the closest openMarker before the startPosition
  * @returns 
  */
-function findClosestSymbolPosition(content: string, openMarker: string, closeMarker: string, startPosition: number = 0, direction: "forward" | "backward" = "backward") {
+export const findClosestSymbolPosition = (content: string, openMarker: string, closeMarker: string, startPosition: number = 0, direction: "forward" | "backward" = "backward") => {
   let level = 0;
   let currentPos = startPosition;
 
@@ -406,9 +393,9 @@ function findClosestSymbolPosition(content: string, openMarker: string, closeMar
   }
 
   return currentPos;
-}
+};
 
-function findContentBetweenMarker(content: string, targetStr: string, openMarker: string, closeMarker: string) {
+export const findContentBetweenMarker = (content: string, targetStr: string, openMarker: string, closeMarker: string) => {
   if (openMarker === closeMarker) {
     throw new Error("openMarker and closeMarker can not be the same");
   }
@@ -433,13 +420,13 @@ function findContentBetweenMarker(content: string, targetStr: string, openMarker
   }
 
   return truncatedContents;
-}
+};
 
-export function addKeysToRegistery(usedKeys: Set<string> | string[]) {
+export const addKeysToRegistery = (usedKeys: Set<string> | string[]) => {
   usedKeys.forEach((key) => {
     usedKeyRegistery.add(key);
   });
-}
+};
 
 /**
  * Find all files with the specified extension in the build folder.
@@ -451,7 +438,7 @@ export function addKeysToRegistery(usedKeys: Set<string> | string[]) {
  * @param options.blackListedFolderPaths - an array of folder paths to exclude from the search. Higher priority than whiteListedFolderPaths.
  * @returns - an array of file relative paths.
  */
-const findAllFilesWithExt = (
+export const findAllFilesWithExt = (
   ext: string, targetFolderPath: string,
   options?: {
     whiteListedFolderPaths?: (string | RegExp)[],
@@ -494,131 +481,23 @@ const findAllFilesWithExt = (
   return targetExtFiles;
 }
 
-let rng: NumberGenerator | undefined = undefined;
-
-function getRandomString(length: number, seed?: string, rngStateCode?: string, str?: string) {
-  if (length <= 0 || !Number.isInteger(length)) {
-    throw new Error("Length must be a positive integer");
-  }
-
-  if (!rng) {
-    rng = new NumberGenerator(seed);
-  }
-  if (rngStateCode) {
-    rng.recoverState(rngStateCode);
-  }
-
-  let rn = rng.random(0, 1, true);
-  if (str && seed) {
-    // can create a more collision resistant "random number" but in fact it's not random number
-    rn = Number.parseFloat(`0.${NumberGenerator.stringToSeed(str) + NumberGenerator.stringToSeed(seed)}`);
-  }
-
-  //ref: https://github.com/n4j1Br4ch1D/postcss-obfuscator/blob/main/utils.js
-  // Generate a random string of characters with the specified length
-  const randomString = rn.toString(36).substring(2, length - 1 + 2);
-  // Combine the random string with a prefix to make it a valid class name (starts with a letter, contains only letters, digits, hyphens, and underscores)
-  const randomLetter = String.fromCharCode(Math.floor(rng.random(0, 1, true) * 26) + 97); // 97 is the ASCII code for lowercase 'a'
-  return {
-    rngStateCode: rng.getStateCode(),
-    randomString: `${randomLetter}${randomString}`,
-  };
-}
-
-/**
- * 
- * @param str 
- * @param seed 
- * @param rngStateCode 
- * @returns 
- */
-function seedableSimplifyString(str: string, seed?: string, rngStateCode?: string) {
-  if (!str) {
-    throw new Error("String can not be empty");
-  }
-  if (!rng) {
-    rng = new NumberGenerator(seed);
-  }
-  if (rngStateCode) {
-    rng.recoverState(rngStateCode);
-  }
-
-  //ref: https://github.com/n4j1Br4ch1D/postcss-obfuscator/blob/main/utils.js
-  const tempStr = str.replace(/[aeiouw\d_-]/gi, "");
-
-  return {
-    rngStateCode: rng.getStateCode(),
-    randomString: tempStr.length < 1
-      ? String.fromCharCode(Math.floor(rng.random(0, 1, true) * 26) + 97) + tempStr
-      : tempStr,
-  };
-}
-
-/**
- * Get a simplified string from a number
- * @param alphabetPoistion (starting from 1)
- * @returns alphabet string
- * 
- * @example
- * simplifyString(1) // returns "a"
- * simplifyString(26) // returns "z"
- * simplifyString(27) // returns "aa"
- * simplifyString(52) // returns "az"
- * simplifyString(53) // returns "ba"
- */
-function simplifyString(alphabetPoistion: number) {
-  if (alphabetPoistion <= 0 || !Number.isInteger(alphabetPoistion)) {
-    throw new Error("Position must be a positive integer");
-  }
-
-  let dividend = alphabetPoistion;
-  let columnName = "";
-  let modulo = 0;
-
-  while (dividend > 0) {
-    modulo = (dividend - 1) % 26;
-    columnName = String.fromCharCode(97 + modulo) + columnName;
-    dividend = Math.floor((dividend - modulo) / 26);
-  }
-
-  return columnName;
-}
-
-function replaceFirstMatch(source: string, find: string, replace: string): string {
+export const replaceFirstMatch = (source: string, find: string, replace: string): string => {
   const index = source.indexOf(find);
   if (index !== -1) {
     return source.slice(0, index) + replace + source.slice(index + find.length);
   }
   return source;
-}
+};
 
 /**
  * Check if there are any duplicates in an array of strings
  * @param arr - an array of strings
  * @returns - true if there are any duplicates, false otherwise
  */
-function duplicationCheck(arr: string[]) {
+export const duplicationCheck = (arr: string[]) => {
   const set = new Set(arr);
   return arr.length !== set.size;
-}
-
-
-function createKey(str: string) {
-  const b64 = Buffer.from(str).toString("base64").replace(/=/g, "");
-  return `{{{{{{${b64}}}}}}}`;
-}
-
-function decodeKey(str: string) {
-  const regex = /{{{{{{([\w\+\/]+)}}}}}}/g;
-  str = str.replace(regex, (match, p1) => {
-    // Calculate the number of '=' needed
-    const padding = p1.length % 4 === 0 ? 0 : 4 - (p1.length % 4);
-    // Add back the '='
-    const b64 = p1 + "=".repeat(padding);
-    return Buffer.from(b64, "base64").toString("ascii");
-  });
-  return str;
-}
+};
 
 /**
  * Convert a string to a number by summing the char codes of each character
@@ -665,13 +544,4 @@ export const loadConversionTables = (folderPath: string): ConversionTables => {
 
   return tables;
 }
-
-
-export {
-  getFilenameFromPath, log, normalizePath, loadAndMergeJsonFiles
-  , replaceJsonKeysInFiles, setLogLevel, findContentBetweenMarker, replaceFirstMatch
-  , findAllFilesWithExt, getRandomString, seedableSimplifyString, usedKeyRegistery
-  , obfuscateKeys, findClosestSymbolPosition, duplicationCheck
-  , createKey, decodeKey, simplifyString
-};
 

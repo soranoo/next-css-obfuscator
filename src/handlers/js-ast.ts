@@ -14,12 +14,12 @@ import { type SelectorConversion } from "../types";
  * @param stripUnnecessarySpace - whether to strip unnecessary space in the className, e.g. "  a  b  c  " => "a b c"
  * @returns - the obfuscated code and the used keys
  */
-function obfuscateJsWithAst(
+export const obfuscateJsWithAst = (
   code: string,
   selectorConversion: SelectorConversion | undefined,
   startingKeys: string[] = [],
   stripUnnecessarySpace: boolean = true
-) {
+) => {
   const ast = parser.parse(code, { sourceType: "module", plugins: ["jsx"] });
   const usedKeys: Set<string> = new Set();
 
@@ -42,6 +42,7 @@ function obfuscateJsWithAst(
             : str;
 
           const { obfuscatedContent, usedKeys: obfuscateUsedKeys } = obfuscateKeys(selectorConversion, str);
+          
           if (obfuscatedContent !== str) {
             obfuscateUsedKeys.forEach(key => usedKeys.add(key));
             return obfuscatedContent;
@@ -63,7 +64,7 @@ function obfuscateJsWithAst(
     obfuscatedCode: obfuscatedCode.code,
     usedKeys: usedKeys
   };
-}
+};
 
 
 /**
@@ -73,12 +74,12 @@ function obfuscateJsWithAst(
  * @param scannedNodes - (for recursion) keep track of scanned nodes to avoid infinite loop
  * @returns - the modified AST node
  */
-function searchStringLiterals(path: NodePath<t.Node>,
+export const searchStringLiterals = (path: NodePath<t.Node>,
   callback: (str: string) => void | string,
 
   //? keep track of scanned nodes to avoid infinite loop
   scannedNodes: Set<t.Node> = new Set()
-) {
+) => {
   /* Skip this node if it has already been scanned */
   if (path.node && scannedNodes.has(path.node)) {
     return;
@@ -365,9 +366,4 @@ function searchStringLiterals(path: NodePath<t.Node>,
     });
   }
   return path;
-}
-
-export {
-  searchStringLiterals,
-  obfuscateJsWithAst,
-}
+};
