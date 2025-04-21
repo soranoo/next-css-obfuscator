@@ -42,7 +42,7 @@ export const obfuscateJsWithAst = (
             : str;
 
           const { obfuscatedContent, usedKeys: obfuscateUsedKeys } = obfuscateKeys(selectorConversion, str);
-          
+
           if (obfuscatedContent !== str) {
             obfuscateUsedKeys.forEach(key => usedKeys.add(key));
             return obfuscatedContent;
