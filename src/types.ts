@@ -1,8 +1,8 @@
-import type { ConversionTables } from "css-seasoning";
+import type { ConversionTables, TransformProps } from "css-seasoning";
 
 export type LogLevel = "debug" | "info" | "warn" | "error" | "success";
 export type obfuscateMode = "random" | "simplify";
-export type SelectorConversion = ConversionTables["selector"];
+export type SelectorConversion = ConversionTables["selectors"];
 
 export type Options = {
     enable: boolean;
@@ -11,10 +11,28 @@ export type Options = {
     classConversionJsonFolderPath: string;
     refreshClassConversionJson: boolean;
 
+    /**
+     * @deprecated Not longer used from v3.0.0 and will be removed in the next major version.
+     */
     classLength: number;
+    
+    /**
+     * @deprecated Merged into `prefix` from v3.0.0 and will be removed in the next major version.
+     */
     classPrefix: string;
+    /**
+     * @deprecated Merged into `suffix` from v3.0.0 and will be removed in the next major version.
+     */
     classSuffix: string;
+    prefix: string;
+    suffix: string;
+
+    /**
+     * @deprecated Merged into `ignorePatterns.selectors` from v3.0.0 and will be removed in the next major version.
+     */
     classIgnore: (string | RegExp)[];
+    ignorePatterns: TransformProps["ignorePatterns"];
+
     allowExtensions: string[];
     contentIgnoreRegexes: RegExp[];
 
@@ -24,7 +42,7 @@ export type Options = {
     markers: string[];
     removeMarkersAfterObfuscated: boolean;
     removeOriginalCss: boolean;
-    generatorSeed: string;
+    generatorSeed: string | undefined;
 
     enableJsAst: boolean;
 

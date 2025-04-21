@@ -40,9 +40,15 @@ const obfuscate = async (options: Options) => {
     blackListedFolderPaths: options.blackListedFolderPaths,
 
     mode: options.mode,
-    prefix: options.classPrefix,
-    suffix: options.classSuffix,
-    classIgnore: options.classIgnore,
+    prefix: options.prefix || options.classPrefix,
+    suffix: options.suffix || options.classSuffix,
+    ignorePatterns: {
+      ...options.ignorePatterns,
+      selectors: [
+        ...options.ignorePatterns?.selectors || [],
+        ...(options.classIgnore || []),
+      ]
+    },
 
     generatorSeed: options.generatorSeed,
     removeOriginalCss: options.removeOriginalCss,

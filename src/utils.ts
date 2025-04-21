@@ -147,7 +147,7 @@ export const replaceJsonKeysInFiles = (
 
   if (removeObfuscateMarkerClassesAfterObfuscated) {
     obfuscateMarkerClasses.forEach(obfuscateMarkerClass => {
-      conversionTables.selector[cssEscape(`.${obfuscateMarkerClass}`)] = "";
+      conversionTables.selectors[cssEscape(`.${obfuscateMarkerClass}`)] = "";
     });
   }
 
@@ -185,7 +185,7 @@ export const replaceJsonKeysInFiles = (
               const htmlOriginal = htmlMatch[0];
               const { obfuscatedContent, usedKeys } = obfuscateHtmlClassNames({
                 html: htmlOriginal,
-                selectorConversion: conversionTables.selector,
+                selectorConversion: conversionTables.selectors,
                 obfuscateMarkerClass: obfuscateMarkerClass,
                 contentIgnoreRegexes: contentIgnoreRegexes,
               });
@@ -197,7 +197,7 @@ export const replaceJsonKeysInFiles = (
           } else {
             const obfuscateScriptContent = obfuscateJs(fileContent,
               obfuscateMarkerClass,
-              conversionTables.selector,
+              conversionTables.selectors,
               filePath,
               contentIgnoreRegexes,
               enableJsAst
@@ -216,7 +216,7 @@ export const replaceJsonKeysInFiles = (
           const obfuscateScriptContent = obfuscateJs(
             fileContent,
             enableJsAst ? "" : "jsx",
-            conversionTables.selector,
+            conversionTables.selectors,
             filePath,
             contentIgnoreRegexes,
             enableJsAst
@@ -229,7 +229,7 @@ export const replaceJsonKeysInFiles = (
           //! NEW
           const { obfuscatedContent, usedKeys } = obfuscateHtmlClassNames({
             html: fileContent,
-            selectorConversion: conversionTables.selector,
+            selectorConversion: conversionTables.selectors,
             contentIgnoreRegexes: contentIgnoreRegexes,
           });
 
@@ -237,7 +237,7 @@ export const replaceJsonKeysInFiles = (
           addKeysToRegistery(usedKeys);
         } else {
           const { obfuscatedContent, usedKeys } = obfuscateKeys(
-            conversionTables.selector,
+            conversionTables.selectors,
             fileContent,
             contentIgnoreRegexes
           );
@@ -524,8 +524,8 @@ export const stringToNumber = (str: string) => {
  */
 export const loadConversionTables = (folderPath: string): ConversionTables => {
   const tables: ConversionTables = {
-    ident: {},
-    selector: {},
+    idents: {},
+    selectors: {},
   };
 
   fs.readdirSync(folderPath).forEach((file: string) => {
@@ -533,12 +533,12 @@ export const loadConversionTables = (folderPath: string): ConversionTables => {
     const fileData = JSON.parse(fs.readFileSync(filePath, "utf-8"));
 
     if (Object.keys(fileData).includes("ident") && Object.keys(fileData).includes("selector")) {
-      Object.assign(tables.ident, fileData.ident);
-      Object.assign(tables.selector, fileData.selector);
+      Object.assign(tables.idents, fileData.ident);
+      Object.assign(tables.selectors, fileData.selector);
     } else {
       // if the file doesn't have ident, it should be selector
       //? For backward compatibility
-      Object.assign(tables.selector, fileData);
+      Object.assign(tables.selectors, fileData);
     }
   });
 

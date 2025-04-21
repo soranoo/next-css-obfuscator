@@ -26,7 +26,7 @@ const obfuscateCss = async ({
     mode = "random",
     prefix,
     suffix,
-    classIgnore = [],
+    ignorePatterns,
     generatorSeed = Math.random().toString().slice(2, 10), // take 8 digits from the random number
 }: {
     cssPath: string,
@@ -38,7 +38,7 @@ const obfuscateCss = async ({
     mode?: obfuscateMode,
     prefix?: string,
     suffix?: string,
-    classIgnore?: (string | RegExp)[],
+    ignorePatterns?: TransformProps["ignorePatterns"],
     generatorSeed?: string,
 }) => {
     if (!outCssPath) {
@@ -50,11 +50,6 @@ const obfuscateCss = async ({
     }
 
     const cssContent = fs.readFileSync(cssPath, "utf-8");
-
-    // TODO: use const instead of function
-    // TODO: this function is combined createSelectorConversionJson and obfuscateCss
-    // TODO: connect props to this function
-    // TODO: bc we updated conversion table, so other function using the table have to update to the new table
 
     let transformerMode: TransformProps["mode"] = mode === "simplify" ? "minimal" : "hash";
     if (!transformerMode) {
@@ -75,9 +70,7 @@ const obfuscateCss = async ({
         prefix: prefix,
         suffix: suffix,
         seed: stringToNumber(generatorSeed),
-        ignorePatterns: {
-            selector: classIgnore
-        }
+        ignorePatterns: ignorePatterns,
     });
 
     if (removeOriginalCss) {
@@ -94,11 +87,11 @@ const obfuscateCss = async ({
         finCss = new TextDecoder().decode(code);
     }
 
-    const totalConversion = Object.keys(newConversionTables.selector).length + Object.keys(newConversionTables.ident).length;
+    const totalConversion = Object.keys(newConversionTables.selectors).length + Object.keys(newConversionTables.idents).length;
     if (removeOriginalCss) {
         log("info", "CSS rules:", `Modified ${totalConversion} CSS rules to ${getFilenameFromPath(cssPath)}`);
     } else {
-        const oldTotalConversion = conversionTables ? Object.keys(conversionTables.selector).length + Object.keys(conversionTables.ident).length : 0;
+        const oldTotalConversion = conversionTables ? Object.keys(conversionTables.selectors).length + Object.keys(conversionTables.idents).length : 0;
         log("info", "CSS rules:", `Added ${totalConversion - oldTotalConversion} new CSS rules to ${getFilenameFromPath(cssPath)}`);
     }
 
@@ -125,7 +118,7 @@ export const obfuscateCssFiles = async ({
     mode = "random",
     prefix,
     suffix,
-    classIgnore = [],
+    ignorePatterns,
     generatorSeed = new Date().getTime().toString(),
     removeOriginalCss = false,
 }: {
@@ -136,7 +129,7 @@ export const obfuscateCssFiles = async ({
     mode?: obfuscateMode,
     prefix?: string,
     suffix?: string,
-    classIgnore?: (string | RegExp)[],
+    ignorePatterns?: TransformProps["ignorePatterns"],
     generatorSeed?: string,
     removeOriginalCss?: boolean,
 }) => {
@@ -161,8 +154,8 @@ export const obfuscateCssFiles = async ({
     });
     
     const tables: ConversionTables = {
-        selector: {},
-        ident: {},
+        selectors: {},
+        idents: {},
     };
     
     cssPaths.forEach(async (cssPath) => {
@@ -173,22 +166,22 @@ export const obfuscateCssFiles = async ({
             prefix,
             suffix,
             mode,
-            classIgnore,
+            ignorePatterns,
             generatorSeed,
             removeOriginalCss,
         });
 
         // Merge the conversion tables
-        Object.entries(newConversionTables.selector).forEach(([key, value]) => {
-            if (!tables.selector[key]) {
+        Object.entries(newConversionTables.selectors).forEach(([key, value]) => {
+            if (!tables.selectors[key]) {
                 // If it doesn't exist, create a new entry
-                tables.selector[key] = value;
+                tables.selectors[key] = value;
             }
         });
-        Object.entries(newConversionTables.ident).forEach(([key, value]) => {
-            if (!tables.ident[key]) {
+        Object.entries(newConversionTables.idents).forEach(([key, value]) => {
+            if (!tables.idents[key]) {
                 // If it doesn't exist, create a new entry
-                tables.ident[key] = value;
+                tables.idents[key] = value;
             }
         });
     });
