@@ -1,6 +1,6 @@
 import type { Options, OptionalOptions } from "./types";
 
-const defaultOptions: Options = {
+export const defaultOptions: Options = {
     enable: true, // Enable or disable the plugin.
     mode: "random", // Obfuscate mode, "random", "simplify" or "simplify-seedable".
     buildFolderPath: ".next", // Build folder of your project.
@@ -36,7 +36,7 @@ const defaultOptions: Options = {
     logLevel: "info", // Log level
 };
 
-class Config {
+export class Config {
     private options: Options;
 
     constructor(options?: OptionalOptions) {
