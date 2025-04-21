@@ -267,12 +267,12 @@ const replaceJsonKeysInFiles = (
   // });
 }
 
-function obfuscateKeys(
+const obfuscateKeys = (
   selectorConversion: SelectorConversion,
   fileContent: string,
   contentIgnoreRegexes: RegExp[] = [],
   useHtmlEntity: boolean = false
-) {
+) => {
   //ref: https://github.com/n4j1Br4ch1D/postcss-obfuscator/blob/main/utils.js
 
   const usedKeys = new Set<string>();
@@ -281,20 +281,13 @@ function obfuscateKeys(
     // let keyUse = escapeRegExp(key.slice(1).replace(/\\/g, ""));
     let keyUse = cssUnescape(key).slice(1);
 
-    //! deprecated
-    // if (useHtmlEntity) {
-    //   const regex = new RegExp(`(${Object.keys(HTML_CHARACTER_ENTITY_CONVERSION).join("|")})`, "g");
-    //   keyUse = keyUse.replace(regex, (m: string) => {
-    //     return HTML_CHARACTER_ENTITY_CONVERSION[m]
-    //   });
-    // }
-    keyUse = escapeRegExp(keyUse.replace(/\\/g, ""));
+    keyUse = escapeRegExp(keyUse.replace(/\\/g, "")); // escape the key
 
     //? sample: "text-sm w-full\n      text-right\n p-2 flex gap-2 hover:bg-gray-100 dark:hover:bg-red-700 text-right"
     let exactMatchRegex = new RegExp(`([\\s"'\\\`]|^)(${keyUse})(?=$|[\\s"'\\\`]|\\\\n|\\\\",|\\\\"})`, 'g'); // match exact wording & avoid ` ' ""
     // exactMatchRegex = new RegExp(`([\\s"'\\\`]|^)(${keyUse})(?=$|[\\s"'\\\`])`, 'g'); // match exact wording & avoid ` ' ""
 
-    const replacement = `$1` + selectorConversion[key].slice(1).replace(/\\/g, "");
+    const replacement = `$1` + selectorConversion[key].slice(1).replace(/\\/g, "").slice(1);
 
     const matches = fileContent.match(exactMatchRegex);
     const originalObscuredContentPairs = matches?.map((match) => {
