@@ -7,10 +7,16 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "ignore": []
+    "ignore": [
+      "node_modules",
+      ".next",
+      "packages/tsconfig",
+      "demos",
+      "coverage",
+      "dist"
+    ]
   },
   "formatter": {
-    "ignore": ["node_modules", ".next"],
     "enabled": true,
     "indentStyle": "space",
     "lineWidth": 80,
@@ -21,7 +27,6 @@
     "enabled": true
   },
   "linter": {
-    "ignore": ["node_modules", ".next", "packages/tsconfig"],
     "enabled": true,
     "rules": {
       "recommended": true,
@@ -30,7 +35,7 @@
         "noUselessTypeConstraint": "error",
         "useLiteralKeys": "error",
         "useOptionalChain": "error",
-        "noForEach": "off",
+        "noForEach": "off"
       },
       "correctness": {
         "noUnusedVariables": "info",

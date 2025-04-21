@@ -1,4 +1,4 @@
-import type { Options, OptionalOptions } from "./types";
+import type { OptionalOptions, Options } from "./types";
 
 export const defaultOptions: Options = {
   enable: true, // Enable or disable the plugin.
@@ -29,7 +29,8 @@ export const defaultOptions: Options = {
    * @deprecated Merged into `ignorePatterns.selectors` from v3.0.0 and will be removed in the next major version.
    */
   classIgnore: [], // The class names to be ignored during obfuscation.
-  ignorePatterns: { // The patterns to be ignored during obfuscation.
+  ignorePatterns: {
+    // The patterns to be ignored during obfuscation.
     selectors: [], // The selectors to be ignored during obfuscation.
     idents: [], // The idents to be ignored during obfuscation.
   },

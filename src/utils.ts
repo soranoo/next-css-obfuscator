@@ -55,7 +55,7 @@ const issuer = "[next-css-obfuscator]";
 let logLevel: LogLevel = "info";
 const levels: LogLevel[] = ["debug", "info", "warn", "error", "success"];
 
-export const log = (type: LogLevel, task: string, data: any) => {
+export const log = (type: LogLevel, task: string, data: unknown) => {
   //ref: https://github.com/n4j1Br4ch1D/postcss-obfuscator/blob/main/utils.js
   if (levels.indexOf(type) < levels.indexOf(logLevel)) {
     return;
@@ -202,7 +202,7 @@ export const replaceJsonKeysInFiles = (
             );
             if (fileContent !== obfuscateScriptContent) {
               fileContent = obfuscateScriptContent;
-              log("debug", `Obscured keys in JS like content file:`, normalizePath(filePath));
+              log("debug", "Obscured keys in JS like content file:", normalizePath(filePath));
             }
           }
 
@@ -221,7 +221,7 @@ export const replaceJsonKeysInFiles = (
           );
           if (fileContent !== obfuscateScriptContent) {
             fileContent = obfuscateScriptContent;
-            log("debug", `Obscured keys in JSX related file:`, normalizePath(filePath));
+            log("debug", "Obscured keys in JSX related file:", normalizePath(filePath));
           }
         } else if ([".html"].includes(fileExt)) {
           //! NEW
@@ -269,7 +269,7 @@ export const obfuscateKeys = (
   selectorConversion: SelectorConversion,
   fileContent: string,
   contentIgnoreRegexes: RegExp[] = [],
-  useHtmlEntity: boolean = false
+  useHtmlEntity = false
 ) => {
   //ref: https://github.com/n4j1Br4ch1D/postcss-obfuscator/blob/main/utils.js
 
@@ -285,7 +285,7 @@ export const obfuscateKeys = (
     let exactMatchRegex = new RegExp(`([\\s"'\\\`]|^)(${keyUse})(?=$|[\\s"'\\\`]|\\\\n|\\\\",|\\\\"})`, 'g'); // match exact wording & avoid ` ' ""
     // exactMatchRegex = new RegExp(`([\\s"'\\\`]|^)(${keyUse})(?=$|[\\s"'\\\`])`, 'g'); // match exact wording & avoid ` ' ""
 
-    const replacement = `$1` + selectorConversion[key].slice(1).replace(/\\/g, "").slice(1);
+    const replacement = `$1${selectorConversion[key].slice(1).replace(/\\/g, "").slice(1)}`;
 
     const matches = fileContent.match(exactMatchRegex);
     const originalObscuredContentPairs = matches?.map((match) => {
@@ -358,7 +358,7 @@ export const normalizePath = (filePath: string) => {
  * @param direction - if "forward", the function will search the closest closeMarker after the startPosition, if "backward", the function will search the closest openMarker before the startPosition
  * @returns 
  */
-export const findClosestSymbolPosition = (content: string, openMarker: string, closeMarker: string, startPosition: number = 0, direction: "forward" | "backward" = "backward") => {
+export const findClosestSymbolPosition = (content: string, openMarker: string, closeMarker: string, startPosition = 0, direction: "forward" | "backward" = "backward") => {
   let level = 0;
   let currentPos = startPosition;
 
