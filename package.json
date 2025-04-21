@@ -10,8 +10,7 @@
     "dev": "tsc -w",
     "pub": "npm run build && npm publish",
     "pub@beta": "npm run build && npm publish --tag beta",
-    "lint": "biome check .",
-    "semantic-release": "semantic-release"
+    "lint": "biome check ."
   },
   "repository": {
     "type": "git",
@@ -37,6 +36,7 @@
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
     "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^11.0.1",
     "@semantic-release/npm": "^12.0.1",
     "@types/babel__generator": "^7.6.8",
     "@types/babel__traverse": "^7.20.5",
