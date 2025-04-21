@@ -1,12 +1,10 @@
 import fs from "node:fs";
 import path from "node:path";
-import NumberGenerator from "recoverable-random";
 import type {
   LogLevel,
   SelectorConversion,
 } from "./types";
 import { cssEscape, cssUnescape, type ConversionTables } from "css-seasoning";
-
 import { obfuscateHtmlClassNames } from "./handlers/html";
 import { obfuscateJs } from "./handlers/js";
 
