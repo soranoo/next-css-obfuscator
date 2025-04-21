@@ -1,8 +1,9 @@
 import type { obfuscateMode } from "../types";
+import type { ConversionTables, TransformProps } from "css-seasoning";
 
 import path from "node:path";
 import fs from "node:fs";
-import { initTransform, transform, type ConversionTables, type TransformProps } from "css-seasoning";
+import { initTransform, transform } from "css-seasoning";
 import lightningcssInit, { transform as lightningcssTransform } from "lightningcss-wasm";
 
 // TODO: html failed with .

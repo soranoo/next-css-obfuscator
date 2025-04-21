@@ -22,7 +22,7 @@ describe("searchForwardComponent", () => {
 
   test("should return multiple component names for multiple matches", () => {
     // Arrange
-    const content = `o.jsx(FirstComponent, props); o.jsx(SecondComponent, otherProps);`;
+    const content = "o.jsx(FirstComponent, props); o.jsx(SecondComponent, otherProps);";
 
     // Act
     const result = searchForwardComponent(content);
@@ -66,7 +66,7 @@ describe("searchForwardComponent", () => {
 
   test("should handle special characters in component names", () => {
     // Arrange
-    const content = `o.jsx($Comp_1, props); o.jsx(_Comp$2, otherProps);`;
+    const content = "o.jsx($Comp_1, props); o.jsx(_Comp$2, otherProps);";
 
     // Act
     const result = searchForwardComponent(content);
@@ -88,7 +88,7 @@ describe("searchForwardComponent", () => {
 
   test("should return component names when they are followed by a brace", () => {
     // Arrange
-    const content = `o.jsx(ComponentName, {props: true});`;
+    const content = "o.jsx(ComponentName, {props: true});";
 
     // Act
     const result = searchForwardComponent(content);
@@ -114,7 +114,7 @@ describe("searchForwardComponent", () => {
 
   test("should handle content with nested jsx calls", () => {
     // Arrange
-    const content = `o.jsx(ParentComponent, {children: o.jsx(ChildComponent, {})})`;
+    const content = "o.jsx(ParentComponent, {children: o.jsx(ChildComponent, {})})";
 
     // Act
     const result = searchForwardComponent(content);

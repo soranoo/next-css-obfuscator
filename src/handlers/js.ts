@@ -1,3 +1,4 @@
+import type { SelectorConversion } from "../types";
 import {
   log,
   findContentBetweenMarker,
@@ -7,8 +8,6 @@ import {
   addKeysToRegistery,
   findClosestSymbolPosition
 } from "../utils";
-
-import { SelectorConversion } from "../types";
 import { obfuscateJsWithAst } from "./js-ast";
 
 export const searchForwardComponent = (content: string) => {
@@ -61,14 +60,14 @@ export const obfuscateForwardComponentJs = (searchContent: string, wholeContent:
     });
 
     if (classNameBlocks.length !== obfuscatedClassNameBlocks.length) {
-      log("error", `Component obfuscation:`, `classNameBlocks.length !== obfuscatedClassNameBlocks.length`);
+      log("error", "Component obfuscation:", "classNameBlocks.length !== obfuscatedClassNameBlocks.length");
       return componentContent;
     }
     let obscuredCode = componentContent.code;
     for (let i = 0; i < classNameBlocks.length; i++) {
       obscuredCode = replaceFirstMatch(obscuredCode, classNameBlocks[i], obfuscatedClassNameBlocks[i]);
     }
-    log("debug", `Obscured keys in component:`, componentContent.name);
+    log("debug", "Obscured keys in component:", componentContent.name);
     return {
       name: componentContent.name,
       code: obscuredCode

@@ -1,21 +1,20 @@
 import { describe, it, expect } from "vitest";
-import traverse, { NodePath } from "@babel/traverse";
-import * as t from "@babel/types";
+import traverse, { type NodePath } from "@babel/traverse";
+import type * as t from "@babel/types";
 import * as parser from "@babel/parser";
 import generator from "@babel/generator";
 import { searchStringLiterals, obfuscateJsWithAst } from "../handlers/js-ast";
 
-function stripCode(code: string) {
+const stripCode = (code: string) => {
   return code.replace(/\s/g, "");
 }
-
 
 //! ================================
 //! searchStringLiterals
 //! ================================
 
 describe("searchStringLiterals", () => {
-  function findStartPointNode(ast: t.File) {
+  const findStartPointNode = (ast: t.File) => {
     let startPointNode: NodePath<t.Node> | undefined;
     traverse(ast, {
       FunctionDeclaration(path) {
@@ -25,7 +24,7 @@ describe("searchStringLiterals", () => {
       },
     });
     return startPointNode;
-  }
+  };
 
   //? *******************************
   //? Basic
@@ -48,7 +47,7 @@ describe("searchStringLiterals", () => {
     `
 
     const ast = parser.parse(code);
-    let result: string[] = [];
+    const result: string[] = [];
     searchStringLiterals(findStartPointNode(ast)!, (str) => {
       result.push(str);
       return "{{found}}"
@@ -77,7 +76,7 @@ describe("searchStringLiterals", () => {
     `
 
     const ast = parser.parse(code);
-    let result: string[] = [];
+    const result: string[] = [];
     searchStringLiterals(findStartPointNode(ast)!, (str) => {
       result.push(str);
       return "{{found}}"
@@ -119,7 +118,7 @@ describe("searchStringLiterals", () => {
     `
 
     const ast = parser.parse(code);
-    let result: string[] = [];
+    const result: string[] = [];
     searchStringLiterals(findStartPointNode(ast)!, (str) => {
       result.push(str);
       return "{{found}}"
@@ -147,7 +146,7 @@ describe("searchStringLiterals", () => {
     `
 
     const ast = parser.parse(code);
-    let result: string[] = [];
+    const result: string[] = [];
     searchStringLiterals(findStartPointNode(ast)!, (str) => {
       result.push(str);
       return "{{found}}"
@@ -181,7 +180,7 @@ describe("searchStringLiterals", () => {
     `
 
     const ast = parser.parse(code);
-    let result: string[] = [];
+    const result: string[] = [];
     searchStringLiterals(findStartPointNode(ast)!, (str) => {
       result.push(str);
       return "{{found}}"
@@ -212,7 +211,7 @@ describe("searchStringLiterals", () => {
     `
 
     const ast = parser.parse(code);
-    let result: string[] = [];
+    const result: string[] = [];
     searchStringLiterals(findStartPointNode(ast)!, (str) => {
       result.push(str);
       return "{{found}}"
@@ -249,7 +248,7 @@ describe("searchStringLiterals", () => {
     `
 
     const ast = parser.parse(code);
-    let result: string[] = [];
+    const result: string[] = [];
     searchStringLiterals(findStartPointNode(ast)!, (str) => {
       result.push(str);
       return "{{found}}"
@@ -288,7 +287,7 @@ describe("searchStringLiterals", () => {
     `
 
     const ast = parser.parse(code);
-    let result: string[] = [];
+    const result: string[] = [];
     searchStringLiterals(findStartPointNode(ast)!, (str) => {
       result.push(str);
       return "{{found}}"
@@ -329,7 +328,7 @@ describe("searchStringLiterals", () => {
     `
 
     const ast = parser.parse(code);
-    let result: string[] = [];
+    const result: string[] = [];
     searchStringLiterals(findStartPointNode(ast)!, (str) => {
       result.push(str);
       return "{{found}}"
@@ -366,7 +365,7 @@ describe("searchStringLiterals", () => {
     `
 
     const ast = parser.parse(code);
-    let result: string[] = [];
+    const result: string[] = [];
     searchStringLiterals(findStartPointNode(ast)!, (str) => {
       result.push(str);
       return "{{found}}"
@@ -403,7 +402,7 @@ describe("searchStringLiterals", () => {
     `
 
     const ast = parser.parse(code);
-    let result: string[] = [];
+    const result: string[] = [];
     searchStringLiterals(findStartPointNode(ast)!, (str) => {
       result.push(str);
       return "{{found}}"
@@ -448,7 +447,7 @@ describe("searchStringLiterals", () => {
     `
 
     const ast = parser.parse(code);
-    let result: string[] = [];
+    const result: string[] = [];
     searchStringLiterals(findStartPointNode(ast)!, (str) => {
       result.push(str);
       return "{{found}}"
@@ -495,7 +494,7 @@ describe("searchStringLiterals", () => {
     `
 
     const ast = parser.parse(code);
-    let result: string[] = [];
+    const result: string[] = [];
     searchStringLiterals(findStartPointNode(ast)!, (str) => {
       result.push(str);
       return "{{found}}"
@@ -532,7 +531,7 @@ describe("searchStringLiterals", () => {
     `
 
     const ast = parser.parse(code);
-    let result: string[] = [];
+    const result: string[] = [];
     searchStringLiterals(findStartPointNode(ast)!, (str) => {
       result.push(str);
       return "{{found}}"
@@ -561,7 +560,7 @@ describe("searchStringLiterals", () => {
     `
 
     const ast = parser.parse(code);
-    let result: string[] = [];
+    const result: string[] = [];
     searchStringLiterals(findStartPointNode(ast)!, (str) => {
       result.push(str);
       return "{{found}}"
@@ -588,7 +587,7 @@ describe("searchStringLiterals", () => {
     `
 
     const ast = parser.parse(code);
-    let result: string[] = [];
+    const result: string[] = [];
     searchStringLiterals(findStartPointNode(ast)!, (str) => {
       result.push(str);
       return "{{found}}"
@@ -623,7 +622,7 @@ describe("searchStringLiterals", () => {
     `
 
     const ast = parser.parse(code);
-    let result: string[] = [];
+    const result: string[] = [];
     searchStringLiterals(findStartPointNode(ast)!, (str) => {
       result.push(str);
       return "{{found}}"
@@ -658,7 +657,7 @@ describe("searchStringLiterals", () => {
     `
 
     const ast = parser.parse(code);
-    let result: string[] = [];
+    const result: string[] = [];
     searchStringLiterals(findStartPointNode(ast)!, (str) => {
       result.push(str);
       return "{{found}}"
@@ -691,7 +690,7 @@ describe("searchStringLiterals", () => {
     `
 
     const ast = parser.parse(code);
-    let result: string[] = [];
+    const result: string[] = [];
     searchStringLiterals(findStartPointNode(ast)!, (str) => {
       result.push(str);
       return "{{found}}"
@@ -730,7 +729,7 @@ describe("searchStringLiterals", () => {
     `
 
     const ast = parser.parse(code);
-    let result: string[] = [];
+    const result: string[] = [];
     searchStringLiterals(findStartPointNode(ast)!, (str) => {
       result.push(str);
       return "{{found}}"
@@ -769,7 +768,7 @@ describe("searchStringLiterals", () => {
     `
 
     const ast = parser.parse(code);
-    let result: string[] = [];
+    const result: string[] = [];
     searchStringLiterals(findStartPointNode(ast)!, (str) => {
       result.push(str);
       return "{{found}}"
@@ -812,7 +811,7 @@ describe("searchStringLiterals", () => {
     `
 
     const ast = parser.parse(code);
-    let result: string[] = [];
+    const result: string[] = [];
     searchStringLiterals(findStartPointNode(ast)!, (str) => {
       result.push(str);
       return "{{found}}"
@@ -855,7 +854,7 @@ describe("searchStringLiterals", () => {
     `
 
     const ast = parser.parse(code);
-    let result: string[] = [];
+    const result: string[] = [];
     searchStringLiterals(findStartPointNode(ast)!, (str) => {
       result.push(str);
       return "{{found}}"
@@ -886,7 +885,7 @@ describe("searchStringLiterals", () => {
     `
 
     const ast = parser.parse(code);
-    let result: string[] = [];
+    const result: string[] = [];
     searchStringLiterals(findStartPointNode(ast)!, (str) => {
       result.push(str);
       return "{{found}}"
@@ -919,7 +918,7 @@ describe("searchStringLiterals", () => {
     `
 
     const ast = parser.parse(code);
-    let result: string[] = [];
+    const result: string[] = [];
     searchStringLiterals(findStartPointNode(ast)!, (str) => {
       result.push(str);
       return "{{found}}"
@@ -950,7 +949,7 @@ describe("searchStringLiterals", () => {
     `
 
     const ast = parser.parse(code);
-    let result: string[] = [];
+    const result: string[] = [];
     searchStringLiterals(findStartPointNode(ast)!, (str) => {
       result.push(str);
       return "{{found}}"
@@ -985,7 +984,7 @@ describe("searchStringLiterals", () => {
     `
 
     const ast = parser.parse(code);
-    let result: string[] = [];
+    const result: string[] = [];
     searchStringLiterals(findStartPointNode(ast)!, (str) => {
       result.push(str);
       return "{{found}}"
@@ -1020,7 +1019,7 @@ describe("searchStringLiterals", () => {
     `
 
     const ast = parser.parse(code);
-    let result: string[] = [];
+    const result: string[] = [];
     searchStringLiterals(findStartPointNode(ast)!, (str) => {
       result.push(str);
       return "{{found}}"
@@ -1059,7 +1058,7 @@ describe("searchStringLiterals", () => {
     `
 
     const ast = parser.parse(code);
-    let result: string[] = [];
+    const result: string[] = [];
     searchStringLiterals(findStartPointNode(ast)!, (str) => {
       result.push(str);
       return "{{found}}"
@@ -1112,7 +1111,7 @@ describe("searchStringLiterals", () => {
     `
 
     const ast = parser.parse(code);
-    let result: string[] = [];
+    const result: string[] = [];
     searchStringLiterals(findStartPointNode(ast)!, (str) => {
       result.push(str);
       return "{{found}}"
@@ -1155,7 +1154,7 @@ describe("searchStringLiterals", () => {
     `
 
     const ast = parser.parse(code);
-    let result: string[] = [];
+    const result: string[] = [];
     searchStringLiterals(findStartPointNode(ast)!, (str) => {
       result.push(str);
       return "{{found}}"
@@ -1192,7 +1191,7 @@ describe("searchStringLiterals", () => {
     `
 
     const ast = parser.parse(code);
-    let result: string[] = [];
+    const result: string[] = [];
     searchStringLiterals(findStartPointNode(ast)!, (str) => {
       result.push(str);
       return "{{found}}"
@@ -1227,7 +1226,7 @@ describe("searchStringLiterals", () => {
     `
 
     const ast = parser.parse(code);
-    let result: string[] = [];
+    const result: string[] = [];
     searchStringLiterals(findStartPointNode(ast)!, (str) => {
       result.push(str);
       return "{{found}}"
@@ -1270,7 +1269,7 @@ describe("searchStringLiterals", () => {
     `
 
     const ast = parser.parse(code);
-    let result: string[] = [];
+    const result: string[] = [];
     searchStringLiterals(findStartPointNode(ast)!, (str) => {
       result.push(str);
       return "{{found}}"
@@ -1319,7 +1318,7 @@ describe("searchStringLiterals", () => {
     `
 
     const ast = parser.parse(code);
-    let result: string[] = [];
+    const result: string[] = [];
     searchStringLiterals(findStartPointNode(ast)!, (str) => {
       result.push(str);
       return "{{found}}"
@@ -1348,7 +1347,7 @@ describe("searchStringLiterals", () => {
     `
 
     const ast = parser.parse(code);
-    let result: string[] = [];
+    const result: string[] = [];
     searchStringLiterals(findStartPointNode(ast)!, (str) => {
       result.push(str);
       return "{{found}}"
@@ -1377,7 +1376,7 @@ describe("searchStringLiterals", () => {
     `
 
     const ast = parser.parse(code);
-    let result: string[] = [];
+    const result: string[] = [];
     searchStringLiterals(findStartPointNode(ast)!, (str) => {
       result.push(str);
       return "{{found}}"

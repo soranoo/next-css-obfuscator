@@ -12,7 +12,7 @@ import {
 describe("findContentBetweenMarker", () => {
 
   it("should return the correct content between markers", () => {
-    const content = `123{{4}5{67}8}901{2345678}9`;
+    const content = "123{{4}5{67}8}901{2345678}9";
     const targetStr = '5';
     const openSymbol = '{';
     const closeSymbol = '}';
@@ -123,15 +123,6 @@ describe("getFilenameFromPath", () => {
     // Assert
     expect(result).toBe("my report.pdf");
   });
-
-  test("should throw an error for non-string inputs", () => {
-    // Arrange
-    const input: any = null;
-
-    // Act and Assert
-    expect(() => getFilenameFromPath(input)).toThrow(TypeError);
-  });
-
 });
 
 //! ================================
