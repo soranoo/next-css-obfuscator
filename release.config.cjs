@@ -8,31 +8,6 @@ module.exports = {
         parserOpts: {
           noteKeywords: ["BREAKING CHANGE", "BREAKING CHANGES", "BREAKING"],
         },
-        releaseRules: [
-          { breaking: true, release: "major" },
-
-          // then the usual ones:
-          { type: "feat", release: "minor" },
-          { type: "fix", release: "patch" },
-          { type: "perf", release: "patch" },
-
-          // all the rest you don’t want to release on:
-          { type: "docs", release: false },
-          { type: "style", release: false },
-          { type: "refactor", release: false },
-          { type: "test", release: false },
-          { type: "chore", release: false },
-          
-          // { type: "feat", release: "minor" },
-          // { type: "fix", release: "patch" },
-          // { type: "perf", release: "patch" },
-          // { type: "BREAKING CHANGE", release: "major" },
-          // { type: "docs", release: false },
-          // { type: "style", release: false },
-          // { type: "refactor", release: false },
-          // { type: "test", release: false },
-          // { type: "chore", release: false },
-        ],
       },
     ],
     [
@@ -58,4 +33,5 @@ module.exports = {
     ],
     "@semantic-release/github",
   ],
+  getLastRelease: "@semantic-release/npm",
 };
