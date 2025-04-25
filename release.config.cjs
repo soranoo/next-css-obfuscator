@@ -4,34 +4,48 @@ module.exports = {
     [
       "@semantic-release/commit-analyzer",
       {
-        "preset": "angular",
-        "parserOpts": {
-          "noteKeywords": ["BREAKING CHANGE", "BREAKING CHANGES", "BREAKING"]
+        preset: "angular",
+        parserOpts: {
+          noteKeywords: ["BREAKING CHANGE", "BREAKING CHANGES", "BREAKING"],
         },
-        "releaseRules": [
+        releaseRules: [
+          { breaking: true, release: "major" },
+
+          // then the usual ones:
           { type: "feat", release: "minor" },
           { type: "fix", release: "patch" },
           { type: "perf", release: "patch" },
-          { type: "BREAKING CHANGE", release: "major" },
+
+          // all the rest you don’t want to release on:
           { type: "docs", release: false },
           { type: "style", release: false },
           { type: "refactor", release: false },
           { type: "test", release: false },
           { type: "chore", release: false },
+          
+          // { type: "feat", release: "minor" },
+          // { type: "fix", release: "patch" },
+          // { type: "perf", release: "patch" },
+          // { type: "BREAKING CHANGE", release: "major" },
+          // { type: "docs", release: false },
+          // { type: "style", release: false },
+          // { type: "refactor", release: false },
+          // { type: "test", release: false },
+          // { type: "chore", release: false },
         ],
-      }
+      },
     ],
     [
       "@semantic-release/release-notes-generator",
       {
-        "preset": "angular",
-        "parserOpts": {
-          "noteKeywords": ["BREAKING CHANGE", "BREAKING CHANGES", "BREAKING"]
+        preset: "angular",
+        parserOpts: {
+          noteKeywords: ["BREAKING CHANGE", "BREAKING CHANGES", "BREAKING"],
         },
-        "writerOpts": {
-          "commitsSort": ["subject", "scope"]
-        }
-      }
+        writerOpts: {
+          commitsSort: ["subject", "scope"],
+        },
+      },
     ],
     "@semantic-release/npm",
     [
