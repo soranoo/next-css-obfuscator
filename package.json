@@ -11,6 +11,7 @@
     "dev": "tsc -w",
     "pub": "npm run build && npm publish",
     "pub@beta": "npm run build && npm publish --tag beta",
+    "semantic-release": "semantic-release",
     "lint": "biome check ."
   },
   "repository": {
