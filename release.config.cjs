@@ -33,5 +33,4 @@ module.exports = {
     ],
     "@semantic-release/github",
   ],
-  getLastRelease: "@semantic-release/npm",
 };
