@@ -545,7 +545,7 @@ Thank you to all the sponsors who support this project.
 
 ## 🤝 Contributing
 
-Contributions are welcome! If you find a bug or have a feature request, please open an issue. If you want to contribute code, please fork the repository and run `npm run test` before submit a pull request.
+Contributions are welcome! If you find a bug or have a feature request, please open an issue. If you want to contribute code, please fork the repository and run `npm run test` before submit a pull request. We are following the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) specification for commit messages.
 
 ## 🏛️ Commercial Usage
 
