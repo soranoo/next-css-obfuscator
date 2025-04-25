@@ -17,7 +17,7 @@ Visit the [GitHub Page](https://github.com/soranoo/next-css-obfuscator/) for bet
 
 --- 
 
-.
+..
 
 ### 🎉 Version 3 has NOW been released 🎉 (💥 Breaking Changes)
 
