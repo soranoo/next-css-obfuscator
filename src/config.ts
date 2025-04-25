@@ -76,3 +76,4 @@ export class Config {
 }
 
 export default Config;
+console.log("Config loaded");
