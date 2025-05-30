@@ -15,8 +15,7 @@ Project starts on 30-10-2023
 
 Visit the [GitHub Page](https://github.com/soranoo/next-css-obfuscator/) for better reading experience and latest docs. 😎
 
---- 
-
+---
 
 ### 🎉 Version 3 has NOW been released 🎉 (💥 Breaking Changes)
 
@@ -26,40 +25,42 @@ Visit the [GitHub Page](https://github.com/soranoo/next-css-obfuscator/) for bet
 >[!TIP]\
 > Don't upgrade to this version unless you are using TailwindCSS 4.0.0 or above. "If it works, don't touch it." :)
 
-  #### 📌 Feature Changes
+#### 📌 Feature Changes
   
-  - Support TailwindCSS 4.
-  - Support nested CSS.
-  - Support CSS idents obfuscation.
+- Support TailwindCSS 4.
+- Support nested CSS.
+- Support CSS idents obfuscation.
 
-  #### 📌 Configuration Changes
+#### 📌 Configuration Changes
   
-  - `enableJsAst` option is now enabled by default.
-  - Default `generatorSeed` not longer fixed to `-1`, but a random string.
-  - `simplify-seedable` mode is not longer supported. Use `random` mode instead.
-  - Removed `includeAnyMatchRegexes` and `excludeAnyMatchRegexes` options, the `whiteListedFolderPaths` and `blackListedFolderPaths` options will be used instead.
-  - Deprecated `classLength` option, not longer supported.
-  - Added `ignorePatterns` option to ignore the class names and idents that match the regexes or strings.
-  - Not longer preserve TailwindCSS dark mode class names (ie `.dark`). Add the dark mode class name to the `ignorePatterns.selectors` option to preserve it.
-  - Merge `classIgnore` into `ignorePatterns.selectors` option.
-  - Renamed `classPrefix` and `classSuffix` to `prefix` and `suffix`.
+- `enableJsAst` option is now enabled by default.
+- Default `generatorSeed` not longer fixed to `-1`, but a random string.
+- `simplify-seedable` mode is not longer supported. Use `random` mode instead.
+- Removed `includeAnyMatchRegexes` and `excludeAnyMatchRegexes` options, the `whiteListedFolderPaths` and `blackListedFolderPaths` options will be used instead.
+- Deprecated `classLength` option, not longer supported.
+- Added `ignorePatterns` option to ignore the class names and idents that match the regexes or strings.
+- Not longer preserve TailwindCSS dark mode class names (ie `.dark`). Add the dark mode class name to the `ignorePatterns.selectors` option to preserve it.
+- Merge `classIgnore` into `ignorePatterns.selectors` option.
+- Renamed `classPrefix` and `classSuffix` to `prefix` and `suffix`.
 
 ### 💥 Version 2 (Major Update)
+
   This version is deeply inspired by [PostCSS-Obfuscator](https://github.com/n4j1Br4ch1D/postcss-obfuscator). Shout out to [n4j1Br4ch1D](https://github.com/n4j1Br4ch1D) for creating such a great package and thank you [tremor](https://github.com/tremorlabs) for sponsoring this project.
 
-  #### 📌 Changes
-  - Support basic partial obfuscation
-  - Support TailwindCSS Dark Mode
-  - New configuration file `next-css-obfuscator.config.cjs`
-  - More configuration options
-  - Now become a independent solution (no need to patch `PostCSS-Obfuscator` anymore)
-  - More tests
-  - Better CSS parsing
+#### 📌 Changes
+
+- Support basic partial obfuscation
+- Support TailwindCSS Dark Mode
+- New configuration file `next-css-obfuscator.config.cjs`
+- More configuration options
+- Now become a independent solution (no need to patch `PostCSS-Obfuscator` anymore)
+- More tests
+- Better CSS parsing
   
 ### 📚 Migration Guides
+
 - [Migrate from version 1.x to 2.x](docs/upgrade-to-v2.md)
 - [Migrate from version 2.x to 3.x](docs/upgrade-to-v3.md)
-
 
 [version 1.x README](https://github.com/soranoo/next-css-obfuscator/tree/v.1.1.0)
 
@@ -166,7 +167,8 @@ Visit the [npm](https://www.npmjs.com/package/next-css-obfuscator) page.
 
 1. Create and add the following code to `next-css-obfuscator.config.cjs` or `next-css-obfuscator.config.ts`:
 
-    ##### Obfuscate all files
+   ##### Obfuscate all files
+
     ```javascript
     module.exports = {
         enable: true,
@@ -176,8 +178,9 @@ Visit the [npm](https://www.npmjs.com/package/next-css-obfuscator) page.
       };
 
     ```
-    ##### Partially obfuscate
-    
+
+   ##### Partially obfuscate
+
     > [!CAUTION]\
     > Partially obfuscate can be EXTREMELY buggy. Be cautious when using this feature.
 
@@ -193,7 +196,8 @@ Visit the [npm](https://www.npmjs.com/package/next-css-obfuscator) page.
 
     ```
 
-    ##### TypeScript
+   ##### TypeScript
+
     ```ts
     import { Options } from "next-css-obfuscator";
 
@@ -201,8 +205,6 @@ Visit the [npm](https://www.npmjs.com/package/next-css-obfuscator) page.
       // other options ...
     } satisfies Options;
     ```
-
-
 
     Feel free to checkout [📖 Config Options Reference](#-config-options-reference) for more options and details.
 
@@ -250,6 +252,7 @@ to make sure the build is always obfuscated and no need to run `obfuscate-build`
 > It is a good idea to add the `/css-obfuscator` folder to `.gitignore` to prevent the conversion table from being uploaded to the repository.
 
 #### Partially obfuscate
+
 To partially obfuscate your project, you have to add the obfuscate marker class to the components you want to obfuscate.
 
 ```diff
@@ -312,13 +315,15 @@ It may not be the best setting but it works for me. :)
 |buildFolderPath|string|"./.next"|The folder path to store the build files built by Next.js.|
 |classConversionJsonFolderPath|string|"./css-obfuscator"|The folder path to store the before obfuscate and after obfuscated classes conversion table.|
 |refreshClassConversionJson|boolean|false|Refresh the class conversion JSON file(s) at every obfuscation. Good for setting tweaking but not recommended for production.|
-|prefix|string|""|The prefix of the obfuscated class and ident name.|
-|suffix|string|""|The suffix of the obfuscated class and ident name.|
+|prefix.selectors|string|""|The prefix of the obfuscated classname.|
+|prefix.idents|string|""|The prefix of the obfuscated ident name.|
+|suffix.selectors|string|""|The suffix of the obfuscated classname.|
+|suffix.idents|string|""|The suffix of the obfuscated ident name.|
 |ignorePatterns|{selectors: [], idents: []}|{selectors: [], idents: []}|The patterns to be ignored during obfuscation.|
 |allowExtensions|string[ ]|[".jsx", ".tsx", ".js", ".ts", ".html", ".rsc"]|The file extensions to be processed.|
 |contentIgnoreRegexes|RegExp[ ]|[/\.jsxs\)\("\w+"/g]|The regexes to match the content to be ignored  during obfuscation.|
-|whiteListedFolderPaths|(string \| Regex)[ ]|[ ]|The folder paths/Regex to be processed. Empty array means all folders will be processed.|
-|blackListedFolderPaths|(string \| Regex)[ ]|[ ]|The folder paths/Regex to be ignored.|
+|whiteListedFolderPaths|[string \| Regex]( )|[ ]|The folder paths/Regex to be processed. Empty array means all folders will be processed.|
+|blackListedFolderPaths|[string \| Regex]( )|[ ]|The folder paths/Regex to be ignored.|
 |enableMarkers|boolean|false|Enable or disable the obfuscation markers.|
 |markers|string[ ]|[ ]|Classes that indicate component(s) need to obfuscate.|
 |removeMarkersAfterObfuscated|boolean|true|Remove the obfuscation markers from HTML elements after obfuscation.|
@@ -327,6 +332,7 @@ It may not be the best setting but it works for me. :)
 |logLevel|"debug" \| "info" \| "warn" \| "error" \| "success"| "info"|The log level.|
 
 ### Experimental Features Options 🚧
+
 | Option| Type| Default| Description| Stage |
 | - | - | - | - | - |
 |enableJsAst|boolean|true|Whether to obfuscate JS files using abstract syntax tree parser. <br><br>`contentIgnoreRegexes` option will be ignored if this option is enabled.|Alpha|
@@ -338,12 +344,14 @@ It may not be the best setting but it works for me. :)
 
 > [!NOTE]\
 > **Stages** -
+>
 > 1. **PoC**: Proof of Concept. The feature is still in the concept stage and is not recommended in production.
 > 2. **Alpha**: The feature is still in the early stage of development and may not work as expected.
 > 3. **Beta**: The feature is almost completed and should work as expected but may have some issues. (if no issue is reported in a period, it will be considered stable.)
 > 4. **Stable**: The feature is in the final stage of development and should work as expected.
 
 ### All options in one place 📦
+
 ```js
 // next-css-obfuscator.config.cjs
 
@@ -369,8 +377,14 @@ module.exports = {
      */
     classSuffix: "", // Suffix of the obfuscated class name.
 
-    prefix: "", // Prefix of the obfuscated class and ident name.
-    suffix: "", // Suffix of the obfuscated class and ident name.
+    prefix: {
+      selectors: "", // Prefix of the obfuscated classname.
+      idents: "", // Prefix of the obfuscated ident name.
+    },
+    suffix: {
+      selectors: "", // Suffix of the obfuscated classname.
+      idents: "", // Suffix of the obfuscated ident name.
+    },
 
     /**
      * @deprecated Merged into `ignorePatterns.selectors` from v3.0.0 and will be removed in the next major version.
@@ -428,6 +442,7 @@ Your conversion table may be messed up. Try to delete the `classConversionJsonFo
 In a normal situation, the package will only remove the original CSS that is related to the obfuscation and you should not see any CSS sharing the same declaration block.
 
 You are not expected to see this:
+
 ```css
 /* example.css */
 
@@ -508,6 +523,7 @@ If you are going to obfuscate the whole site, you will get a way more accurate o
 Thank you to all the sponsors who support this project.
 
 #### Organizations (1)
+
 <table>
   <tr>
   <td align="center">
@@ -520,6 +536,7 @@ Thank you to all the sponsors who support this project.
 </table>
 
 #### Individuals (1)
+
 <table>
   <tr>
   <td align="center">
@@ -532,6 +549,7 @@ Thank you to all the sponsors who support this project.
 </table>
 
 ## 🦾 Special Thanks
+
 <table>
   <tr>
   <td align="center">
@@ -550,9 +568,11 @@ Contributions are welcome! If you find a bug or have a feature request, please o
 ## 🏛️ Commercial Usage
 
 #### Individual🕺
+
 Are you using this package for a personal project? That's great! You can support us by starring this repo on Github ⭐🌟⭐.
 
 #### Organization 👯‍♂️
+
 Are you using this package within your organization and generating revenue from it? Fantastic! We depend on your support to continue developing and maintaining the package under an MIT License. You might consider showing your support through [Github Sponsors](https://github.com/sponsors/soranoo).
 
 ## 📝 License

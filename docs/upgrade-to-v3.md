@@ -11,8 +11,10 @@ The following table outlines the changes to the configuration options from versi
 | `generatorSeed` (default: -1)  | `generatorSeed` (default: {random})  | Default seed is now a random string. Provide a fixed string if you need consistent output across builds (e.g., for CDN caching). |
 | `mode: "simplify-seedable"`    | ⛔ (Removed)                         | Use `mode: "random"` with a fixed `generatorSeed` instead.                                                                          |
 | `classLength`                  | ⛔ (Deprecated)                      | No longer supported. Will be removed in the next major version.                               |
-| `classPrefix`                  | `prefix`                | Renamed for clarity, now applies to both selectors and idents. `classPrefix` will be removed in the next major version.             |
-| `classSuffix`                  | `suffix`                | Renamed for clarity, now applies to both selectors and idents. `classSuffix` will be removed in the next major version.             |
+| `classPrefix`                  | `prefix.selectors`                | Renamed for clarity, now applies to both selectors and idents. `classPrefix` will be removed in the next major version.             |
+| ➡️                             | `prefix.idents`              | New option to add specific prefix idents|
+| `classSuffix`                  | `suffix.selectors`                | Renamed for clarity, now applies to both selectors and idents. `classSuffix` will be removed in the next major version.             |
+| ➡️                             | `suffix.idents`              | New option to add specific suffix idents|
 | `classIgnore`                  | `ignorePatterns.selectors` | Merged into the new `ignorePatterns` object. `classIgnore` will be removed in the next major version.                               |
 | ➡️                             | `ignorePatterns.idents`              | New option to ignore specific CSS idents|
 | `includeAnyMatchRegexes`       | ⛔ (Removed)                         | Use `whiteListedFolderPaths` instead.                                                                                               |

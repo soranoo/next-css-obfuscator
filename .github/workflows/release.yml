@@ -28,9 +28,10 @@ jobs:
       - name: Build NPM package
         run: npm run build
 
-      - name: Edit Inital Version
+      - name: Edit First Release Version
         run: sed -i 's/\( FIRST_RELEASE\) = "1.0.0"/\1 = "3.0.0"/' node_modules/semantic-release/lib/definitions/constants.js
-      - name: Edit Inital Version
+        
+      - name: Edit First Prerelease Version
         run: sed -i 's/\( FIRSTPRERELEASE\) = "1"/\1 = "3"/' node_modules/semantic-release/lib/definitions/constants.js
 
       - name: Create Release

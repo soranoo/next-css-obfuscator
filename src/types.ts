@@ -1,4 +1,8 @@
-import type { ConversionTables, TransformProps } from "css-seasoning";
+import type {
+  ConversionTables,
+  PrefixSuffixOptions,
+  TransformProps,
+} from "css-seasoning";
 
 export type LogLevel = "debug" | "info" | "warn" | "error" | "success";
 export type obfuscateMode = "random" | "simplify";
@@ -24,8 +28,9 @@ export type Options = {
    * @deprecated Merged into `suffix` from v3.0.0 and will be removed in the next major version.
    */
   classSuffix: string;
-  prefix: string;
-  suffix: string;
+
+  prefix: PrefixSuffixOptions;
+  suffix: PrefixSuffixOptions;
 
   /**
    * @deprecated Merged into `ignorePatterns.selectors` from v3.0.0 and will be removed in the next major version.

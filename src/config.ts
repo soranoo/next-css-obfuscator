@@ -22,8 +22,14 @@ export const defaultOptions: Options = {
    */
   classSuffix: "", // Suffix of the obfuscated class name.
 
-  prefix: "", // Prefix of the obfuscated class and ident name.
-  suffix: "", // Suffix of the obfuscated class and ident name.
+  prefix: {
+    selectors: "", // Prefix of the obfuscated classname.
+    idents: "", // Prefix of the obfuscated ident name.
+  },
+  suffix: {
+    selectors: "", // Suffix of the obfuscated classname.
+    idents: "", // Suffix of the obfuscated ident name.
+  },
 
   /**
    * @deprecated Merged into `ignorePatterns.selectors` from v3.0.0 and will be removed in the next major version.
