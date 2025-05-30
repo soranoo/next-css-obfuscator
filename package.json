@@ -28,7 +28,7 @@
     "@babel/generator": "^7.23.6",
     "@babel/parser": "^7.23.9",
     "@babel/traverse": "^7.23.9",
-    "css-seasoning": "^1.8.0",
+    "css-seasoning": "^1.9.0",
     "html-escaper": "^3.0.3",
     "htmlparser2": "^10.0.0",
     "lightningcss-wasm": "^1.29.3",
