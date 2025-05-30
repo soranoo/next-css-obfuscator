@@ -607,11 +607,11 @@ export const loadConversionTables = (folderPath: string): ConversionTables => {
     const fileData = JSON.parse(fs.readFileSync(filePath, "utf-8"));
 
     if (
-      Object.keys(fileData).includes("ident") &&
-      Object.keys(fileData).includes("selector")
+      Object.keys(fileData).includes("idents") &&
+      Object.keys(fileData).includes("selectors")
     ) {
-      Object.assign(tables.idents, fileData.ident);
-      Object.assign(tables.selectors, fileData.selector);
+      Object.assign(tables.idents, fileData.idents);
+      Object.assign(tables.selectors, fileData.selectors);
     } else {
       // if the file doesn't have ident, it should be selector
       //? For backward compatibility

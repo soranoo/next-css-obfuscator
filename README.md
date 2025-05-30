@@ -170,6 +170,7 @@ Visit the [npm](https://www.npmjs.com/package/next-css-obfuscator) page.
    ##### Obfuscate all files
 
     ```javascript
+    /** @type {import("next-css-obfuscator").Options} */
     module.exports = {
         enable: true,
         mode: "random", // random | simplify
@@ -181,10 +182,11 @@ Visit the [npm](https://www.npmjs.com/package/next-css-obfuscator) page.
 
    ##### Partially obfuscate
 
-    > [!CAUTION]\
-    > Partially obfuscate can be EXTREMELY buggy. Be cautious when using this feature.
+> [!CAUTION]\
+> Partially obfuscate can be EXTREMELY buggy. Be cautious when using this feature.
 
     ```javascript
+    /** @type {import("next-css-obfuscator").Options} */
     module.exports = {
         enable: true,
         mode: "random", // random | simplify
@@ -196,20 +198,10 @@ Visit the [npm](https://www.npmjs.com/package/next-css-obfuscator) page.
 
     ```
 
-   ##### TypeScript
-
-    ```ts
-    import { Options } from "next-css-obfuscator";
-
-    module.exports = {
-      // other options ...
-    } satisfies Options;
-    ```
-
     Feel free to checkout [📖 Config Options Reference](#-config-options-reference) for more options and details.
 
-    > [!TIP]\
-    > The obfuscation will never work as expected, tweak the options with your own needs.
+> [!TIP]\
+> The obfuscation will never work as expected, tweak the options with your own needs.
 
 2. Add the following code to `package.json`:
 
@@ -286,6 +278,7 @@ If you are interested in my setting, here it is
 ```javascript
 // next-css-obfuscator.config.cjs
 
+/** @type {import("next-css-obfuscator").Options} */
 module.exports = {
   enable: true,
   mode: "random", // random | simplify
