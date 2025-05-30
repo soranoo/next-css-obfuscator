@@ -1,17 +1,14 @@
 import fs from "node:fs";
 import path from "node:path";
-import type {
-  LogLevel,
-  SelectorConversion,
-} from "./types";
-import { cssEscape, cssUnescape, type ConversionTables } from "css-seasoning";
+import { type ConversionTables, cssEscape, cssUnescape } from "css-seasoning";
 import { obfuscateHtmlClassNames } from "./handlers/html";
 import { obfuscateJs } from "./handlers/js";
+import type { LogLevel, SelectorConversion } from "./types";
 
 // Add a new function for path filtering
 /**
  * Checks if a path should be included based on whitelist and blacklist rules
- * 
+ *
  * @param filePath - The file path to check
  * @param whiteListedFolderPaths - Paths to include
  * @param blackListedFolderPaths - Paths to exclude (higher priority than whitelist)
@@ -20,7 +17,7 @@ import { obfuscateJs } from "./handlers/js";
 const shouldIncludePath = (
   filePath: string,
   whiteListedFolderPaths: (string | RegExp)[] = [],
-  blackListedFolderPaths: (string | RegExp)[] = []
+  blackListedFolderPaths: (string | RegExp)[] = [],
 ): boolean => {
   const normalizedPath = normalizePath(filePath);
 
@@ -37,15 +34,17 @@ const shouldIncludePath = (
   }
 
   // Check if the path is whitelisted (if whitelist is not empty)
-  const isWhitelisted = whiteListedFolderPaths.length === 0 || whiteListedFolderPaths.some((includePath) => {
-    if (typeof includePath === "string") {
-      return normalizedPath.includes(includePath);
-    }
-    return includePath.test(normalizedPath);
-  });
+  const isWhitelisted =
+    whiteListedFolderPaths.length === 0 ||
+    whiteListedFolderPaths.some((includePath) => {
+      if (typeof includePath === "string") {
+        return normalizedPath.includes(includePath);
+      }
+      return includePath.test(normalizedPath);
+    });
 
   return isWhitelisted;
-}
+};
 
 //! ====================
 //! Log
@@ -65,7 +64,14 @@ export const log = (type: LogLevel, task: string, data: unknown) => {
 
   switch (type) {
     case "debug":
-      console.debug(mainColor, issuer, "[Debug] \x1b[37m", task, data, "\x1b[0m");
+      console.debug(
+        mainColor,
+        issuer,
+        "[Debug] \x1b[37m",
+        task,
+        data,
+        "\x1b[0m",
+      );
       break;
     case "info":
       console.info(mainColor, issuer, "🗯️ \x1b[36m", task, data, "\x1b[0m");
@@ -87,7 +93,7 @@ export const log = (type: LogLevel, task: string, data: unknown) => {
 
 export const setLogLevel = (level: LogLevel) => {
   logLevel = level;
-}
+};
 
 //! ====================
 //! Constants
@@ -105,46 +111,44 @@ export const setLogLevel = (level: LogLevel) => {
 // };
 
 //! ====================
-//! 
+//!
 //! ====================
 
 export const usedKeyRegistery = new Set<string>();
 
+export const replaceJsonKeysInFiles = ({
+  conversionTables,
+  targetFolder,
+  allowExtensions,
 
-export const replaceJsonKeysInFiles = (
-  {
-    conversionTables,
-    targetFolder,
-    allowExtensions,
+  contentIgnoreRegexes,
 
-    contentIgnoreRegexes,
+  whiteListedFolderPaths,
+  blackListedFolderPaths,
+  enableObfuscateMarkerClasses,
+  obfuscateMarkerClasses,
+  removeObfuscateMarkerClassesAfterObfuscated,
 
-    whiteListedFolderPaths,
-    blackListedFolderPaths,
-    enableObfuscateMarkerClasses,
-    obfuscateMarkerClasses,
-    removeObfuscateMarkerClassesAfterObfuscated,
+  enableJsAst,
+}: {
+  conversionTables: ConversionTables;
+  targetFolder: string;
+  allowExtensions: string[];
 
-    enableJsAst,
-  }: {
-    conversionTables: ConversionTables,
-    targetFolder: string,
-    allowExtensions: string[],
+  contentIgnoreRegexes: RegExp[];
 
-    contentIgnoreRegexes: RegExp[],
+  whiteListedFolderPaths: (string | RegExp)[];
+  blackListedFolderPaths: (string | RegExp)[];
+  enableObfuscateMarkerClasses: boolean;
+  obfuscateMarkerClasses: string[];
+  removeObfuscateMarkerClassesAfterObfuscated: boolean;
 
-    whiteListedFolderPaths: (string | RegExp)[],
-    blackListedFolderPaths: (string | RegExp)[],
-    enableObfuscateMarkerClasses: boolean,
-    obfuscateMarkerClasses: string[],
-    removeObfuscateMarkerClassesAfterObfuscated: boolean,
-
-    enableJsAst: boolean,
-  }) => {
+  enableJsAst: boolean;
+}) => {
   //ref: https://github.com/n4j1Br4ch1D/postcss-obfuscator/blob/main/utils.js
 
   if (removeObfuscateMarkerClassesAfterObfuscated) {
-    obfuscateMarkerClasses.forEach(obfuscateMarkerClass => {
+    obfuscateMarkerClasses.forEach((obfuscateMarkerClass) => {
       conversionTables.selectors[cssEscape(`.${obfuscateMarkerClass}`)] = "";
     });
   }
@@ -159,11 +163,15 @@ export const replaceJsonKeysInFiles = (
       fs.readdirSync(filePath).forEach((subFilePath) => {
         replaceJsonKeysInFile(path.join(filePath, subFilePath));
       });
-    } else if (
-      allowExtensions.includes(fileExt)
-    ) {
+    } else if (allowExtensions.includes(fileExt)) {
       // Use the unified path filtering function
-      if (!shouldIncludePath(filePath, whiteListedFolderPaths, blackListedFolderPaths)) {
+      if (
+        !shouldIncludePath(
+          filePath,
+          whiteListedFolderPaths,
+          blackListedFolderPaths,
+        )
+      ) {
         return;
       }
 
@@ -172,12 +180,16 @@ export const replaceJsonKeysInFiles = (
       const fileContentOriginal = fileContent;
 
       if (enableObfuscateMarkerClasses) {
-        obfuscateMarkerClasses.forEach(obfuscateMarkerClass => {
+        obfuscateMarkerClasses.forEach((obfuscateMarkerClass) => {
           const isHtml = [".html"].includes(fileExt);
           if (isHtml) {
             // filter all html
             // ref: https://stackoverflow.com/a/56102604
-            const htmlRegex = new RegExp(`(<(.*)>(.*)<\/([^br][A-Za-z0-9]+)>)`, 'g');
+            // biome-ignore lint/complexity/useRegexLiterals: using regex literals herer will cause typing issues
+            const htmlRegex = new RegExp(
+              "(<(.*)>(.*)</([^br][A-Za-z0-9]+)>)",
+              "g",
+            );
             const htmlMatch = fileContent.match(htmlRegex);
             if (htmlMatch) {
               const htmlOriginal = htmlMatch[0];
@@ -189,23 +201,30 @@ export const replaceJsonKeysInFiles = (
               });
               addKeysToRegistery(usedKeys);
               if (htmlOriginal !== obfuscatedContent) {
-                fileContent = fileContent.replace(htmlOriginal, obfuscatedContent);
+                fileContent = fileContent.replace(
+                  htmlOriginal,
+                  obfuscatedContent,
+                );
               }
             }
           } else {
-            const obfuscateScriptContent = obfuscateJs(fileContent,
+            const obfuscateScriptContent = obfuscateJs(
+              fileContent,
               obfuscateMarkerClass,
               conversionTables.selectors,
               filePath,
               contentIgnoreRegexes,
-              enableJsAst
+              enableJsAst,
             );
             if (fileContent !== obfuscateScriptContent) {
               fileContent = obfuscateScriptContent;
-              log("debug", "Obscured keys in JS like content file:", normalizePath(filePath));
+              log(
+                "debug",
+                "Obscured keys in JS like content file:",
+                normalizePath(filePath),
+              );
             }
           }
-
         });
       } else {
         /* Handle Full Obfuscation */
@@ -217,11 +236,15 @@ export const replaceJsonKeysInFiles = (
             conversionTables.selectors,
             filePath,
             contentIgnoreRegexes,
-            enableJsAst
+            enableJsAst,
           );
           if (fileContent !== obfuscateScriptContent) {
             fileContent = obfuscateScriptContent;
-            log("debug", "Obscured keys in JSX related file:", normalizePath(filePath));
+            log(
+              "debug",
+              "Obscured keys in JSX related file:",
+              normalizePath(filePath),
+            );
           }
         } else if ([".html"].includes(fileExt)) {
           //! NEW
@@ -237,9 +260,8 @@ export const replaceJsonKeysInFiles = (
           const { obfuscatedContent, usedKeys } = obfuscateKeys(
             conversionTables.selectors,
             fileContent,
-            contentIgnoreRegexes
+            contentIgnoreRegexes,
           );
-
 
           fileContent = obfuscatedContent;
           addKeysToRegistery(usedKeys);
@@ -250,11 +272,10 @@ export const replaceJsonKeysInFiles = (
         log("success", "Data obfuscated:", normalizePath(filePath));
         fs.writeFileSync(filePath, fileContent);
       }
-
     } else if (fileExt === ".css") {
       cssPaths.push(filePath);
     }
-  }
+  };
 
   // Process all files in the directory excluding .css files
   replaceJsonKeysInFile(targetFolder);
@@ -263,13 +284,13 @@ export const replaceJsonKeysInFiles = (
   // cssPaths.forEach(async (cssPath) => {
   //   await obfuscateCss(classConversion, cssPath, removeOriginalCss, !enableObfuscateMarkerClasses);
   // });
-}
+};
 
 export const obfuscateKeys = (
   selectorConversion: SelectorConversion,
   fileContent: string,
   contentIgnoreRegexes: RegExp[] = [],
-  useHtmlEntity = false
+  useHtmlEntity = false,
 ) => {
   //ref: https://github.com/n4j1Br4ch1D/postcss-obfuscator/blob/main/utils.js
 
@@ -282,14 +303,20 @@ export const obfuscateKeys = (
     keyUse = escapeRegExp(keyUse.replace(/\\/g, "")); // escape the key
 
     //? sample: "text-sm w-full\n      text-right\n p-2 flex gap-2 hover:bg-gray-100 dark:hover:bg-red-700 text-right"
-    let exactMatchRegex = new RegExp(`([\\s"'\\\`]|^)(${keyUse})(?=$|[\\s"'\\\`]|\\\\n|\\\\",|\\\\"})`, 'g'); // match exact wording & avoid ` ' ""
+    const exactMatchRegex = new RegExp(
+      `([\\s"'\\\`]|^)(${keyUse})(?=$|[\\s"'\\\`]|\\\\n|\\\\",|\\\\"})`,
+      "g",
+    ); // match exact wording & avoid ` ' ""
     // exactMatchRegex = new RegExp(`([\\s"'\\\`]|^)(${keyUse})(?=$|[\\s"'\\\`])`, 'g'); // match exact wording & avoid ` ' ""
 
     const replacement = `$1${selectorConversion[key].slice(1).replace(/\\/g, "").slice(1)}`;
 
     const matches = fileContent.match(exactMatchRegex);
     const originalObscuredContentPairs = matches?.map((match) => {
-      return { originalContent: match, obscuredContent: match.replace(exactMatchRegex, replacement) };
+      return {
+        originalContent: match,
+        obscuredContent: match.replace(exactMatchRegex, replacement),
+      };
     });
     fileContent = fileContent.replace(exactMatchRegex, replacement); // capture preceding space
 
@@ -299,26 +326,39 @@ export const obfuscateKeys = (
 
         originalContentFragments?.map((originalContentFragment) => {
           originalObscuredContentPairs?.map((pair) => {
-            if (originalContentFragments?.some((fragment) => fragment.includes(pair.originalContent))) {
-              log("debug", "Obscured keys:", `Ignored ${pair.originalContent} at ${originalContentFragment}`);
-              fileContent = fileContent.replace(originalContentFragment.replace(pair.originalContent, pair.obscuredContent), originalContentFragment);
+            if (
+              originalContentFragments?.some((fragment) =>
+                fragment.includes(pair.originalContent),
+              )
+            ) {
+              log(
+                "debug",
+                "Obscured keys:",
+                `Ignored ${pair.originalContent} at ${originalContentFragment}`,
+              );
+              fileContent = fileContent.replace(
+                originalContentFragment.replace(
+                  pair.originalContent,
+                  pair.obscuredContent,
+                ),
+                originalContentFragment,
+              );
             }
           });
         });
       });
     }
 
-
     if (fileContentOriginal !== fileContent && !usedKeys.has(key)) {
       usedKeys.add(key);
     }
   });
   return { obfuscatedContent: fileContent, usedKeys: usedKeys };
-}
+};
 
 const escapeRegExp = (str: string) => {
   //ref: https://github.com/n4j1Br4ch1D/postcss-obfuscator/blob/main/utils.js
-  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); // $& means the whole matched string
 };
 
 /**
@@ -328,19 +368,19 @@ const escapeRegExp = (str: string) => {
  */
 export const getFilenameFromPath = (filePath: string) => {
   //ref: https://github.com/n4j1Br4ch1D/postcss-obfuscator/blob/main/utils.js
-  return filePath.replace(/^.*[\\/]/, '');
+  return filePath.replace(/^.*[\\/]/, "");
 };
 
 /**
  * Normalizes a file path by replacing backslashes with forward slashes.
- * 
+ *
  * @param filePath - The file path to normalize.
  * @returns The normalized file path.
- * 
+ *
  * @example
  * // Returns: 'c:/Users/next-css-obfuscator/src/utils.ts'
  * normalizePath('c:\\Users\\next-css-obfuscator\\src\\utils.ts');
- * 
+ *
  * @example
  * // Returns: 'path/to/file'
  * normalizePath('path\\to\\file');
@@ -350,23 +390,34 @@ export const normalizePath = (filePath: string) => {
 };
 
 /**
- * 
- * @param content 
- * @param openMarker 
- * @param closeMarker 
- * @param startPosition 
+ *
+ * @param content
+ * @param openMarker
+ * @param closeMarker
+ * @param startPosition
  * @param direction - if "forward", the function will search the closest closeMarker after the startPosition, if "backward", the function will search the closest openMarker before the startPosition
- * @returns 
+ * @returns
  */
-export const findClosestSymbolPosition = (content: string, openMarker: string, closeMarker: string, startPosition = 0, direction: "forward" | "backward" = "backward") => {
+export const findClosestSymbolPosition = (
+  content: string,
+  openMarker: string,
+  closeMarker: string,
+  startPosition = 0,
+  direction: "forward" | "backward" = "backward",
+) => {
   let level = 0;
   let currentPos = startPosition;
 
   if (direction === "backward") {
     while (currentPos >= 0 && level >= 0) {
-      if (content.slice(currentPos, currentPos + openMarker.length) === openMarker) {
+      if (
+        content.slice(currentPos, currentPos + openMarker.length) === openMarker
+      ) {
         level--;
-      } else if (content.slice(currentPos, currentPos + closeMarker.length) === closeMarker) {
+      } else if (
+        content.slice(currentPos, currentPos + closeMarker.length) ===
+        closeMarker
+      ) {
         level++;
       }
       currentPos--;
@@ -377,9 +428,14 @@ export const findClosestSymbolPosition = (content: string, openMarker: string, c
     }
   } else {
     while (currentPos < content.length && level >= 0) {
-      if (content.slice(currentPos, currentPos + openMarker.length) === openMarker) {
+      if (
+        content.slice(currentPos, currentPos + openMarker.length) === openMarker
+      ) {
         level++;
-      } else if (content.slice(currentPos, currentPos + closeMarker.length) === closeMarker) {
+      } else if (
+        content.slice(currentPos, currentPos + closeMarker.length) ===
+        closeMarker
+      ) {
         level--;
       }
       currentPos++;
@@ -393,7 +449,12 @@ export const findClosestSymbolPosition = (content: string, openMarker: string, c
   return currentPos;
 };
 
-export const findContentBetweenMarker = (content: string, targetStr: string, openMarker: string, closeMarker: string) => {
+export const findContentBetweenMarker = (
+  content: string,
+  targetStr: string,
+  openMarker: string,
+  closeMarker: string,
+) => {
   if (openMarker === closeMarker) {
     throw new Error("openMarker and closeMarker can not be the same");
   }
@@ -401,8 +462,20 @@ export const findContentBetweenMarker = (content: string, targetStr: string, ope
   let targetStrPosition = content.indexOf(targetStr);
   const truncatedContents: string[] = [];
   while (targetStrPosition !== -1 && targetStrPosition < content.length) {
-    const openPos = findClosestSymbolPosition(content, openMarker, closeMarker, targetStrPosition, "backward");
-    const closePos = findClosestSymbolPosition(content, openMarker, closeMarker, targetStrPosition, "forward");
+    const openPos = findClosestSymbolPosition(
+      content,
+      openMarker,
+      closeMarker,
+      targetStrPosition,
+      "backward",
+    );
+    const closePos = findClosestSymbolPosition(
+      content,
+      openMarker,
+      closeMarker,
+      targetStrPosition,
+      "forward",
+    );
 
     if (openPos === -1 && closePos === -1) {
       break;
@@ -428,7 +501,7 @@ export const addKeysToRegistery = (usedKeys: Set<string> | string[]) => {
 
 /**
  * Find all files with the specified extension in the build folder.
- * 
+ *
  * @param ext - the extension of the files to find (e.g. .css) "." is required.
  * @param targetFolderPath - the path to the folder to start searching from.
  * @param options - optional parameters.
@@ -437,11 +510,12 @@ export const addKeysToRegistery = (usedKeys: Set<string> | string[]) => {
  * @returns - an array of file relative paths.
  */
 export const findAllFilesWithExt = (
-  ext: string, targetFolderPath: string,
+  ext: string,
+  targetFolderPath: string,
   options?: {
-    whiteListedFolderPaths?: (string | RegExp)[],
-    blackListedFolderPaths?: (string | RegExp)[],
-  }
+    whiteListedFolderPaths?: (string | RegExp)[];
+    blackListedFolderPaths?: (string | RegExp)[];
+  },
 ): string[] => {
   if (!fs.existsSync(targetFolderPath)) {
     return [];
@@ -471,15 +545,19 @@ export const findAllFilesWithExt = (
         }
       }
     });
-  }
+  };
 
   // start searching for files from the specified directory
   findFiles(targetFolderPath);
 
   return targetExtFiles;
-}
+};
 
-export const replaceFirstMatch = (source: string, find: string, replace: string): string => {
+export const replaceFirstMatch = (
+  source: string,
+  find: string,
+  replace: string,
+): string => {
   const index = source.indexOf(find);
   if (index !== -1) {
     return source.slice(0, index) + replace + source.slice(index + find.length);
@@ -499,10 +577,10 @@ export const duplicationCheck = (arr: string[]) => {
 
 /**
  * Convert a string to a number by summing the char codes of each character
- * 
+ *
  * @param str - The string to convert
  * @returns The sum of the char codes of each character in the string
- * 
+ *
  * @example
  * stringToNumber("abc") // returns 294 (97 + 98 + 99)
  * stringToNumber("hello") // returns 532 (104 + 101 + 108 + 108 + 111)
@@ -511,12 +589,11 @@ export const stringToNumber = (str: string) => {
   return str.split("").reduce((acc, char) => {
     return acc + char.charCodeAt(0);
   }, 0);
-}
-
+};
 
 /**
  * Loads and merges all JSON files (Conversion Tables) in the specified folder.
- * 
+ *
  * @param folderPath - The folder path to load the conversion tables from.
  * @returns ConversionTables - The merged conversion tables.
  */
@@ -530,7 +607,10 @@ export const loadConversionTables = (folderPath: string): ConversionTables => {
     const filePath = path.join(folderPath, file);
     const fileData = JSON.parse(fs.readFileSync(filePath, "utf-8"));
 
-    if (Object.keys(fileData).includes("ident") && Object.keys(fileData).includes("selector")) {
+    if (
+      Object.keys(fileData).includes("ident") &&
+      Object.keys(fileData).includes("selector")
+    ) {
       Object.assign(tables.idents, fileData.ident);
       Object.assign(tables.selectors, fileData.selector);
     } else {
@@ -541,5 +621,4 @@ export const loadConversionTables = (folderPath: string): ConversionTables => {
   });
 
   return tables;
-}
-
+};

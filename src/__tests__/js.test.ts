@@ -1,14 +1,11 @@
 import { describe, expect, test } from "vitest";
-import {
-  searchForwardComponent,
-} from "../handlers/js";
+import { searchForwardComponent } from "../handlers/js";
 
 //! ================================
 //! searchForwardComponent
 //! ================================
 
 describe("searchForwardComponent", () => {
-
   test("should return component name when jsx format is correct", () => {
     // Arrange
     const content = `const element = o.jsx(ComponentName, {data: dataValue, index: "date"});`;
@@ -22,7 +19,8 @@ describe("searchForwardComponent", () => {
 
   test("should return multiple component names for multiple matches", () => {
     // Arrange
-    const content = "o.jsx(FirstComponent, props); o.jsx(SecondComponent, otherProps);";
+    const content =
+      "o.jsx(FirstComponent, props); o.jsx(SecondComponent, otherProps);";
 
     // Act
     const result = searchForwardComponent(content);
@@ -109,12 +107,17 @@ describe("searchForwardComponent", () => {
     const result = searchForwardComponent(content);
 
     // Assert
-    expect(result).toEqual(["FirstComponent", "SecondComponent", "ThirdComponent"]);
+    expect(result).toEqual([
+      "FirstComponent",
+      "SecondComponent",
+      "ThirdComponent",
+    ]);
   });
 
   test("should handle content with nested jsx calls", () => {
     // Arrange
-    const content = "o.jsx(ParentComponent, {children: o.jsx(ChildComponent, {})})";
+    const content =
+      "o.jsx(ParentComponent, {children: o.jsx(ChildComponent, {})})";
 
     // Act
     const result = searchForwardComponent(content);
@@ -122,5 +125,4 @@ describe("searchForwardComponent", () => {
     // Assert
     expect(result).toEqual(["ParentComponent", "ChildComponent"]);
   });
-
 });

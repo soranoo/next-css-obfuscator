@@ -1,8 +1,8 @@
-import { describe, it, expect, test, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, test } from "vitest";
 import {
+  duplicationCheck,
   findContentBetweenMarker,
   getFilenameFromPath,
-  duplicationCheck,
 } from "../utils";
 
 //! ================================
@@ -10,16 +10,20 @@ import {
 //! ================================
 
 describe("findContentBetweenMarker", () => {
-
   it("should return the correct content between markers", () => {
     const content = "123{{4}5{67}8}901{2345678}9";
-    const targetStr = '5';
-    const openSymbol = '{';
-    const closeSymbol = '}';
+    const targetStr = "5";
+    const openSymbol = "{";
+    const closeSymbol = "}";
 
     const expectedOutput = ["{4}5{67}8", "2345678"];
 
-    const result = findContentBetweenMarker(content, targetStr, openSymbol, closeSymbol);
+    const result = findContentBetweenMarker(
+      content,
+      targetStr,
+      openSymbol,
+      closeSymbol,
+    );
     expect(result).toEqual(expectedOutput);
   });
 
@@ -36,14 +40,11 @@ describe("findContentBetweenMarker", () => {
   // });
 });
 
-
-
 //! ================================
 //! getFilenameFromPath
 //! ================================
 
 describe("getFilenameFromPath", () => {
-
   test("should extract filename from a Unix-like path", () => {
     // Act
     const result = getFilenameFromPath("/home/user/documents/report.pdf");
@@ -130,7 +131,6 @@ describe("getFilenameFromPath", () => {
 //! ================================
 
 describe("duplicationCheck", () => {
-
   test("should return false for an array with no duplicates", () => {
     // Arrange
     const input = ["apple", "banana", "cherry"];
