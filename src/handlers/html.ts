@@ -48,7 +48,7 @@ export const obfuscateHtmlClassNames = ({
 
   const parser = new htmlparser2.Parser(
     {
-      onprocessinginstruction(name, data) {
+      onprocessinginstruction(_, data) {
         modifiedHtml += `<${data}>`;
       },
       onopentag(tagName, attribs) {
@@ -73,7 +73,6 @@ export const obfuscateHtmlClassNames = ({
               selectorConversion,
               attribs.class,
               [],
-              true,
             );
             usedKeys.push(..._usedKeys);
             // Update the class to the modified class names

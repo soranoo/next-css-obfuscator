@@ -38,16 +38,16 @@ export const obfuscateJsWithAst = (
           }
 
           // strip unnecessary space, e.g. "  a  b  c  " => "a b c "
-          str = stripUnnecessarySpace
+          const newStr = stripUnnecessarySpace
             ? str
                 .replace(/\s+/g, " ")
                 .trimStart() //? avoid trimming the end to keep the space between classes
             : str;
 
           const { obfuscatedContent, usedKeys: obfuscateUsedKeys } =
-            obfuscateKeys(selectorConversion, str);
+            obfuscateKeys(selectorConversion, newStr);
 
-          if (obfuscatedContent !== str) {
+          if (obfuscatedContent !== newStr) {
             obfuscateUsedKeys.forEach((key) => usedKeys.add(key));
             return obfuscatedContent;
           }
@@ -79,7 +79,7 @@ export const obfuscateJsWithAst = (
  */
 export const searchStringLiterals = (
   path: NodePath<t.Node>,
-  callback: (str: string) => void | string,
+  callback: (str: string) => undefined | string,
 
   //? keep track of scanned nodes to avoid infinite loop
   scannedNodes: Set<t.Node> = new Set(),
@@ -113,7 +113,7 @@ export const searchStringLiterals = (
       searchStringLiterals(body, callback, scannedNodes);
     }
   } else if (t.isReturnStatement(path.node)) {
-  /* function return statement */
+    /* function return statement */
     const argument = path.get("argument");
     if (argument) {
       if (!Array.isArray(argument)) {
@@ -125,7 +125,7 @@ export const searchStringLiterals = (
       }
     }
   } else if (t.isBinaryExpression(path.node)) {
-  /* binary expression (e.g. const a = "hello" + "world") */
+    /* binary expression (e.g. const a = "hello" + "world") */
     const left = path.get("left");
     const right = path.get("right");
     if (left && !Array.isArray(left)) {
@@ -135,7 +135,7 @@ export const searchStringLiterals = (
       searchStringLiterals(right, callback, scannedNodes);
     }
   } else if (t.isStringLiteral(path.node)) {
-  /* string literal (e.g. "hello"), the string within the quotes */
+    /* string literal (e.g. "hello"), the string within the quotes */
     const replacement = callback(path.node.value);
     if (replacement) {
       path.replaceWith(t.stringLiteral(replacement));
@@ -155,7 +155,7 @@ export const searchStringLiterals = (
       }
     }
   } else if (t.isCallExpression(path.node)) {
-  /* call expression (e.g. const a = call()) */
+    /* call expression (e.g. const a = call()) */
     const callee = path.get("callee");
     if (callee && !Array.isArray(callee)) {
       searchStringLiterals(callee, callback, scannedNodes);
@@ -174,7 +174,7 @@ export const searchStringLiterals = (
       });
     }
   } else if (t.isConditionalExpression(path.node)) {
-  /* conditional expression (e.g. const a = true ? "hello" : "world") */
+    /* conditional expression (e.g. const a = true ? "hello" : "world") */
     const test = path.get("test");
     const consequent = path.get("consequent");
     const alternate = path.get("alternate");
@@ -188,7 +188,7 @@ export const searchStringLiterals = (
       searchStringLiterals(alternate, callback, scannedNodes);
     }
   } else if (t.isIfStatement(path.node)) {
-  /* if statement (e.g. if (true) { "hello" } else { "world" }) */
+    /* if statement (e.g. if (true) { "hello" } else { "world" }) */
     const test = path.get("test");
     const consequent = path.get("consequent");
     const alternate = path.get("alternate");
@@ -202,7 +202,7 @@ export const searchStringLiterals = (
       searchStringLiterals(alternate, callback, scannedNodes);
     }
   } else if (t.isObjectExpression(path.node)) {
-  /* object expression (e.g. const a = { key: "value" }) */
+    /* object expression (e.g. const a = { key: "value" }) */
     const properties = path.get("properties");
     if (Array.isArray(properties)) {
       properties.forEach((prop) => {
@@ -210,13 +210,13 @@ export const searchStringLiterals = (
       });
     }
   } else if (t.isObjectProperty(path.node)) {
-  /* object property (key and value of an object expression) */
+    /* object property (key and value of an object expression) */
     const value = path.get("value");
     if (value && !Array.isArray(value)) {
       searchStringLiterals(value, callback, scannedNodes);
     }
   } else if (t.isArrayExpression(path.node)) {
-  /* array expression (e.g. const a = ["element_1", "element_2"]) */
+    /* array expression (e.g. const a = ["element_1", "element_2"]) */
     const elements = path.get("elements");
     if (Array.isArray(elements)) {
       elements.forEach((element) => {
@@ -224,7 +224,7 @@ export const searchStringLiterals = (
       });
     }
   } else if (t.isSwitchStatement(path.node)) {
-  /* switch statement (e.g. switch (value) { case "1": return "one"; case "2": return "two"; default: return "default"; }) */
+    /* switch statement (e.g. switch (value) { case "1": return "one"; case "2": return "two"; default: return "default"; }) */
     const cases = path.get("cases");
     if (Array.isArray(cases)) {
       cases.forEach((c) => {
@@ -232,7 +232,7 @@ export const searchStringLiterals = (
       });
     }
   } else if (t.isSwitchCase(path.node)) {
-  /* switch case (e.g. case "1": return "one") */
+    /* switch case (e.g. case "1": return "one") */
     const consequent = path.get("consequent");
     if (Array.isArray(consequent)) {
       consequent.forEach((c) => {
@@ -290,7 +290,7 @@ export const searchStringLiterals = (
       }
     }
   } else if (t.isMemberExpression(path.node)) {
-  /* member expression (e.g. "scroll-top".replace("-", "_")); "scroll-top ".concat("visible"); */
+    /* member expression (e.g. "scroll-top".replace("-", "_")); "scroll-top ".concat("visible"); */
     const object = path.get("object");
     const property = path.get("property");
     const argument = path.get("argument");
@@ -308,7 +308,7 @@ export const searchStringLiterals = (
       });
     }
   } else if (t.isTemplateLiteral(path.node)) {
-  /* template literal (e.g. `hello ${name}`) */
+    /* template literal (e.g. `hello ${name}`) */
     const quasis = path.get("quasis");
     const expressions = path.get("expressions");
     if (Array.isArray(quasis)) {
@@ -322,7 +322,7 @@ export const searchStringLiterals = (
       });
     }
   } else if (t.isTemplateElement(path.node)) {
-  /* template element (e.g. `hello ${name}`) */
+    /* template element (e.g. `hello ${name}`) */
     const node = path.node as t.TemplateElement;
 
     if (node.value) {

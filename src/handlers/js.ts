@@ -120,10 +120,10 @@ export const obfuscateForwardComponentJs = (
     }
   }
 
-  for (let i = 0; i < componentsCode.length; i++) {
+  for (const component of componentsCode) {
     const childComponentObfuscatedcomponentCodePairs =
       obfuscateForwardComponentJs(
-        componentsCode[i].code,
+        component.code,
         wholeContent,
         selectorConversion,
       );
@@ -175,6 +175,7 @@ export const obfuscateJs = (
   }
 
   const truncatedContents = findContentBetweenMarker(content, key, "{", "}");
+  let newContent = content;
   truncatedContents.forEach((truncatedContent) => {
     const { obfuscatedContent, usedKeys } = obfuscateKeys(
       selectorCoversion,
@@ -183,7 +184,7 @@ export const obfuscateJs = (
     );
     addKeysToRegistery(usedKeys);
     if (truncatedContent !== obfuscatedContent) {
-      content = content.replace(truncatedContent, obfuscatedContent);
+      newContent = newContent.replace(truncatedContent, obfuscatedContent);
       log(
         "debug",
         `Obscured keys with marker "${key}":`,
@@ -191,5 +192,5 @@ export const obfuscateJs = (
       );
     }
   });
-  return content;
+  return newContent;
 };

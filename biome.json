@@ -53,7 +53,6 @@
       },
       "suspicious": {
         "noDebugger": "info",
-        "noConsoleLog": "info",
         "noEmptyBlockStatements": "error",
         "noExplicitAny": "error",
         "noExtraNonNullAssertion": "error",

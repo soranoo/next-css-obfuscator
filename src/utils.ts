@@ -290,7 +290,6 @@ export const obfuscateKeys = (
   selectorConversion: SelectorConversion,
   fileContent: string,
   contentIgnoreRegexes: RegExp[] = [],
-  useHtmlEntity = false,
 ) => {
   //ref: https://github.com/n4j1Br4ch1D/postcss-obfuscator/blob/main/utils.js
 
