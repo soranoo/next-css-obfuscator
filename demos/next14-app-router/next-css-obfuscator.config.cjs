@@ -1,3 +1,4 @@
+/** @type {import("next-css-obfuscator").Options} */
 module.exports = {
     enable: true,
     mode: "random", // random | simplify
