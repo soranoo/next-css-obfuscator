@@ -13,7 +13,7 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "moduleResolution": "node",
-    "newLine": "LF",
+    "newLine": "LF"
   },
   "exclude": [
     "node_modules",
@@ -23,6 +23,7 @@
     "bin",
     "patched-postcss-obfuscator",
     "demos",
-    "src/*.test.*"
+    "src/*.test.*",
+    "release.config.cjs"
   ]
 }

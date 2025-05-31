@@ -8,48 +8,60 @@ Project starts on 30-10-2023
 
 [![npm version](https://img.shields.io/npm/v/next-css-obfuscator?color=red&style=flat)](https://www.npmjs.com/package/next-css-obfuscator) [![npm downloads](https://img.shields.io/npm/dt/next-css-obfuscator?color=blue&style=flat)](https://www.npmjs.com/package/next-css-obfuscator)
 
-> [!CAUTION]\
-> This package has no support for TailwindCSS 4 yet, but is under development, and hopefully will be able to release within 1-2 months.
-
 ---
 
 Visit the [GitHub Page](https://github.com/soranoo/next-css-obfuscator/) for better reading experience and latest docs. 😎
 
---- 
+---
 
+### 🎉 Version 3 has NOW been released 🎉 (💥 Breaking Changes)
 
-### 🎉 Version 2.1.0 has NOW been released 🎉
-  Shout out to [hoangnhan2ka3](https://github.com/hoangnhan2ka3) for providing a 💪wonderful [issue](https://github.com/soranoo/next-css-obfuscator/issues/6) report and a demo site. 
+>[!IMPORTANT]\
+> This version is a major update and has breaking changes. Please read the [migration guide](docs/upgrade-to-v3.md) carefully before upgrading.
 
-  #### 📌 Changes
-  - Much Much Much better quality of CSS selector obfuscation
-  - Delete original CSS automatically after obfuscation (only apply at full obfuscation)
-  - Support TailwindCSS Universal Selector (eg. `*:pt-4`)
-  - More tests
+>[!TIP]\
+> Don't upgrade to this version unless you are using TailwindCSS 4.0.0 or above. "If it works, don't touch it." :)
 
-  #### 📌 Configuration Changes
-  - Removed `customTailwindDarkModeSelector` option, the dark mode selector will be automatically obfuscated at full obfuscation.
-  - Merged `includeAnyMatchRegexes` and `excludeAnyMatchRegexes` options into `whiteListedFolderPaths` and `blackListedFolderPaths` options. (Directly move the regexes to the `whiteListedFolderPaths` and `blackListedFolderPaths` options)
-  - Added `removeOriginalCss` option, default to `false`. Set to `true` to delete original CSS from CSS files if it has a obfuscated version.
-  - `classIgnore` option now supports Regex.
+#### 📌 Feature Changes
+  
+- Support TailwindCSS 4.
+- Support nested CSS.
+- Support CSS idents obfuscation.
+
+#### 📌 Configuration Changes
+  
+- `enableJsAst` option is now enabled by default.
+- Default `generatorSeed` not longer fixed to `-1`, but a random string.
+- `simplify-seedable` mode is not longer supported. Use `random` mode instead.
+- Removed `includeAnyMatchRegexes` and `excludeAnyMatchRegexes` options, the `whiteListedFolderPaths` and `blackListedFolderPaths` options will be used instead.
+- Deprecated `classLength` option, not longer supported.
+- Added `ignorePatterns` option to ignore the class names and idents that match the regexes or strings.
+- Not longer preserve TailwindCSS dark mode class names (ie `.dark`). Add the dark mode class name to the `ignorePatterns.selectors` option to preserve it.
+- Merge `classIgnore` into `ignorePatterns.selectors` option.
+- Renamed `classPrefix` and `classSuffix` to `prefix` and `suffix`.
 
 ### 💥 Version 2 (Major Update)
+
   This version is deeply inspired by [PostCSS-Obfuscator](https://github.com/n4j1Br4ch1D/postcss-obfuscator). Shout out to [n4j1Br4ch1D](https://github.com/n4j1Br4ch1D) for creating such a great package and thank you [tremor](https://github.com/tremorlabs) for sponsoring this project.
 
-  #### 📌 Changes
-  - Support basic partial obfuscation
-  - Support TailwindCSS Dark Mode
-  - New configuration file `next-css-obfuscator.config.cjs`
-  - More configuration options
-  - Now become a independent solution (no need to patch `PostCSS-Obfuscator` anymore)
-  - More tests
-  - Better CSS parsing
+#### 📌 Changes
+
+- Support basic partial obfuscation
+- Support TailwindCSS Dark Mode
+- New configuration file `next-css-obfuscator.config.cjs`
+- More configuration options
+- Now become a independent solution (no need to patch `PostCSS-Obfuscator` anymore)
+- More tests
+- Better CSS parsing
   
 ### 📚 Migration Guides
-- [Migrate from version 1.x to 2.x](docs/upgrade-to-v2.md)
 
+- [Migrate from version 1.x to 2.x](docs/upgrade-to-v2.md)
+- [Migrate from version 2.x to 3.x](docs/upgrade-to-v3.md)
 
 [version 1.x README](https://github.com/soranoo/next-css-obfuscator/tree/v.1.1.0)
+
+[version 2.x README](https://github.com/soranoo/next-css-obfuscator/tree/v.2.2.19)
 
 Give me a ⭐ if you like it.
 
@@ -152,21 +164,29 @@ Visit the [npm](https://www.npmjs.com/package/next-css-obfuscator) page.
 
 1. Create and add the following code to `next-css-obfuscator.config.cjs` or `next-css-obfuscator.config.ts`:
 
-    ##### Obfuscate all files
+   ##### Obfuscate all files
+
     ```javascript
+    /** @type {import("next-css-obfuscator").Options} */
     module.exports = {
         enable: true,
-        mode: "random", // random | simplify | simplify-seedable
+        mode: "random", // random | simplify
         refreshClassConversionJson: false, // recommended set to true if not in production
         allowExtensions: [".jsx", ".tsx", ".js", ".ts", ".html", ".rsc"],
       };
 
     ```
-    ##### Partially obfuscate
+
+   ##### Partially obfuscate
+
+> [!CAUTION]\
+> Partially obfuscate can be EXTREMELY buggy. Be cautious when using this feature.
+
     ```javascript
+    /** @type {import("next-css-obfuscator").Options} */
     module.exports = {
         enable: true,
-        mode: "random", // random | simplify | simplify-seedable
+        mode: "random", // random | simplify
         refreshClassConversionJson: false, // recommended set to true if not in production
         allowExtensions: [".jsx", ".tsx", ".js", ".ts", ".html", ".rsc"],
 
@@ -175,21 +195,10 @@ Visit the [npm](https://www.npmjs.com/package/next-css-obfuscator) page.
 
     ```
 
-    ##### TypeScript
-    ```ts
-    import { Options } from "next-css-obfuscator";
-
-    module.exports = {
-      // other options ...
-    } as Options;
-    ```
-
-
-
     Feel free to checkout [📖 Config Options Reference](#-config-options-reference) for more options and details.
 
-    > [!NOTE]\
-    > The obfuscation will never work as expected, tweak the options with your own needs.
+> [!TIP]\
+> The obfuscation will never work as expected, tweak the options with your own needs.
 
 2. Add the following code to `package.json`:
 
@@ -232,6 +241,7 @@ to make sure the build is always obfuscated and no need to run `obfuscate-build`
 > It is a good idea to add the `/css-obfuscator` folder to `.gitignore` to prevent the conversion table from being uploaded to the repository.
 
 #### Partially obfuscate
+
 To partially obfuscate your project, you have to add the obfuscate marker class to the components you want to obfuscate.
 
 ```diff
@@ -260,14 +270,15 @@ See [Next 14 App Router Partially Obfuscated Demo](https://github.com/soranoo/ne
 
 ## 🔧 My Setting
 
-If you are interested in my setting (from my production site), here it is
+If you are interested in my setting, here it is
 
 ```javascript
 // next-css-obfuscator.config.cjs
 
+/** @type {import("next-css-obfuscator").Options} */
 module.exports = {
   enable: true,
-  mode: "random", // random | simplify | simplify-seedable
+  mode: "random", // random | simplify
   refreshClassConversionJson: false, // recommended set to true if not in production
   allowExtensions: [".jsx", ".tsx", ".js", ".ts", ".html", ".rsc"],
 
@@ -280,6 +291,7 @@ module.exports = {
   ],
 };
 ```
+
 [*1] See this [comment](https://github.com/soranoo/next-css-obfuscator/issues/6#issuecomment-1919495298)
 
 It may not be the best setting but it works for me. :)
@@ -289,29 +301,31 @@ It may not be the best setting but it works for me. :)
 | Option                       | Type                                                        | Default                  | Description                                                                                                                     |
 | ---------------------------- | ----------------------------------------------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------- |
 | enable                       | boolean                                                     | true                     | Enable or disable the obfuscation.                                                                                              |
-|mode| "random" \| "simplify" \| "simplify-seedable" | "random" | Obfuscate mode, <br><br>**random**: Fixed size random class name <br><br>**simplify**: Alphabetic class name, like [medium](https://medium.com/) <br><br>**simplify-seedable**: Random dynamic size class name|
+| mode                         | "random" \| "simplify" | "random" | Obfuscate mode, <br><br>**random**: Fixed size random class name <br><br>**simplify**: Alphabetic class name, like [medium](https://medium.com/)|
 |buildFolderPath|string|"./.next"|The folder path to store the build files built by Next.js.|
 |classConversionJsonFolderPath|string|"./css-obfuscator"|The folder path to store the before obfuscate and after obfuscated classes conversion table.|
 |refreshClassConversionJson|boolean|false|Refresh the class conversion JSON file(s) at every obfuscation. Good for setting tweaking but not recommended for production.|
-|classLength|number|5|The length of the obfuscated class name if in random mode. <br><br>It is not recommended to set the length to less than 4.
-|classPrefix|string|""|The prefix of the obfuscated class name.|
-|classSuffix|string|""|The suffix of the obfuscated class name.|
-|classIgnore|(string \| Regex)[ ]|[ ]|The class names to be ignored during obfuscation.|
+|prefix.selectors|string|""|The prefix of the obfuscated classname.|
+|prefix.idents|string|""|The prefix of the obfuscated ident name.|
+|suffix.selectors|string|""|The suffix of the obfuscated classname.|
+|suffix.idents|string|""|The suffix of the obfuscated ident name.|
+|ignorePatterns|{selectors: [], idents: []}|{selectors: [], idents: []}|The patterns to be ignored during obfuscation.|
 |allowExtensions|string[ ]|[".jsx", ".tsx", ".js", ".ts", ".html", ".rsc"]|The file extensions to be processed.|
 |contentIgnoreRegexes|RegExp[ ]|[/\.jsxs\)\("\w+"/g]|The regexes to match the content to be ignored  during obfuscation.|
-|whiteListedFolderPaths|(string \| Regex)[ ]|[ ]|The folder paths/Regex to be processed. Empty array means all folders will be processed.|
-|blackListedFolderPaths|(string \| Regex)[ ]|[ ]|The folder paths/Regex to be ignored.|
+|whiteListedFolderPaths|[string \| Regex]( )|[ ]|The folder paths/Regex to be processed. Empty array means all folders will be processed.|
+|blackListedFolderPaths|[string \| Regex]( )|[ ]|The folder paths/Regex to be ignored.|
 |enableMarkers|boolean|false|Enable or disable the obfuscation markers.|
 |markers|string[ ]|[ ]|Classes that indicate component(s) need to obfuscate.|
 |removeMarkersAfterObfuscated|boolean|true|Remove the obfuscation markers from HTML elements after obfuscation.|
 |removeOriginalCss|boolean|false|Delete original CSS from CSS files if it has a obfuscated version. (*NOT recommended* using in partial obfuscation)
-|generatorSeed|string|"-1"|The seed for the random class name generator. "-1" means use random seed. <br><br>For "random" and "simplify-seedable" mode only. |
+|generatorSeed|string \| undefined|{random string}|The seed for the random class name generator. "undefined" means use random seed. <br><br>For "random" mode only. |
 |logLevel|"debug" \| "info" \| "warn" \| "error" \| "success"| "info"|The log level.|
 
 ### Experimental Features Options 🚧
+
 | Option| Type| Default| Description| Stage |
 | - | - | - | - | - |
-|enableJsAst|boolean|false|Whether to obfuscate JS files using abstract syntax tree parser. <br><br>`contentIgnoreRegexes` option will be ignored if this option is enabled.|Alpha|
+|enableJsAst|boolean|true|Whether to obfuscate JS files using abstract syntax tree parser. <br><br>`contentIgnoreRegexes` option will be ignored if this option is enabled.|Alpha|
 
 > [!NOTE]\
 > The above options are still at the early stages of development and may not work as expected.
@@ -320,26 +334,57 @@ It may not be the best setting but it works for me. :)
 
 > [!NOTE]\
 > **Stages** -
+>
 > 1. **PoC**: Proof of Concept. The feature is still in the concept stage and is not recommended in production.
 > 2. **Alpha**: The feature is still in the early stage of development and may not work as expected.
 > 3. **Beta**: The feature is almost completed and should work as expected but may have some issues. (if no issue is reported in a period, it will be considered stable.)
 > 4. **Stable**: The feature is in the final stage of development and should work as expected.
 
 ### All options in one place 📦
+
 ```js
 // next-css-obfuscator.config.cjs
 
 module.exports = {
     enable: true, // Enable or disable the plugin.
-    mode: "random", // Obfuscate mode, "random", "simplify" or "simplify-seedable"
+    mode: "random", // Obfuscate mode, "random", "simplify" or "simplify-seedable".
     buildFolderPath: ".next", // Build folder of your project.
     classConversionJsonFolderPath: "./css-obfuscator", // The folder path to store the before obfuscate and after obfuscated classes conversion table.
     refreshClassConversionJson: false, // Refresh the class conversion JSON file.
 
+    /**
+     * @deprecated Not longer used from v3.0.0 and will be removed in the next major version.
+     */
     classLength: 5, // Length of the obfuscated class name.
+
+    /**
+     * @deprecated Merged into `prefix` from v3.0.0 and will be removed in the next major version.
+     */
     classPrefix: "", // Prefix of the obfuscated class name.
+
+    /**
+     * @deprecated Merged into `suffix` from v3.0.0 and will be removed in the next major version.
+     */
     classSuffix: "", // Suffix of the obfuscated class name.
+
+    prefix: {
+      selectors: "", // Prefix of the obfuscated classname.
+      idents: "", // Prefix of the obfuscated ident name.
+    },
+    suffix: {
+      selectors: "", // Suffix of the obfuscated classname.
+      idents: "", // Suffix of the obfuscated ident name.
+    },
+
+    /**
+     * @deprecated Merged into `ignorePatterns.selectors` from v3.0.0 and will be removed in the next major version.
+     */
     classIgnore: [], // The class names to be ignored during obfuscation.
+    ignorePatterns: { // The patterns to be ignored during obfuscation.
+        selectors: [], // The selectors to be ignored during obfuscation.
+        idents: [], // The idents to be ignored during obfuscation.
+    },
+
     allowExtensions: [".jsx", ".tsx", ".js", ".ts", ".html", ".rsc"], // The file extensions to be processed.
     contentIgnoreRegexes: [
         /\.jsxs\)\("\w+"/g, // avoid accidentally obfuscate the HTML tag
@@ -351,10 +396,12 @@ module.exports = {
     markers: ["next-css-obfuscation"], // Classes that indicate component(s) need to obfuscate.
     removeMarkersAfterObfuscated: true, // Remove the obfuscation markers from HTML elements after obfuscation.
     removeOriginalCss: false, // Delete original CSS from CSS files if it has a obfuscated version.
-    generatorSeed: "-1", // The seed for the random generator. "-1" means use random seed.
+    generatorSeed: undefined, // The seed for the random generator. "undefined" means use random seed.
 
-    //! Experimental feature
-    enableJsAst: false, // Whether to obfuscate JS files using abstract syntax tree parser (Experimental feature)
+    /**
+     * Experimental feature
+     */
+    enableJsAst: true, // Whether to obfuscate JS files using abstract syntax tree parser. (Experimental feature)
 
     logLevel: "info", // Log level
 };
@@ -385,6 +432,7 @@ Your conversion table may be messed up. Try to delete the `classConversionJsonFo
 In a normal situation, the package will only remove the original CSS that is related to the obfuscation and you should not see any CSS sharing the same declaration block.
 
 You are not expected to see this:
+
 ```css
 /* example.css */
 
@@ -396,18 +444,20 @@ You are not expected to see this:
 
 /* obfuscated form */
 .d8964 {
-  --tw-text-opacity: 1;
-  color: rgb(214 211 209 / var(--tw-text-opacity));
+  --d89645: 1;
+  color: rgb(214 211 209 / var(--d89645));
 }
 ```
+
 But this:
+
 ```css
 /* example.css */
 
 /* obfuscated form */
 .d8964 {
-  --tw-text-opacity: 1;
-  color: rgb(214 211 209 / var(--tw-text-opacity));
+  --d89645: 1;
+  color: rgb(214 211 209 / var(--d89645));
 }
 ```
 
@@ -463,6 +513,7 @@ If you are going to obfuscate the whole site, you will get a way more accurate o
 Thank you to all the sponsors who support this project.
 
 #### Organizations (1)
+
 <table>
   <tr>
   <td align="center">
@@ -475,6 +526,7 @@ Thank you to all the sponsors who support this project.
 </table>
 
 #### Individuals (1)
+
 <table>
   <tr>
   <td align="center">
@@ -487,6 +539,7 @@ Thank you to all the sponsors who support this project.
 </table>
 
 ## 🦾 Special Thanks
+
 <table>
   <tr>
   <td align="center">
@@ -505,9 +558,11 @@ Contributions are welcome! If you find a bug or have a feature request, please o
 ## 🏛️ Commercial Usage
 
 #### Individual🕺
+
 Are you using this package for a personal project? That's great! You can support us by starring this repo on Github ⭐🌟⭐.
 
 #### Organization 👯‍♂️
+
 Are you using this package within your organization and generating revenue from it? Fantastic! We depend on your support to continue developing and maintaining the package under an MIT License. You might consider showing your support through [Github Sponsors](https://github.com/sponsors/soranoo).
 
 ## 📝 License

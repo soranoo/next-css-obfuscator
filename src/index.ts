@@ -1,19 +1,19 @@
-import fs from "fs";
-import path from "path";
+import type { OptionalOptions, Options } from "./types";
+
+import fs from "node:fs";
+import path from "node:path";
 import yargs from "yargs";
+import Config from "./config";
+import { obfuscateCssFiles } from "./handlers/css";
 import {
+  findAllFilesWithExt,
+  getFilenameFromPath,
   log,
   replaceJsonKeysInFiles,
   setLogLevel,
-  findAllFilesWithExt,
 } from "./utils";
 
-import { createSelectorConversionJson } from "./handlers/css";
-
-import Config from "./config";
-import { Options, OptionalOptions } from "./types";
-
-function obfuscate(options: Options) {
+const obfuscate = async (options: Options) => {
   setLogLevel(options.logLevel);
 
   if (!options.enable) {
@@ -21,8 +21,14 @@ function obfuscate(options: Options) {
     return;
   }
 
-  const classConversionJsonPaths = findAllFilesWithExt(".json", options.classConversionJsonFolderPath);
-  if (options.refreshClassConversionJson && classConversionJsonPaths.length > 0) {
+  const classConversionJsonPaths = findAllFilesWithExt(
+    ".json",
+    options.classConversionJsonFolderPath,
+  );
+  if (
+    options.refreshClassConversionJson &&
+    classConversionJsonPaths.length > 0
+  ) {
     log("info", "Obfuscation", "Refreshing class conversion JSON");
     for (const jsonPath of classConversionJsonPaths) {
       fs.unlinkSync(jsonPath);
@@ -31,52 +37,78 @@ function obfuscate(options: Options) {
   }
 
   log("info", "Obfuscation", "Creating/Updating class conversion JSON");
-  createSelectorConversionJson({
-    selectorConversionJsonFolderPath: options.classConversionJsonFolderPath,
-    buildFolderPath: options.buildFolderPath,
 
-    mode: options.mode,
-    classNameLength: options.classLength,
-    classPrefix: options.classPrefix,
-    classSuffix: options.classSuffix,
-    classIgnore: options.classIgnore,
-
-    enableObfuscateMarkerClasses: options.enableMarkers,
-    generatorSeed: options.generatorSeed === "-1" ? undefined : options.generatorSeed,
-  });
-  log("success", "Obfuscation", "Class conversion JSON created/updated");
-
-  if ((options.includeAnyMatchRegexes && options.includeAnyMatchRegexes.length > 0)
-    || (options.excludeAnyMatchRegexes && options.excludeAnyMatchRegexes.length > 0)) {
-    log("warn", "Obfuscation", "'includeAnyMatchRegexes' and 'excludeAnyMatchRegexes' are deprecated, please use whiteListedFolderPaths and blackListedFolderPaths instead");
+  // Reconstruct ignore patterns for backward compatibility
+  // TODO: Remove in the next major version
+  let ignorePatterns = options.ignorePatterns;
+  if (options.classIgnore) {
+    if (ignorePatterns && !Array.isArray(ignorePatterns)) {
+      ignorePatterns.selectors?.push(...options.classIgnore);
+    } else {
+      ignorePatterns = {
+        selectors: [...(ignorePatterns || []), ...options.classIgnore],
+        idents: [...(ignorePatterns || [])],
+      };
+    }
   }
 
+  // Create conversion tables and obfuscate CSS files
+  const { conversionTables } = await obfuscateCssFiles({
+    selectorConversionJsonFolderPath: options.classConversionJsonFolderPath,
+    buildFolderPath: options.buildFolderPath,
+    whiteListedFolderPaths: options.whiteListedFolderPaths,
+    blackListedFolderPaths: options.blackListedFolderPaths,
+
+    mode: options.mode,
+    prefix: options.prefix || { selectors: options.classPrefix },
+    suffix: options.suffix || { selectors: options.classSuffix },
+    ignorePatterns: ignorePatterns,
+
+    generatorSeed: options.generatorSeed,
+    removeOriginalCss: options.removeOriginalCss,
+  });
+
+  // Save the conversion table to a JSON file
+  const jsonPath = path.join(
+    process.cwd(),
+    options.classConversionJsonFolderPath,
+    "conversion.json",
+  );
+  console.log({ jsonPath });
+  fs.writeFileSync(jsonPath, JSON.stringify(conversionTables, null, 2));
+  log(
+    "success",
+    "CSS obfuscation:",
+    `Saved conversion table to ${getFilenameFromPath(jsonPath)}`,
+  );
+
+  // Use the same unified paths for replacing JSON keys in files
   replaceJsonKeysInFiles({
+    conversionTables: conversionTables,
     targetFolder: options.buildFolderPath,
     allowExtensions: options.allowExtensions,
-    selectorConversionJsonFolderPath: options.classConversionJsonFolderPath,
 
     contentIgnoreRegexes: options.contentIgnoreRegexes,
 
-    whiteListedFolderPaths: [...options.whiteListedFolderPaths, ...(options.includeAnyMatchRegexes || [])],
-    blackListedFolderPaths: [...options.blackListedFolderPaths, ...(options.excludeAnyMatchRegexes || [])],
+    whiteListedFolderPaths: options.whiteListedFolderPaths,
+    blackListedFolderPaths: options.blackListedFolderPaths,
     enableObfuscateMarkerClasses: options.enableMarkers,
     obfuscateMarkerClasses: options.markers,
-    removeObfuscateMarkerClassesAfterObfuscated: options.removeMarkersAfterObfuscated,
-    removeOriginalCss: options.removeOriginalCss,
+    removeObfuscateMarkerClassesAfterObfuscated:
+      options.removeMarkersAfterObfuscated,
 
     enableJsAst: options.enableJsAst,
   });
-}
+};
 
-function obfuscateCli() {
+export const obfuscateCli = async () => {
   const argv = yargs.option("config", {
     alias: "c",
     type: "string",
-    description: "Path to the config file"
+    description: "Path to the config file",
   }).argv;
 
-  let configPath;
+  let configPath: string | undefined = undefined;
 
   // @ts-ignore
   if (argv.config) {
@@ -100,8 +132,8 @@ function obfuscateCli() {
   }
 
   const config = new Config(configPath ? require(configPath) : undefined).get();
-  obfuscate(config);
+  await obfuscate(config);
   log("success", "Obfuscation", "Completed~");
-}
+};
 
-export { obfuscateCli, type OptionalOptions as Options };
+export type { OptionalOptions as Options };

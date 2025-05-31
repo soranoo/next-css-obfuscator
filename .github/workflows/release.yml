@@ -1,0 +1,48 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+      - beta
+  pull_request:
+    branches:
+      - main
+      - beta
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # to be able to publish a GitHub release
+      issues: write # to be able to comment on released issues
+      pull-requests: write # to be able to comment on released pull requests
+      id-token: write # to enable use of OIDC for npm provenance
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build NPM package
+        run: npm run build
+
+      - name: Edit First Release Version
+        run: sed -i 's/\( FIRST_RELEASE\) = "1.0.0"/\1 = "3.0.0"/' node_modules/semantic-release/lib/definitions/constants.js
+
+      - name: Edit First Prerelease Version
+        run: sed -i 's/\( FIRSTPRERELEASE\) = "1"/\1 = "3"/' node_modules/semantic-release/lib/definitions/constants.js
+
+      - name: Create Release
+        if: github.event_name == 'push'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm run semantic-release
+
+      - name: Dry Run Release
+        if: github.event_name == 'pull_request'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run semantic-release --dry-run

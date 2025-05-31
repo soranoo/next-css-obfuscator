@@ -1,85 +1,86 @@
-type LogLevel = "debug" | "info" | "warn" | "error" | "success";
-type obfuscateMode = "random" | "simplify" | "simplify-seedable";
-type SelectorConversion = { [key: string]: string };
+import type {
+  ConversionTables,
+  PrefixSuffixOptions,
+  TransformProps,
+} from "css-seasoning";
 
-type Options = {
-    enable: boolean;
-    mode: obfuscateMode;
-    buildFolderPath: string;
-    classConversionJsonFolderPath: string;
-    refreshClassConversionJson: boolean;
+export type LogLevel = "debug" | "info" | "warn" | "error" | "success";
+export type obfuscateMode = "random" | "simplify";
+export type SelectorConversion = ConversionTables["selectors"];
 
-    classLength: number;
-    classPrefix: string;
-    classSuffix: string;
-    classIgnore: (string | RegExp)[];
-    allowExtensions: string[];
-    contentIgnoreRegexes: RegExp[];
+export type Options = {
+  enable: boolean;
+  mode: obfuscateMode;
+  buildFolderPath: string;
+  classConversionJsonFolderPath: string;
+  refreshClassConversionJson: boolean;
 
-    whiteListedFolderPaths: (string | RegExp)[];
-    blackListedFolderPaths: (string | RegExp)[];
-    /**
-     * @deprecated
-     */
-    includeAnyMatchRegexes?: RegExp[];
-    /**
-     * @deprecated
-     */
-    excludeAnyMatchRegexes?: RegExp[];
-    enableMarkers: boolean;
-    markers: string[];
-    removeMarkersAfterObfuscated: boolean;
-    removeOriginalCss: boolean;
-    generatorSeed: string;
+  /**
+   * @deprecated Not longer used from v3.0.0 and will be removed in the next major version.
+   */
+  classLength: number;
 
-    enableJsAst: boolean;
+  /**
+   * @deprecated Merged into `prefix` from v3.0.0 and will be removed in the next major version.
+   */
+  classPrefix: string;
+  /**
+   * @deprecated Merged into `suffix` from v3.0.0 and will be removed in the next major version.
+   */
+  classSuffix: string;
 
-    logLevel: LogLevel;
-}
-type OptionalOptions = {
-    enable?: boolean;
-    mode?: obfuscateMode;
-    buildFolderPath?: string;
-    classConversionJsonFolderPath?: string;
-    refreshClassConversionJson?: boolean;
+  prefix: PrefixSuffixOptions;
+  suffix: PrefixSuffixOptions;
 
-    classLength?: number;
-    classPrefix?: string;
-    classSuffix?: string;
-    classIgnore?: string[];
-    allowExtensions?: string[];
-    contentIgnoreRegexes: RegExp[];
+  /**
+   * @deprecated Merged into `ignorePatterns.selectors` from v3.0.0 and will be removed in the next major version.
+   */
+  classIgnore: (string | RegExp)[];
+  ignorePatterns: TransformProps["ignorePatterns"];
 
-    whiteListedFolderPaths?: (string | RegExp)[];
-    blackListedFolderPaths?: (string | RegExp)[];
-    /**
-     * @deprecated
-     */
-    includeAnyMatchRegexes?: RegExp[];
-    /**
-     * @deprecated
-     */
-    excludeAnyMatchRegexes?: RegExp[];
-    enableMarkers?: boolean;
-    markers?: string[];
-    removeMarkersAfterObfuscated?: boolean;
-    removeOriginalCss?: boolean;
-    generatorSeed?: string;
+  allowExtensions: string[];
+  contentIgnoreRegexes: RegExp[];
 
-    enableJsAst?: boolean;
+  whiteListedFolderPaths: (string | RegExp)[];
+  blackListedFolderPaths: (string | RegExp)[];
+  enableMarkers: boolean;
+  markers: string[];
+  removeMarkersAfterObfuscated: boolean;
+  removeOriginalCss: boolean;
+  generatorSeed: string | undefined;
 
-    logLevel?: LogLevel;
-}
+  enableJsAst: boolean;
 
-interface HtmlCharacterEntityConversion {
-    [key: string]: string;
-  }
+  logLevel: LogLevel;
+};
 
-export {
-    type LogLevel,
-    type obfuscateMode,
-    type SelectorConversion,
-    type Options,
-    type OptionalOptions,
-    type HtmlCharacterEntityConversion
+export type OptionalOptions = {
+  enable?: boolean;
+  mode?: obfuscateMode;
+  buildFolderPath?: string;
+  classConversionJsonFolderPath?: string;
+  refreshClassConversionJson?: boolean;
+
+  classLength?: number;
+  classPrefix?: string;
+  classSuffix?: string;
+  classIgnore?: string[];
+  allowExtensions?: string[];
+  contentIgnoreRegexes: RegExp[];
+
+  whiteListedFolderPaths?: (string | RegExp)[];
+  blackListedFolderPaths?: (string | RegExp)[];
+  enableMarkers?: boolean;
+  markers?: string[];
+  removeMarkersAfterObfuscated?: boolean;
+  removeOriginalCss?: boolean;
+  generatorSeed?: string;
+
+  enableJsAst?: boolean;
+
+  logLevel?: LogLevel;
+};
+
+export interface HtmlCharacterEntityConversion {
+  [key: string]: string;
 }
