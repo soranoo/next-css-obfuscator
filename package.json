@@ -73,5 +73,6 @@
     "code privacy",
     "CSS code obfuscator",
     "CSS class name encryption"
-  ]
+  ],
+  "version": "3.0.1"
 }
